@@ -5,7 +5,8 @@ import { capitalize } from '../../lib/utils'
 import { useVenue } from '../../contexts/VenueContext'
 import Modal from '../../components/ui/Modal'
 import { useToast } from '../../components/ui/Toast'
-import { buildPdfReport } from '../../lib/pdfUtils'
+import { buildPdfReport, PDF } from '../../lib/pdfUtils'
+import Button from '../../components/ui/Button'
 
 export default function CleaningExportModal({ open, onClose }) {
   const { venueId } = useVenue()
@@ -18,7 +19,7 @@ export default function CleaningExportModal({ open, onClose }) {
     setLoading(true)
 
     // Fetch all active cleaning tasks
-    const { data: tasks } = await supabase
+    const { data: tasks, error: tasksError } = await supabase
       .from('cleaning_tasks')
       .select('id, title, frequency, departments(name)')
       .eq('venue_id', venueId)
@@ -36,7 +37,8 @@ export default function CleaningExportModal({ open, onClose }) {
 
     setLoading(false)
 
-    if (error) { toast(error.message, 'error'); return }
+    // An export missing its check/task names would be an incomplete record.
+    if (tasksError || error) { toast((tasksError ?? error).message, 'error'); return }
     if (!tasks?.length) { toast('No cleaning tasks found', 'error'); return }
 
     const departmentLabel = (t) => t.departments?.name ?? 'Everyone'
@@ -71,7 +73,7 @@ export default function CleaningExportModal({ open, onClose }) {
       rows,
       didParseCell(hookData) {
         if (hookData.section === 'body' && hookData.cell.raw === 'NOT COMPLETED') {
-          hookData.cell.styles.textColor = [180, 30, 30]
+          hookData.cell.styles.textColor = PDF.bad
           hookData.cell.styles.fontStyle = 'bold'
         }
       },
@@ -87,24 +89,24 @@ export default function CleaningExportModal({ open, onClose }) {
       <div className="flex flex-col gap-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">From</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">From</label>
             <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
               className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
           </div>
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">To</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">To</label>
             <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
               className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
           </div>
         </div>
         <p className="text-xs text-charcoal/40 dark:text-white/35">Tasks with no completions in this period will appear highlighted in red.</p>
-        <button
+        <Button
+          fullWidth
           onClick={handleExport}
           disabled={loading}
-          className="w-full bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
         >
           {loading ? 'Generating…' : 'Export PDF →'}
-        </button>
+        </Button>
       </div>
     </Modal>
   )

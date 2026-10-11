@@ -3,6 +3,8 @@ import { format, startOfWeek, endOfWeek } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { londonToday, londonWallTimeToInstant } from '../lib/time'
 import { readPersisted, writePersisted } from '../lib/persistedCache'
+import { throwIfError } from '../lib/queryErrors'
+import { reportError } from '../lib/reportError'
 
 // SWR cache — 30 s stale (clock status changes frequently). Backed by
 // localStorage so a cold app open renders the last-known tiles immediately
@@ -103,6 +105,8 @@ async function fetchTeamRaw(venueId, today, todayStr, dayStart, dayEnd) {
       .gte('start_date', calendarFrom)
       .lte('start_date', calendarTo),
   ])
+  // A failed read would otherwise count as "0 pending" / "nobody on shift".
+  throwIfError(staffRes, clockRes, swapRes, timeOffRes, trainingRes, shiftsRes, unfilledRes, rotaPubRes, calendarRes)
 
   return {
     allStaff:         staffRes.data ?? [],
@@ -218,7 +222,10 @@ export function useTeamStatus(venueId) {
       cacheSet(key, fresh)
       setData(fresh)
       setLoading(false)
-      } catch {
+      } catch (err) {
+        // Keeps whatever is on screen (cached tiles, or the loading state's
+        // blanks) rather than replacing it with zeros.
+        reportError(err, 'useTeamStatus:fetch')
         if (!entry) setLoading(false)
       }
     }
@@ -228,8 +235,9 @@ export function useTeamStatus(venueId) {
     // tick is 8 queries against the shared database, for a screen nobody sees.
     const interval = setInterval(() => { if (!document.hidden) fetch() }, STALE_MS)
     return () => { cancelled = true; clearInterval(interval) }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [venueId])
+  // dateStr only changes at midnight; without it a dashboard left open
+  // overnight kept filing the new day's numbers under yesterday's cache key.
+  }, [venueId, dateStr])
 
   return { data, loading }
 }

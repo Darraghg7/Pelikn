@@ -11,6 +11,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
+import Button from '../ui/Button'
 
 export default function ClosingChecklistGateModal({
   open,
@@ -57,7 +58,7 @@ export default function ClosingChecklistGateModal({
         {!showOverride ? (
           <>
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-danger mb-1">Closing checklist not finished</p>
+              <p className="text-micro tracking-widest uppercase text-danger mb-1">Closing checklist not finished</p>
               <h3 className="font-semibold text-charcoal dark:text-white text-lg">Before you clock out</h3>
             </div>
 
@@ -67,12 +68,13 @@ export default function ClosingChecklistGateModal({
                 <p className="text-xs text-charcoal/50 dark:text-white/40">
                   {d.doneChecks}/{d.totalChecks} closing checks done — log each as done, or flag an issue, before you can clock out.
                 </p>
-                <button
+                <Button
+                  variant="warning"
                   onClick={() => navigate(`/v/${venueSlug}/opening-closing`)}
-                  className="mt-1 bg-warning text-white py-2.5 rounded-lg text-sm font-medium hover:bg-warning/90 transition-colors"
+                  className="mt-1"
                 >
                   Go to closing checklist →
-                </button>
+                </Button>
               </div>
             ))}
 
@@ -82,35 +84,38 @@ export default function ClosingChecklistGateModal({
                 <p className="text-xs text-charcoal/50 dark:text-white/40">
                   Closing checklist is complete. You're on record for tonight's close — confirm you've checked it yourself before clocking out.
                 </p>
-                <button
+                <Button
+                  loading={accepting === d.departmentId}
                   onClick={() => onAccept(d.departmentId)}
                   disabled={accepting === d.departmentId}
-                  className="mt-1 bg-brand text-white py-2.5 rounded-lg text-sm font-medium hover:bg-brand/90 transition-colors disabled:opacity-50"
+                  className="mt-1"
                 >
                   {accepting === d.departmentId ? 'Confirming…' : 'Accept & Clock Out'}
-                </button>
+                </Button>
               </div>
             ))}
 
             <div className="flex gap-2 pt-1">
-              <button
+              <Button
+                variant="secondary"
                 onClick={onClose}
-                className="flex-1 px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40"
+                className="flex-1"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="link"
                 onClick={() => setShowOverride(true)}
-                className="flex-1 text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white underline"
+                className="flex-1"
               >
                 Manager PIN override
-              </button>
+              </Button>
             </div>
           </>
         ) : (
           <>
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Manager Override</p>
+              <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Manager Override</p>
               <h3 className="font-semibold text-charcoal dark:text-white text-lg">Clock out anyway</h3>
               <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1">
                 A manager confirms this clock-out without the closing checklist being finished. This is logged.
@@ -137,19 +142,20 @@ export default function ClosingChecklistGateModal({
             />
             {pinError && <p className="text-xs text-danger">{pinError}</p>}
             <div className="flex gap-2">
-              <button
+              <Button
+                loading={verifying}
                 onClick={submitOverride}
                 disabled={!managerId || pin.length !== 4 || verifying}
-                className="flex-1 bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium disabled:opacity-40"
+                className="flex-1"
               >
                 {verifying ? 'Verifying…' : 'Confirm Override'}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={() => { setShowOverride(false); setPin(''); setPinError('') }}
-                className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40"
               >
                 Back
-              </button>
+              </Button>
             </div>
           </>
         )}

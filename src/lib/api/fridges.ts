@@ -22,24 +22,26 @@ export async function fetchActiveFridges(venueId: string): Promise<Fridge[]> {
 
   if (!error) return (data ?? []).map(withFridgeDefaults)
 
-  const { data: legacyData } = await supabase
+  const { data: legacyData, error: legacyDataErr } = await supabase
     .from('fridges')
     .select(LEGACY_FRIDGE_COLUMNS)
     .eq('venue_id', venueId)
     .eq('is_active', true)
     .order('name')
+  if (legacyDataErr) throw legacyDataErr
 
   return (legacyData ?? []).map(withFridgeDefaults)
 }
 
 export async function fetchFridgeDashboard(venueId: string): Promise<FridgeWithLastLog[]> {
-  const [fridges, { data: logs }] = await Promise.all([
+  const [fridges, { data: logs, error: logsErr }] = await Promise.all([
     fetchActiveFridges(venueId),
     supabase.from('fridge_temperature_logs').select('fridge_id, temperature, logged_at, logged_by_name')
       .eq('venue_id', venueId)
       .order('logged_at', { ascending: false })
       .limit(1000),
   ])
+  if (logsErr) throw logsErr
 
   const seen = new Set<string>()
   const latestByFridge: Record<string, FridgeLog> = {}
@@ -59,7 +61,7 @@ export async function fetchTodayCheckStatus(
   loadFridges: () => Promise<Fridge[]> = () => fetchActiveFridges(venueId),
 ): Promise<FridgeTodayStatus[]> {
   const today = new Date().toISOString().slice(0, 10)
-  const [fridges, { data: logs }] = await Promise.all([
+  const [fridges, { data: logs, error: logsErr }] = await Promise.all([
     loadFridges(),
     supabase.from('fridge_temperature_logs')
       .select('id, fridge_id, temperature, logged_at, check_period, exceedance_reason, is_resolved, logged_by, logged_by_name, venue_id')
@@ -68,6 +70,7 @@ export async function fetchTodayCheckStatus(
       .lte('logged_at', `${today}T23:59:59`)
       .order('logged_at', { ascending: false }),
   ])
+  if (logsErr) throw logsErr
 
   const now = new Date()
   return (fridges ?? []).map(f => {
@@ -89,7 +92,7 @@ export async function fetchFridgeMatrix(
   dateFrom: string,
   dateTo: string,
 ): Promise<{ fridges: Fridge[]; matrix: Record<string, Record<string, Record<string, FridgeLog>>> }> {
-  const [fridgeRows, { data: logRows }] = await Promise.all([
+  const [fridgeRows, { data: logRows, error: logRowsErr }] = await Promise.all([
     fetchActiveFridges(venueId),
     supabase
       .from('fridge_temperature_logs')
@@ -99,6 +102,7 @@ export async function fetchFridgeMatrix(
       .lte('logged_at', `${dateTo}T23:59:59`)
       .order('logged_at', { ascending: false }),
   ])
+  if (logRowsErr) throw logRowsErr
 
   const matrix: Record<string, Record<string, Record<string, FridgeLog>>> = {}
   for (const log of (logRows ?? [] as FridgeLog[])) {
@@ -130,6 +134,7 @@ export async function fetchFridgeHistory(
   if (dateFrom) q = q.gte('logged_at', dateFrom)
   if (dateTo)   q = q.lte('logged_at', dateTo)
 
-  const { data } = await q
+  const { data, error } = await q
+  if (error) throw error
   return (data ?? []) as FridgeLog[]
 }

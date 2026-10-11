@@ -12,11 +12,15 @@ import { useAppSettings } from '../../hooks/useSettings'
 import { useTodayDuties } from '../../hooks/useDuties'
 import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 import ClockPanel from '../../components/shifts/ClockPanel'
+import RestrictedFieldsNotice from '../../components/ui/RestrictedFieldsNotice'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import AcknowledgeModal from '../../components/training/AcknowledgeModal'
 import { useToast } from '../../components/ui/Toast'
 import { invalidateChecksStatusCache } from '../../hooks/useChecksStatus'
 import { londonWallTimeToInstant, londonToday } from '../../lib/time'
+import { reportError } from '../../lib/reportError'
+import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -55,13 +59,13 @@ function StatePill({ clockStatus, todayShift }) {
 
     if (clockStatus === 'clocked_in' && now > shiftEnd) {
       label = 'OVERRUN'
-      pillClass = 'bg-[rgba(252,188,80,0.22)] text-[#f7c473]'
+      pillClass = 'bg-warnDark/20 text-warnDark'
     } else if (clockStatus === 'clocked_in') {
       label = 'ON SHIFT'
-      pillClass = 'bg-[rgba(83,212,131,0.18)] text-[#7eecaa]'
+      pillClass = 'bg-goodDark/20 text-goodDark'
     } else if (clockStatus === 'on_break') {
       label = 'ON BREAK'
-      pillClass = 'bg-[rgba(252,188,80,0.22)] text-[#f7c473]'
+      pillClass = 'bg-warnDark/20 text-warnDark'
     } else if (now < shiftStart) {
       label = 'STARTING SOON'
       pillClass = 'bg-white/14 text-white'
@@ -72,7 +76,7 @@ function StatePill({ clockStatus, todayShift }) {
   }
 
   return (
-    <span className={`inline-flex items-center gap-[5px] px-[9px] py-[3px] rounded-full font-mono text-[11px] font-bold tracking-[0.06em] ${pillClass}`}>
+    <span className={`inline-flex items-center gap-[5px] px-[9px] py-[3px] rounded-full font-mono text-micro font-bold tracking-[0.06em] ${pillClass}`}>
       <span className="w-[5px] h-[5px] rounded-[3px] bg-current" />
       {label}
     </span>
@@ -99,16 +103,16 @@ function LiveTimer({ clockInAt, breakStartAt, totalBreakMs, status }) {
   return (
     <div className="mt-3.5 pt-3 border-t border-white/12">
       <div className="flex justify-between items-center">
-        <span className="font-mono text-[11px] text-white/45 tracking-[0.08em] uppercase font-semibold">
+        <span className="font-mono text-micro text-white/45 tracking-[0.08em] uppercase font-semibold">
           {status === 'on_break' ? 'Break elapsed' : 'Clocked in · elapsed'}
         </span>
-        <span className="font-mono text-[19px] font-semibold tabular-nums tracking-[-0.01em]">
+        <span className="font-mono text-title-sm font-semibold tabular-nums tracking-[-0.01em]">
           {status === 'on_break' && breakStartAt ? fmtElapsed(currentBreakMs) : fmtElapsed(workingMs)}
         </span>
       </div>
       {totalBreakMs > 0 && status !== 'on_break' && (
         <div className="flex justify-between mt-[5px]">
-          <span className="font-mono text-[11px] text-white/35 tracking-[0.08em] uppercase">
+          <span className="font-mono text-micro text-white/35 tracking-[0.08em] uppercase">
             Breaks used
           </span>
           <span className="font-mono text-xs text-white/65 tabular-nums">
@@ -132,24 +136,24 @@ function ShiftHeroCard({ todayShift, hourlyRate, staffId }) {
     <div className="bg-brand text-white rounded-[14px] overflow-hidden">
       <div className="p-[18px_18px_0]">
         <div className="flex justify-between items-center">
-          <span className="font-mono text-[11px] text-white/45 tracking-[0.1em] uppercase font-semibold">
+          <span className="font-mono text-micro text-white/45 tracking-[0.1em] uppercase font-semibold">
             Your shift
           </span>
           <StatePill clockStatus={status} todayShift={todayShift} />
         </div>
 
         {todayShift ? (
-          <div className="font-mono text-[30px] font-medium tracking-[-0.025em] mt-2 tabular-nums leading-[1.05]">
+          <div className="font-mono text-display font-medium tracking-[-0.025em] mt-2 tabular-nums leading-[1.05]">
             {todayShift.start_time.slice(0, 5)} — {todayShift.end_time.slice(0, 5)}
           </div>
         ) : (
-          <div className="text-[22px] font-medium mt-2 text-white/55">
+          <div className="text-title font-medium mt-2 text-white/55">
             No shift today
           </div>
         )}
 
         {todayShift && (
-          <div className="flex items-center gap-2.5 mt-1 text-white/55 text-[13px]">
+          <div className="flex items-center gap-2.5 mt-1 text-white/55 text-body-sm">
             {todayShift.role_label && <span>{todayShift.role_label}</span>}
             {todayShift.role_label && durationH && <span className="text-white/20">·</span>}
             {durationH && <span className="font-mono">{durationH}h</span>}
@@ -253,7 +257,7 @@ function QuickLogRow({ venueSlug, isEnabled, hasPermission }) {
 
   return (
     <div>
-      <p className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 px-1 mb-2">Log quickly</p>
+      <p className="text-micro font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 px-1 mb-2">Log quickly</p>
       <div className="grid grid-cols-3 gap-2">
         {buttons.map(b => (
           <Link
@@ -264,7 +268,7 @@ function QuickLogRow({ venueSlug, isEnabled, hasPermission }) {
             <span className="w-8 h-8 rounded-lg bg-brand/8 text-brand flex items-center justify-center">
               {b.icon}
             </span>
-            <span className="text-[12px] text-charcoal/70 dark:text-white/60 font-medium leading-tight">{b.label}</span>
+            <span className="text-caption text-charcoal/70 dark:text-white/60 font-medium leading-tight">{b.label}</span>
           </Link>
         ))}
       </div>
@@ -306,7 +310,7 @@ function DutyItemRow({ item, assignmentId, toggleItem }) {
           </svg>
         )}
       </span>
-      <span className={`text-[13.5px] leading-snug flex-1 ${item.completed ? 'line-through text-charcoal/35 dark:text-white/30' : 'text-charcoal dark:text-white font-medium'}`}>
+      <span className={`text-body leading-snug flex-1 ${item.completed ? 'line-through text-charcoal/35 dark:text-white/30' : 'text-charcoal dark:text-white font-medium'}`}>
         {item.title}
       </span>
       {!item.completed && (
@@ -329,11 +333,11 @@ function DutyCard({ duty, toggleItem }) {
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-3.5 pb-3 border-b border-charcoal/6 dark:border-white/8">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="font-mono text-[11px] text-charcoal/40 dark:text-white/35 tracking-widest uppercase font-semibold shrink-0">Duty</span>
+          <span className="font-mono text-micro text-charcoal/40 dark:text-white/35 tracking-widest uppercase font-semibold shrink-0">Duty</span>
           <span className="text-charcoal/25 dark:text-white/25 text-xs">·</span>
-          <p className="text-[15px] font-semibold text-charcoal dark:text-white truncate">{duty.title}</p>
+          <p className="text-body-lg font-semibold text-charcoal dark:text-white truncate">{duty.title}</p>
         </div>
-        <span className={`text-[11px] font-mono font-semibold shrink-0 ml-2 ${allDone ? 'text-success' : 'text-charcoal/35 dark:text-white/30'}`}>
+        <span className={`text-micro font-mono font-semibold shrink-0 ml-2 ${allDone ? 'text-success' : 'text-charcoal/35 dark:text-white/30'}`}>
           {done}/{total}
         </span>
       </div>
@@ -367,12 +371,14 @@ function PendingTrainingCard({ staffId, staffName, isManager }) {
 
   const load = useCallback(async () => {
     if (!staffId || isManager) return
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('training_sign_offs')
       .select('id, training_date, trainer_name, topics, notes, manager_name, manager_signature')
       .eq('staff_id', staffId)
       .eq('staff_acknowledged', false)
       .order('created_at', { ascending: false })
+    // A reminder card, not the screen — keep what's shown and report.
+    if (error) { reportError(error, 'StaffDashboard:pending-training'); return }
     setRecords(data ?? [])
   }, [staffId, isManager])
 
@@ -401,12 +407,14 @@ function PendingTrainingCard({ staffId, staffName, isManager }) {
                   {' · '}{r.topics.length} topic{r.topics.length !== 1 ? 's' : ''}
                 </p>
               </div>
-              <button
+              <Button
+                variant="accent"
+                size="sm"
                 onClick={() => setAckRecord(r)}
-                className="shrink-0 bg-accent text-cream text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-accent/90 transition-colors"
+                className="shrink-0"
               >
                 Sign now
-              </button>
+              </Button>
             </div>
           ))}
         </div>
@@ -429,7 +437,7 @@ function TodayDuties({ staffId }) {
   if (loading || !duties.length) return null
   return (
     <div className="flex flex-col gap-2.5">
-      <p className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 px-1">Your duties today</p>
+      <p className="text-micro font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 px-1">Your duties today</p>
       {duties.map(d => (
         <DutyCard key={d.assignmentId} duty={d} toggleItem={toggleItem} />
       ))}
@@ -451,10 +459,10 @@ function NotificationsCard({ staffId, venueId }) {
         </svg>
       </span>
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-semibold text-charcoal dark:text-white">Notifications</p>
+        <p className="text-body-sm font-semibold text-charcoal dark:text-white">Notifications</p>
         {subscribed
-          ? <p className="text-[11px] text-success mt-0.5 font-medium">Push notifications enabled</p>
-          : <p className="text-[11px] text-charcoal/45 dark:text-white/40 mt-0.5">Get notified about rota changes and shift updates.</p>
+          ? <p className="text-caption text-success mt-0.5 font-medium">Push notifications enabled</p>
+          : <p className="text-caption text-charcoal/45 dark:text-white/40 mt-0.5">Get notified about rota changes and shift updates.</p>
         }
       </div>
       {subscribed ? (
@@ -464,10 +472,10 @@ function NotificationsCard({ staffId, venueId }) {
           </svg>
         </span>
       ) : supported && permission !== 'denied' ? (
-        <button onClick={subscribe} disabled={subscribing}
-          className="shrink-0 bg-charcoal text-cream rounded-lg text-[12px] font-semibold px-3 py-1.5 hover:bg-charcoal/85 transition-colors disabled:opacity-40">
+        <Button size="sm" loading={subscribing} onClick={subscribe} disabled={subscribing}
+          className="shrink-0">
           {subscribing ? 'Enabling…' : 'Enable'}
-        </button>
+        </Button>
       ) : null}
     </div>
   )
@@ -478,6 +486,8 @@ function NotificationsCard({ staffId, venueId }) {
 function useChecksForShift(venueId) {
   const [checks, setChecks] = useState([])
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed] = useState(false)
+  const [attempt, setAttempt] = useState(0)
   useEffect(() => {
     if (!venueId) return
     supabase
@@ -487,21 +497,29 @@ function useChecksForShift(venueId) {
       .eq('is_active', true)
       .order('sort_order')
       .order('created_at')
-      .then(({ data }) => { setChecks(data ?? []); setLoading(false) })
-  }, [venueId])
-  return { checks, loading }
+      .then(({ data, error }) => {
+        if (error) reportError(error, 'StaffDashboard:shift-checks')
+        else setChecks(data ?? [])
+        setFailed(!!error)
+        setLoading(false)
+      })
+  }, [venueId, attempt])
+  const retry = useCallback(() => setAttempt(a => a + 1), [])
+  return { checks, loading, failed, retry }
 }
 
 function useShiftCompletions(venueId, dateStr, sessionType) {
   const [completions, setCompletions] = useState([])
   const load = useCallback(async () => {
     if (!venueId || !dateStr) return
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('opening_closing_completions')
       .select('id, check_id, corrective_action, staff_name, completed_at')
       .eq('venue_id', venueId)
       .eq('session_date', dateStr)
       .eq('session_type', sessionType)
+    // Keep the ticks already shown — an empty list would re-offer done checks.
+    if (error) { reportError(error, 'StaffDashboard:shift-completions'); return }
     setCompletions(data ?? [])
   }, [venueId, dateStr, sessionType])
   useEffect(() => { load() }, [load])
@@ -511,7 +529,7 @@ function useShiftCompletions(venueId, dateStr, sessionType) {
 function TodayChecks({ venueId, venueSlug, staffName }) {
   const today = format(new Date(), 'yyyy-MM-dd')
   const sessionType = new Date().getHours() < 14 ? 'opening' : 'closing'
-  const { checks: allChecks, loading } = useChecksForShift(venueId)
+  const { checks: allChecks, loading, failed: checksFailed, retry: retryChecks } = useChecksForShift(venueId)
   // Only this session's checks. Unfiltered, the morning "Opening Checks" card
   // also listed the closing checks (0/8 for 4+4), and ticking one there saved
   // it as an opening completion.
@@ -525,6 +543,14 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
   const toast = useToast()
 
   if (loading) return null
+  // Hiding the card on a failed read would look like "no checks today".
+  if (checksFailed && !allChecks.length) {
+    return (
+      <div className="bg-white dark:bg-paperDark rounded-2xl">
+        <LoadError what={`today’s ${sessionType} checks`} onRetry={retryChecks} />
+      </div>
+    )
+  }
   if (!checks.length) return null
 
   const done = completions.length
@@ -561,11 +587,11 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
         onClick={() => !allDone && setOpen(v => !v)}
         className={`flex items-center justify-between w-full px-0.5 py-1 ${allDone ? 'cursor-default' : 'group'}`}
       >
-        <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">
+        <span className="text-micro font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">
           {sessionType === 'opening' ? 'Opening Checks' : 'Closing Checks'}
         </span>
         <div className="flex items-center gap-2">
-          <span className={`text-[11px] font-mono ${allDone ? 'text-success font-semibold' : 'text-charcoal/35 dark:text-white/30'}`}>
+          <span className={`text-micro font-mono ${allDone ? 'text-success font-semibold' : 'text-charcoal/35 dark:text-white/30'}`}>
             {done}/{total}
           </span>
           {!allDone && (
@@ -591,10 +617,10 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
       {/* All done — compact confirmation row */}
       {allDone && (
         <div className="bg-success/8 rounded-[14px] px-4 py-3 flex items-center gap-2">
-          <span className="text-success text-[13px] font-semibold">All checks completed</span>
+          <span className="text-success text-body-sm font-semibold">All checks completed</span>
           <a
             href={`/v/${venueSlug}/opening-closing`}
-            className="ml-auto text-[11px] font-semibold text-success/70 hover:text-success transition-colors"
+            className="ml-auto text-micro font-semibold text-success/70 hover:text-success transition-colors"
           >
             View →
           </a>
@@ -606,21 +632,21 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
         <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
           {pendingChecks.map((check, i) => (
             <div key={check.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5 dark:border-white/5' : ''}`}>
-              <p className={`text-[13.5px] flex-1 font-medium ${tickedThisVisit.has(check.id) ? 'text-charcoal/40 dark:text-white/35 line-through' : 'text-charcoal dark:text-white'}`}>{check.title}</p>
+              <p className={`text-body flex-1 font-medium ${tickedThisVisit.has(check.id) ? 'text-charcoal/40 dark:text-white/35 line-through' : 'text-charcoal dark:text-white'}`}>{check.title}</p>
               {tickedThisVisit.has(check.id) ? (
-                <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-success/10 text-success shrink-0">✓ Done</span>
+                <span className="px-2.5 py-1 rounded-full text-micro font-semibold bg-success/10 text-success shrink-0">✓ Done</span>
               ) : (
               <div className="flex gap-1.5 shrink-0">
                 <button
                   onClick={() => markOk(check.id)}
                   disabled={!!saving}
-                  className="px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all bg-charcoal/6 dark:bg-white/8 text-charcoal/45 dark:text-white/40 hover:bg-success/10 hover:text-success disabled:opacity-40"
+                  className="px-2.5 py-1 rounded-full text-micro font-semibold transition-all bg-charcoal/6 dark:bg-white/8 text-charcoal/45 dark:text-white/40 hover:bg-success/10 hover:text-success disabled:opacity-40"
                 >
                   {saving === check.id ? '…' : '✓ OK'}
                 </button>
                 <a
                   href={`/v/${venueSlug}/opening-closing`}
-                  className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-charcoal/6 dark:bg-white/8 text-charcoal/45 dark:text-white/40 hover:bg-warning/10 hover:text-warning transition-all"
+                  className="px-2.5 py-1 rounded-full text-micro font-semibold bg-charcoal/6 dark:bg-white/8 text-charcoal/45 dark:text-white/40 hover:bg-warning/10 hover:text-warning transition-all"
                 >
                   ⚠ Issue
                 </a>
@@ -630,7 +656,7 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
           ))}
           <a
             href={`/v/${venueSlug}/opening-closing`}
-            className="flex items-center justify-between px-4 py-3 border-t border-charcoal/5 dark:border-white/5 text-[12px] font-semibold text-brand hover:bg-brand/3 transition-colors"
+            className="flex items-center justify-between px-4 py-3 border-t border-charcoal/5 dark:border-white/5 text-caption font-semibold text-brand hover:bg-brand/3 transition-colors"
           >
             View full checks
             <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -647,14 +673,17 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
 
 function useTodaySummary({ staffId, venueId, isEnabled, hasPermission, closedDays }) {
   const [data, setData] = useState({ fridgesUnchecked: 0, loaded: false, closedToday: false })
+  // A yes/no rather than the array: settings load after first render, so this
+  // must re-run when they arrive, but the array itself can be a fresh copy on
+  // every render while settings are still loading.
+  const closedBySchedule = closedDays.includes((new Date().getDay() + 6) % 7)
 
   useEffect(() => {
     if (!staffId || !venueId) return
     let cancelled = false
     const today = format(new Date(), 'yyyy-MM-dd')
-    const todayDow = (new Date().getDay() + 6) % 7
 
-    if (closedDays.includes(todayDow)) {
+    if (closedBySchedule) {
       setData({ fridgesUnchecked: 0, loaded: true, closedToday: true })
       return
     }
@@ -668,7 +697,10 @@ function useTodaySummary({ staffId, venueId, isEnabled, hasPermission, closedDay
         supabase.from('venue_closures')
           .select('id, reason').eq('venue_id', venueId)
           .lte('start_date', today).gte('end_date', today).limit(1)
-          .then(({ data }) => ({ type: 'closures', rows: data ?? [] })),
+          .then(({ data, error }) => {
+            if (error) reportError(error, 'StaffDashboard:closures')
+            return { type: 'closures', rows: data ?? [] }
+          }),
       ]
 
       // Cleaning is counted by useCleaningTasks below — it has to respect each
@@ -677,11 +709,18 @@ function useTodaySummary({ staffId, venueId, isEnabled, hasPermission, closedDay
       if (isEnabled('fridge') && hasPermission('log_temps')) {
         promises.push(
           supabase.from('fridges').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).eq('is_active', true)
-            .then(({ count }) => ({ type: 'total_fridges', count: count ?? 0 }))
+            .then(({ count, error }) => {
+              if (error) reportError(error, 'StaffDashboard:fridge-count')
+              return { type: 'total_fridges', count: count ?? 0 }
+            })
         )
         promises.push(
           supabase.from('fridge_temperature_logs').select('fridge_id').eq('venue_id', venueId).gte('logged_at', today + 'T00:00:00')
-            .then(({ data }) => ({ type: 'checked_fridges', count: new Set((data ?? []).map(r => r.fridge_id)).size }))
+            .then(({ data, error }) => {
+              // Unknown: count none as unchecked rather than nagging about all of them.
+              if (error) { reportError(error, 'StaffDashboard:fridge-logs'); return { type: 'checked_fridges', count: Infinity } }
+              return { type: 'checked_fridges', count: new Set((data ?? []).map(r => r.fridge_id)).size }
+            })
         )
       }
 
@@ -704,7 +743,7 @@ function useTodaySummary({ staffId, venueId, isEnabled, hasPermission, closedDay
     }
 
     return () => { cancelled = true }
-  }, [staffId, venueId, isEnabled, hasPermission])
+  }, [staffId, venueId, isEnabled, hasPermission, closedBySchedule])
 
   return data
 }
@@ -737,6 +776,7 @@ export default function StaffDashboardPage() {
           fetchStaffPayRates(),
         ])
         if (cancelled) return
+        if (shiftRes.error) reportError(shiftRes.error, 'StaffDashboard:today-shift')
         setTodayShift(shiftRes.data?.[0] ?? null)
         // staff_pay_rates returns only your own row when you are not a
         // manager, which is exactly what this screen wants.
@@ -771,8 +811,8 @@ export default function StaffDashboardPage() {
 
       {/* Page header */}
       <div className="flex items-baseline justify-between px-0.5">
-        <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">My Shift</span>
-        <span className="text-[11px] font-mono text-charcoal/35 dark:text-white/30">{dateLabel}</span>
+        <span className="text-micro font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">My Shift</span>
+        <span className="text-micro font-mono text-charcoal/35 dark:text-white/30">{dateLabel}</span>
       </div>
 
       {/* Greeting */}
@@ -781,7 +821,7 @@ export default function StaffDashboardPage() {
         const salutation = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
         const first = session.staffName?.split(' ')[0]
         return (
-          <h1 className="text-[26px] font-medium tracking-[-0.025em] text-charcoal dark:text-white leading-tight px-0.5">
+          <h1 className="text-display font-medium tracking-[-0.025em] text-charcoal dark:text-white leading-tight px-0.5">
             {salutation}{first ? `, ${first}` : ''}
           </h1>
         )
@@ -791,6 +831,7 @@ export default function StaffDashboardPage() {
       <NotificationsCard staffId={session.staffId} venueId={venueId} />
 
       {/* Hero card */}
+      {!isPlanLocked('clock-in') && <RestrictedFieldsNotice fields={['pay']} />}
       {!isPlanLocked('clock-in') && (
         <ShiftHeroCard
           todayShift={todayShift}
@@ -802,10 +843,10 @@ export default function StaffDashboardPage() {
       {/* If clock-in is locked, show shift info in a simpler card */}
       {isPlanLocked('clock-in') && todayShift && (
         <div className="bg-brand text-white rounded-[14px] p-5">
-          <span className="font-mono text-[11px] text-white/45 tracking-[0.1em] uppercase font-semibold">
+          <span className="font-mono text-micro text-white/45 tracking-[0.1em] uppercase font-semibold">
             Your shift today
           </span>
-          <div className="font-mono text-[28px] font-medium mt-2 tabular-nums">
+          <div className="font-mono text-display font-medium mt-2 tabular-nums">
             {todayShift.start_time.slice(0, 5)} — {todayShift.end_time.slice(0, 5)}
           </div>
           {todayShift.role_label && (

@@ -31,6 +31,7 @@ vi.mock('../../../hooks/useClockEvents', async (importActual) => {
 })
 
 import ClockPanel from '../ClockPanel'
+import { enqueueRpc } from '../../../lib/offlineQueue'
 
 /** An RPC that doesn't answer until the test says so — a slow mobile connection. */
 function slowRpc() {
@@ -39,7 +40,7 @@ function slowRpc() {
   return (result) => act(async () => { resolve(result) })
 }
 
-beforeEach(() => vi.clearAllMocks())
+beforeEach(() => { vi.clearAllMocks(); localStorage.clear() })
 
 describe('ClockPanel taps', () => {
   it('shows the new state on the tap, before the server answers', async () => {
@@ -80,5 +81,27 @@ describe('ClockPanel taps', () => {
 
     await answer({ data: 'id', error: null })
     expect(screen.getByRole('button', { name: 'Start Break' })).toBeTruthy()
+  })
+
+  it('sends the tap time with the punch', async () => {
+    mockRpc.mockResolvedValue({ data: 'id', error: null })
+    render(<ClockPanel staffId="s1" />)
+    const before = Date.now()
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Clock In' })) })
+    const args = mockRpc.mock.calls[0][1]
+    expect(Date.parse(args.p_occurred_at)).toBeGreaterThanOrEqual(before)
+    expect(Date.parse(args.p_occurred_at)).toBeLessThanOrEqual(Date.now())
+  })
+
+  it('says so while a punch is still waiting on this device', () => {
+    enqueueRpc('record_clock_event', { p_staff_id: 's1', p_event_type: 'break_start' })
+    render(<ClockPanel staffId="s1" />)
+    expect(screen.getByRole('status').textContent).toMatch(/Not sent yet/)
+  })
+
+  it("doesn't flag someone else's waiting punch", () => {
+    enqueueRpc('record_clock_event', { p_staff_id: 'someone-else', p_event_type: 'break_start' })
+    render(<ClockPanel staffId="s1" />)
+    expect(screen.queryByRole('status')).toBeNull()
   })
 })

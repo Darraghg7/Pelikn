@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { useToast } from '../../components/ui/Toast'
 import { useDutyTemplates } from '../../hooks/useDuties'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
+import LoadError from '../../components/ui/LoadError'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 function ItemInput({ value, onChange, onRemove, onKeyDown, autoFocus }) {
   return (
@@ -21,12 +23,7 @@ function ItemInput({ value, onChange, onRemove, onKeyDown, autoFocus }) {
         placeholder="Task description…"
         className="flex-1 px-3 py-1.5 rounded-lg border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/15 dark:focus:ring-white/15"
       />
-      <button
-        type="button"
-        onClick={onRemove}
-        aria-label="Remove item"
-        className="text-charcoal/25 dark:text-white/25 hover:text-danger transition-colors shrink-0 w-9 h-9 inline-flex items-center justify-center"
-      >×</button>
+      <CloseButton label="Remove item" className="shrink-0" onClick={onRemove} />
     </div>
   )
 }
@@ -57,7 +54,7 @@ function NewDutyForm({ onSave, onCancel }) {
   return (
     <div className="rounded-2xl border border-charcoal/12 dark:border-white/15 bg-charcoal/2 dark:bg-white/3 p-4 flex flex-col gap-3">
       <div>
-        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Duty name</label>
+        <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Duty name</label>
         <input
           type="text"
           value={title}
@@ -70,7 +67,7 @@ function NewDutyForm({ onSave, onCancel }) {
       </div>
 
       <div>
-        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Tasks</label>
+        <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Tasks</label>
         <div className="flex flex-col gap-2">
           {items.map((item, i) => (
             <ItemInput
@@ -83,29 +80,30 @@ function NewDutyForm({ onSave, onCancel }) {
             />
           ))}
         </div>
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={addItem}
-          className="mt-2 text-xs text-brand/60 hover:text-brand transition-colors"
+          className="mt-2 -ml-3"
         >
           + Add task
-        </button>
+        </Button>
       </div>
 
       <div className="flex gap-2 pt-1 border-t border-charcoal/8 dark:border-white/8">
-        <button
+        <Button
+          loading={saving}
           onClick={handleSave}
           disabled={saving || !title.trim()}
-          className="px-4 py-2 rounded-lg bg-charcoal text-cream text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
         >
           {saving ? 'Saving…' : 'Save Duty →'}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="secondary"
           onClick={onCancel}
-          className="px-4 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
         >
           Cancel
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -123,16 +121,16 @@ function TemplateRow({ template, onDelete }) {
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="text-sm font-medium text-charcoal dark:text-white truncate">{template.title}</span>
-          <span className="text-[11px] text-charcoal/35 dark:text-white/30 shrink-0">{template.items.length} task{template.items.length !== 1 ? 's' : ''}</span>
+          <span className="text-micro text-charcoal/35 dark:text-white/30 shrink-0">{template.items.length} task{template.items.length !== 1 ? 's' : ''}</span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0 ml-2">
-          <button
-            type="button"
+          <Button
+            variant="danger-ghost"
+            size="sm"
             onClick={e => { e.stopPropagation(); onDelete(template) }}
-            className="text-[11px] text-danger/40 hover:text-danger transition-colors px-2 py-1"
           >
             Remove
-          </button>
+          </Button>
           <svg
             className={`w-4 h-4 text-charcoal/30 dark:text-white/30 transition-transform ${expanded ? 'rotate-180' : ''}`}
             viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
@@ -146,7 +144,7 @@ function TemplateRow({ template, onDelete }) {
         <div className="border-t border-charcoal/8 dark:border-white/8 px-3 py-2.5 flex flex-col gap-1.5">
           {template.items.map((item, i) => (
             <div key={item.id} className="flex items-center gap-2 text-sm text-charcoal/60 dark:text-white/50">
-              <span className="text-[11px] text-charcoal/25 dark:text-white/25 font-mono w-4 shrink-0">{i + 1}.</span>
+              <span className="text-micro text-charcoal/25 dark:text-white/25 font-mono w-4 shrink-0">{i + 1}.</span>
               {item.title}
             </div>
           ))}
@@ -162,7 +160,7 @@ function TemplateRow({ template, onDelete }) {
 
 export default function DutiesSection() {
   const toast = useToast()
-  const { templates, loading, addTemplate, deleteTemplate } = useDutyTemplates()
+  const { templates, loading, isError, reload, addTemplate, deleteTemplate } = useDutyTemplates()
   const [adding, setAdding] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
 
@@ -181,6 +179,7 @@ export default function DutiesSection() {
   }
 
   if (loading) return <div className="py-4 text-center text-sm text-charcoal/30 dark:text-white/30">Loading…</div>
+  if (isError) return <LoadError what="duties" onRetry={reload} />
 
   return (
     <div className="flex flex-col gap-4">
@@ -213,12 +212,12 @@ export default function DutiesSection() {
       {adding ? (
         <NewDutyForm onSave={handleSave} onCancel={() => setAdding(false)} />
       ) : (
-        <button
+        <Button
           onClick={() => setAdding(true)}
-          className="self-start px-4 py-2.5 rounded-xl bg-charcoal text-cream text-sm font-medium hover:bg-charcoal/90 transition-colors"
+          className="self-start"
         >
           + New Duty
-        </button>
+        </Button>
       )}
     </div>
   )

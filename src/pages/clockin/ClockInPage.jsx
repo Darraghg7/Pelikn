@@ -7,6 +7,8 @@ import { useClockStatus } from '../../hooks/useClockEvents'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import RecentShifts from '../../components/shifts/RecentShifts'
 import { format } from 'date-fns'
+import { reportError } from '../../lib/reportError'
+import LoadError from '../../components/ui/LoadError'
 
 /* ── Live HH:MM:SS elapsed timer ────────────────────────────────────── */
 function formatElapsed(ms) {
@@ -50,7 +52,7 @@ function StaffClockRow({ staffMember }) {
         <div>
           <p className="text-sm font-medium text-charcoal dark:text-white">{staffMember.name}</p>
           {staffMember.role && (
-            <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-0.5">{staffMember.role}</p>
+            <p className="text-caption text-charcoal/35 dark:text-white/30 mt-0.5">{staffMember.role}</p>
           )}
         </div>
       </div>
@@ -59,7 +61,7 @@ function StaffClockRow({ staffMember }) {
           <span className="text-xs text-charcoal/30 dark:text-white/30">…</span>
         ) : (
           <>
-            <span className={`text-[11px] tracking-widest uppercase font-medium ${cfg.text}`}>
+            <span className={`text-micro tracking-widest uppercase font-medium ${cfg.text}`}>
               {cfg.label}
             </span>
             {status !== 'clocked_out' && clockInAt && <LiveElapsed clockInAt={clockInAt} />}
@@ -81,6 +83,8 @@ function ManagerView({ venueId }) {
   const { session } = useSession()
   const [staff, setStaff]   = useState([])
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed]   = useState(false)
+  const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
     if (!venueId) return
@@ -90,14 +94,19 @@ function ManagerView({ venueId }) {
       .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('name')
-      .then(({ data }) => { setStaff(data ?? []); setLoading(false) })
-  }, [venueId])
+      .then(({ data, error }) => {
+        if (error) reportError(error, 'ClockInPage:team')
+        else setStaff(data ?? [])
+        setFailed(!!error)
+        setLoading(false)
+      })
+  }, [venueId, attempt])
 
   return (
     <div className="flex flex-col gap-6">
       {/* Manager's own clock */}
       <div className="bg-white dark:bg-paperDark rounded-2xl p-5">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">My Clock</p>
+        <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">My Clock</p>
         <ManagerOwnClock venueId={venueId} />
       </div>
 
@@ -108,9 +117,11 @@ function ManagerView({ venueId }) {
 
       {/* Team status */}
       <div className="bg-white dark:bg-paperDark rounded-2xl p-5">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Team Status</p>
+        <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Team Status</p>
         {loading ? (
           <SkeletonList rows={3} />
+        ) : failed && staff.length === 0 ? (
+          <LoadError what="the team" onRetry={() => setAttempt(a => a + 1)} />
         ) : staff.length === 0 ? (
           <p className="text-sm text-charcoal/35 dark:text-white/30 italic">No active staff found.</p>
         ) : (
@@ -129,7 +140,7 @@ function StaffView({ staffId, staffName }) {
     <div className="flex flex-col gap-6">
       <div className="bg-white dark:bg-paperDark rounded-2xl p-6">
         {staffName && (
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">
             Hi, {staffName}
           </p>
         )}

@@ -2,12 +2,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useVenue } from '../contexts/VenueContext'
 import { fetchCorrectiveActions, type CorrectiveAction } from '../lib/api/corrective'
 
-export function useCorrectiveActions(): { records: CorrectiveAction[]; loading: boolean; reload: () => void } {
+export function useCorrectiveActions(): { records: CorrectiveAction[]; loading: boolean; isError: boolean; reload: () => void } {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
   const queryKey = ['correctiveActions', venueId]
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey,
     queryFn: () => fetchCorrectiveActions(venueId!),
     enabled: !!venueId,
@@ -15,5 +15,5 @@ export function useCorrectiveActions(): { records: CorrectiveAction[]; loading: 
     placeholderData: [],
   })
 
-  return { records: data ?? [], loading: isLoading, reload: () => queryClient.invalidateQueries({ queryKey }) }
+  return { records: data ?? [], loading: isLoading, isError, reload: () => queryClient.invalidateQueries({ queryKey }) }
 }

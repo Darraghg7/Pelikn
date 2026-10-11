@@ -4,6 +4,9 @@ import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
+import { reportError } from '../../lib/reportError'
+import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 // ── Procedure sections ────────────────────────────────────────────────────────
 
@@ -80,21 +83,24 @@ const DEFAULT_SECTIONS = Object.fromEntries(PROC_SECTIONS.map(s => [s.key, s.def
 function useAllergenProcedure(venueId) {
   const [procedure, setProcedure] = useState(null)
   const [loading, setLoading]     = useState(true)
+  const [failed, setFailed]       = useState(false)
 
   const load = useCallback(async () => {
     if (!venueId) return
     setLoading(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('allergen_procedures')
       .select('*')
       .eq('venue_id', venueId)
       .maybeSingle()
-    setProcedure(data)
+    if (error) reportError(error, 'AllergenProcedurePage:load')
+    else setProcedure(data)
+    setFailed(!!error)
     setLoading(false)
   }, [venueId])
 
   useEffect(() => { load() }, [load])
-  return { procedure, loading, reload: load }
+  return { procedure, loading, failed, reload: load }
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -102,7 +108,7 @@ function useAllergenProcedure(venueId) {
 export default function AllergenProcedurePage() {
   const { venueId }                         = useVenue()
   const toast                               = useToast()
-  const { procedure, loading, reload }      = useAllergenProcedure(venueId)
+  const { procedure, loading, failed, reload } = useAllergenProcedure(venueId)
   const [sections, setSections]             = useState(DEFAULT_SECTIONS)
   const [meta, setMeta]                     = useState({ responsible_manager: '', eho_contact: '' })
   const [saving, setSaving]                 = useState(false)
@@ -142,6 +148,9 @@ export default function AllergenProcedurePage() {
   }
 
   if (loading) return <PageSkeleton />
+  // Showing the blank template on a failed read invites saving it over the
+  // venue's real procedure.
+  if (failed && !procedure) return <LoadError what="your allergen procedure" onRetry={reload} />
 
   return (
     <div className="flex flex-col gap-5">
@@ -170,14 +179,14 @@ export default function AllergenProcedurePage() {
 
       {/* Key contacts */}
       <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Key Contacts</p>
+        <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Key Contacts</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
             { key: 'responsible_manager', label: 'Responsible manager', placeholder: 'Name of manager responsible for allergen compliance' },
             { key: 'eho_contact',         label: 'Local EHO contact',   placeholder: 'Name and phone of your local Environmental Health Officer' },
           ].map(f => (
             <div key={f.key} className="flex flex-col gap-1">
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">{f.label}</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30">{f.label}</label>
               <input
                 value={meta[f.key]}
                 onChange={e => setMeta(m => ({ ...m, [f.key]: e.target.value }))}
@@ -192,7 +201,7 @@ export default function AllergenProcedurePage() {
       {/* Procedure sections */}
       {PROC_SECTIONS.map(section => (
         <div key={section.key} className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">{section.title}</p>
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">{section.title}</p>
           <p className="text-xs text-charcoal/40 dark:text-white/35 mb-3">{section.desc}</p>
           <textarea
             value={sections[section.key] || ''}
@@ -205,26 +214,27 @@ export default function AllergenProcedurePage() {
 
       {/* Last saved */}
       {procedure?.updated_at && (
-        <p className="text-[11px] text-charcoal/30 dark:text-white/30 text-right -mt-2">
+        <p className="text-caption text-charcoal/30 dark:text-white/30 text-right -mt-2">
           Last saved {format(new Date(procedure.updated_at), 'd MMM yyyy, HH:mm')}
         </p>
       )}
 
       {/* Actions */}
       <div className="flex gap-3">
-        <button
+        <Button
+          loading={saving}
           onClick={save}
           disabled={saving}
-          className="flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40"
+          className="flex-1"
         >
           {saving ? 'Saving…' : 'Save Procedure'}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="secondary"
           onClick={() => window.print()}
-          className="px-5 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/60 dark:text-white/50 hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white transition-colors"
         >
           Print
-        </button>
+        </Button>
       </div>
 
       {/* Print styles */}

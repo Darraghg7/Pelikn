@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
 import { formatLondon, londonDateStr, londonWallTimeToInstant } from '../../lib/time'
+import Button from '../../components/ui/Button'
 
 const BREAK_OPTIONS = [0, 5, 10, 15, 20, 30, 45, 60, 90]
 
@@ -63,7 +64,7 @@ export default function EditSessionModal({ open, onClose, session, venueId, onSa
       <div className="flex flex-col gap-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Clock In</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Clock In</label>
             <input
               type="time"
               value={form.clockIn}
@@ -72,7 +73,7 @@ export default function EditSessionModal({ open, onClose, session, venueId, onSa
             />
           </div>
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Clock Out</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Clock Out</label>
             <input
               type="time"
               value={form.clockOut}
@@ -82,7 +83,7 @@ export default function EditSessionModal({ open, onClose, session, venueId, onSa
           </div>
         </div>
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Break</label>
+          <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Break</label>
           <select
             value={breakMin}
             onChange={e => setBreakMin(e.target.value)}
@@ -93,13 +94,14 @@ export default function EditSessionModal({ open, onClose, session, venueId, onSa
             ))}
           </select>
         </div>
-        <button
+        <Button
+          loading={saving}
           onClick={save}
           disabled={saving}
-          className="bg-charcoal text-cream py-3 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40 mt-1"
+          className="mt-1"
         >
           {saving ? 'Saving…' : 'Save Changes →'}
-        </button>
+        </Button>
       </div>
     </Modal>
   )

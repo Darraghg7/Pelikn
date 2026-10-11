@@ -248,8 +248,8 @@ export default function HACCPPage() {
               ].map((item) => (
                 <div key={item.label} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-4">
                   <p className="text-2xl font-bold font-semibold text-charcoal dark:text-white">{item.count}</p>
-                  <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mt-0.5">{item.label}</p>
-                  <p className="text-[11px] text-charcoal/30 dark:text-white/30 mt-0.5">last 30 days</p>
+                  <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mt-0.5">{item.label}</p>
+                  <p className="text-caption text-charcoal/30 dark:text-white/30 mt-0.5">last 30 days</p>
                 </div>
               ))}
             </div>
@@ -258,12 +258,14 @@ export default function HACCPPage() {
               <p className="text-sm text-charcoal/50 dark:text-white/40">
                 Edit the Hazard Control Points below before printing.
               </p>
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setShowDoc(false)}
-                className="text-xs text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white transition-colors"
+                className="-mr-3"
               >
                 Reset
-              </button>
+              </Button>
             </div>
 
             {/* Printable document */}

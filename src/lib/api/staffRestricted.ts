@@ -1,5 +1,6 @@
 import { supabase } from '../supabase'
 import { SESSION_TOKEN_KEY } from '../constants'
+import { reportError } from '../reportError'
 
 /**
  * Staff fields the `staff` table no longer exposes.
@@ -40,6 +41,64 @@ export interface StaffPrivateFields {
   contracted_hours?:        number | null
 }
 
+// ── Load failures, visible to the screens that show these fields ────────────
+//
+// Every caller merges these maps into rows it fetched itself, so a failed load
+// used to look exactly like "nobody has a rate": labour costs read £0 and
+// contract fields went blank with nothing on screen to say why. The callers
+// sit at very different depths (rota, HR, timesheets, widgets), so rather than
+// threading an error through each one, the latest outcome per field set is
+// kept here and <RestrictedFieldsNotice> reads it.
+
+export type RestrictedFieldSet = 'pay' | 'private'
+
+/**
+ * Why a load failed:
+ *   session  — the server did not accept who we are (no active session, or the
+ *              account was deactivated). Signing in again is the fix.
+ *   missing  — the RPC does not exist: a migration has not been applied.
+ *   error    — anything else (network, server fault). Worth a retry.
+ */
+export type RestrictedFieldsFailure = 'session' | 'missing' | 'error'
+
+const failures = new Map<RestrictedFieldSet, RestrictedFieldsFailure>()
+const listeners = new Set<() => void>()
+let failuresSnapshot: ReadonlyMap<RestrictedFieldSet, RestrictedFieldsFailure> = new Map()
+
+function setFailure(set: RestrictedFieldSet, failure: RestrictedFieldsFailure | null) {
+  if ((failures.get(set) ?? null) === failure) return
+  if (failure) failures.set(set, failure)
+  else failures.delete(set)
+  failuresSnapshot = new Map(failures)
+  listeners.forEach(l => l())
+}
+
+/** For useSyncExternalStore. */
+export function subscribeRestrictedFieldsFailures(listener: () => void): () => void {
+  listeners.add(listener)
+  return () => { listeners.delete(listener) }
+}
+
+/** Latest failure per field set; empty when the last load of each succeeded. */
+export function getRestrictedFieldsFailures(): ReadonlyMap<RestrictedFieldSet, RestrictedFieldsFailure> {
+  return failuresSnapshot
+}
+
+/** Test hook. */
+export function resetRestrictedFieldsFailures() {
+  failures.clear()
+  failuresSnapshot = new Map()
+  listeners.forEach(l => l())
+}
+
+export function classifyRestrictedFieldsError(error: { code?: string; message?: string }): RestrictedFieldsFailure {
+  if (error.code === 'PGRST202') return 'missing'
+  // 42501 since 145; before it the same exception came back as plain P0001,
+  // so match the message too.
+  if (error.code === '42501' || /no active session/i.test(error.message ?? '')) return 'session'
+  return 'error'
+}
+
 function sessionToken(): string | null {
   try { return localStorage.getItem(SESSION_TOKEN_KEY) } catch { return null }
 }
@@ -69,13 +128,11 @@ async function loadStaffPayRates(token: string): Promise<PayRates> {
   // real answer. Say so loudly rather than letting a quiet zero stand in for
   // "could not load" — that is the failure mode 115 and 116 were about.
   if (error) {
-    console.error(
-      error.code === 'PGRST202'
-        ? '[staffRestricted] staff_pay_rates is missing — migration 117 has not been applied. Labour costs will show as £0.'
-        : `[staffRestricted] could not load pay rates (${error.code}): ${error.message}. Labour costs will show as £0.`
-    )
+    setFailure('pay', classifyRestrictedFieldsError(error))
+    reportError(error, 'staffRestricted:staff_pay_rates')
     return new Map()
   }
+  setFailure('pay', null)
   if (!Array.isArray(data)) return new Map()
 
   return new Map(
@@ -98,13 +155,11 @@ export async function fetchStaffPrivateFields(): Promise<Map<string, StaffPrivat
   const { data, error } = await supabase.rpc('staff_private_fields', { p_session_token: token })
 
   if (error) {
-    console.error(
-      error.code === 'PGRST202'
-        ? '[staffRestricted] staff_private_fields is missing — migration 118 has not been applied. Contact and contract fields will be blank.'
-        : `[staffRestricted] could not load private staff fields (${error.code}): ${error.message}. Those fields will be blank.`
-    )
+    setFailure('private', classifyRestrictedFieldsError(error))
+    reportError(error, 'staffRestricted:staff_private_fields')
     return new Map()
   }
+  setFailure('private', null)
   if (!Array.isArray(data)) return new Map()
 
   return new Map(

@@ -1,4 +1,5 @@
 import React from 'react'
+import { firstName } from '../../lib/names'
 
 export default function GanttChart({ shifts, staff, currentStaffId, nowMins, showNow }) {
   const winStart = 6 * 60, winEnd = 24 * 60, winSpan = winEnd - winStart
@@ -43,8 +44,8 @@ export default function GanttChart({ shifts, staff, currentStaffId, nowMins, sho
           const left = pct(sMin), right = pct(eMin), width = Math.max(right - left, 4)
           return (
             <div key={shift.id} className={`flex items-center gap-2.5 h-[38px] rounded-lg -mx-1.5 px-1.5 ${isMe ? 'bg-brand/8' : ''}`}>
-              <div className={`w-16 shrink-0 text-[13px] font-semibold truncate flex items-center gap-1 ${isMe ? 'text-brand' : 'text-charcoal/70 dark:text-white/60'}`}>
-                <span className="truncate">{(staffMember?.name ?? 'Staff').split(' ')[0]}</span>
+              <div className={`w-16 shrink-0 text-body-sm font-semibold truncate flex items-center gap-1 ${isMe ? 'text-brand' : 'text-charcoal/70 dark:text-white/60'}`}>
+                <span className="truncate">{firstName(staffMember?.name) || 'Staff'}</span>
                 {isMe && <span className="font-mono text-[8px] text-accent font-bold tracking-[0.08em] bg-danger/8 px-1 py-0.5 rounded shrink-0">YOU</span>}
               </div>
               <div className="flex-1 relative h-[22px]">
@@ -53,12 +54,12 @@ export default function GanttChart({ shifts, staff, currentStaffId, nowMins, sho
                   if (p <= 0.5 || p >= 99.5) return null
                   return <span key={ti} className="absolute top-[-8px] bottom-[-8px] w-px bg-charcoal/8 dark:bg-white/8 z-0" style={{ left: `${p}%` }} />
                 })}
-                {showNow && <span className="absolute top-[-8px] bottom-[-8px] z-10" style={{ left: `${nowPct}%`, width: '1.5px', background: '#c94f2a' }} />}
-                <div className="absolute top-0 h-[22px] rounded-full z-20"
-                  style={{ left: `${left}%`, width: `${width}%`, background: isMe ? '#13362a' : '#e4e6e2', boxShadow: isMe ? '0 1px 4px rgba(19,54,42,0.3)' : 'none' }} />
+                {showNow && <span className="absolute top-[-8px] bottom-[-8px] z-10 bg-accent" style={{ left: `${nowPct}%`, width: '1.5px' }} />}
+                <div className={`absolute top-0 h-[22px] rounded-full z-20 ${isMe ? 'bg-brand dark:bg-brand-400 shadow-[0_1px_4px_theme(colors.brand.DEFAULT/30%)]' : 'bg-line dark:bg-white/15'}`}
+                  style={{ left: `${left}%`, width: `${width}%` }} />
               </div>
               <div className="w-28 shrink-0 text-right">
-                <div className={`font-mono text-[12px] font-semibold tabular-nums ${isMe ? 'text-brand' : 'text-charcoal/60 dark:text-white/50'}`}>
+                <div className={`font-mono text-caption font-semibold tabular-nums ${isMe ? 'text-brand' : 'text-charcoal/60 dark:text-white/50'}`}>
                   {shift.start_time.slice(0, 5)}–{shift.end_time.slice(0, 5)}
                 </div>
                 {shift.role_label && (

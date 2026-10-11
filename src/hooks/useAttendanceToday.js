@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { londonToday, londonWallTimeToInstant, formatLondon } from '../lib/time'
+import { reportError } from '../lib/reportError'
 
 /**
  * Today's rota + live clock status per staff member, for the Team > Attendance
@@ -11,6 +12,7 @@ import { londonToday, londonWallTimeToInstant, formatLondon } from '../lib/time'
 export function useAttendanceToday(venueId) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [refreshIndex, setRefreshIndex] = useState(0)
 
   const refresh = useCallback(() => setRefreshIndex(i => i + 1), [])
@@ -28,7 +30,7 @@ export function useAttendanceToday(venueId) {
 
       const [shiftsRes, clockRes] = await Promise.all([
         supabase.from('shifts')
-          .select('id, staff_id, start_time, end_time, role_label, staff:staff_id(id, name)')
+          .select('id, staff_id, start_time, end_time, role_label, staff:staff_id(id, name, colour, photo_url)')
           .eq('venue_id', venueId)
           .eq('shift_date', todayStr)
           .order('start_time'),
@@ -41,6 +43,16 @@ export function useAttendanceToday(venueId) {
       ])
 
       if (cancelled) return
+
+      // A failed read would show "nobody on the rota today" — show an error instead.
+      const failed = shiftsRes.error || clockRes.error
+      if (failed) {
+        reportError(failed, 'useAttendanceToday:load')
+        setError(failed)
+        setLoading(false)
+        return
+      }
+      setError(null)
 
       const shifts = shiftsRes.data ?? []
       const events = clockRes.data ?? []
@@ -76,6 +88,9 @@ export function useAttendanceToday(venueId) {
           shiftId: sh.id,
           staffId: sh.staff_id,
           name: sh.staff?.name ?? 'Unknown',
+          // Typed as an array by the client; a to-one embed is one object
+          colour: /** @type {any} */ (sh.staff)?.colour ?? null,
+          photoUrl: /** @type {any} */ (sh.staff)?.photo_url ?? null,
           role: sh.role_label || '',
           startTime: sh.start_time,
           endTime: sh.end_time,
@@ -119,5 +134,5 @@ export function useAttendanceToday(venueId) {
     return { error }
   }, [refresh])
 
-  return { data, loading, refresh, acknowledgeLate }
+  return { data, loading, error, refresh, acknowledgeLate }
 }

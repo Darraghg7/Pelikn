@@ -6,6 +6,9 @@ import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
+import { reportError } from '../../lib/reportError'
+import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 // Local wall-clock time for a datetime-local input. toISOString() is UTC, so
 // during BST the default read an hour behind and records were saved an hour early.
@@ -16,20 +19,23 @@ function nowDatetimeLocal() {
 function useCalibrations(venueId) {
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed]   = useState(false)
   const load = useCallback(async () => {
     if (!venueId) return
     setLoading(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('probe_calibrations')
       .select('*, calibrator:staff!calibrated_by(name)')
       .eq('venue_id', venueId)
       .order('calibrated_at', { ascending: false })
       .limit(100)
-    setRecords(data ?? [])
+    if (error) reportError(error, 'ProbeCalibrationPage:load')
+    else setRecords(data ?? [])
+    setFailed(!!error)
     setLoading(false)
   }, [venueId])
   useEffect(() => { load() }, [load])
-  return { records, loading, reload: load }
+  return { records, loading, failed, reload: load }
 }
 
 const METHODS = [
@@ -50,7 +56,7 @@ export default function ProbeCalibrationPage() {
   const toast = useToast()
   const { venueId } = useVenue()
   const { session } = useSession()
-  const { records, loading, reload } = useCalibrations(venueId)
+  const { records, loading, failed, reload } = useCalibrations(venueId)
 
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState(() => ({ ...EMPTY_FORM, calibrated_at: nowDatetimeLocal() }))
@@ -97,28 +103,27 @@ export default function ProbeCalibrationPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-charcoal dark:text-white">Probe Calibration</h1>
-        <button
+        <Button
           onClick={() => setShowForm(true)}
-          className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors"
         >
           + Calibrate
-        </button>
+        </Button>
       </div>
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-3 sm:p-4 text-center">
-          <p className="text-[11px] sm:text-[11px] tracking-wide uppercase text-charcoal/40 dark:text-white/35 truncate">Last Cal.</p>
+          <p className="text-micro tracking-wide uppercase text-charcoal/40 dark:text-white/35 truncate">Last Cal.</p>
           <p className="text-sm font-semibold text-charcoal dark:text-white mt-1">
             {lastCalibration ? format(new Date(lastCalibration.calibrated_at), 'd MMM') : '--'}
           </p>
         </div>
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-3 sm:p-4 text-center">
-          <p className="text-[11px] sm:text-[11px] tracking-wide uppercase text-charcoal/40 dark:text-white/35">Passed</p>
+          <p className="text-micro tracking-wide uppercase text-charcoal/40 dark:text-white/35">Passed</p>
           <p className="text-2xl font-bold text-success">{passCount}</p>
         </div>
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-3 sm:p-4 text-center">
-          <p className="text-[11px] sm:text-[11px] tracking-wide uppercase text-charcoal/40 dark:text-white/35">Failed</p>
+          <p className="text-micro tracking-wide uppercase text-charcoal/40 dark:text-white/35">Failed</p>
           <p className="text-2xl font-bold text-danger">{failCount}</p>
         </div>
       </div>
@@ -136,6 +141,8 @@ export default function ProbeCalibrationPage() {
       {/* Records */}
       {loading ? (
         <SkeletonList rows={4} />
+      ) : failed && records.length === 0 ? (
+        <LoadError what="calibration records" onRetry={reload} />
       ) : records.length === 0 ? (
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-10 text-center">
           <p className="text-charcoal/30 dark:text-white/30 text-sm">No calibration records yet.</p>
@@ -148,7 +155,7 @@ export default function ProbeCalibrationPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-charcoal dark:text-white text-sm">{r.probe_name}</h3>
-                    <span className={`text-[11px] tracking-wider uppercase font-medium px-2 py-0.5 rounded-full ${
+                    <span className={`text-micro tracking-wider uppercase font-medium px-2 py-0.5 rounded-full ${
                       r.pass ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'
                     }`}>
                       {r.pass ? 'PASS' : 'FAIL'}
@@ -163,7 +170,7 @@ export default function ProbeCalibrationPage() {
                 </div>
                 <div className="text-right shrink-0 ml-3">
                   <p className="text-xs text-charcoal/40 dark:text-white/35">{format(new Date(r.calibrated_at), 'd MMM HH:mm')}</p>
-                  <p className="text-[11px] text-charcoal/30 dark:text-white/30 mt-0.5">{r.calibrator?.name ?? 'Unknown'}</p>
+                  <p className="text-caption text-charcoal/30 dark:text-white/30 mt-0.5">{r.calibrator?.name ?? 'Unknown'}</p>
                 </div>
               </div>
             </div>
@@ -175,7 +182,7 @@ export default function ProbeCalibrationPage() {
       <Modal open={showForm} onClose={() => setShowForm(false)} title="Calibrate Probe">
         <div className="flex flex-col gap-4">
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Probe name</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Probe name</label>
             <input
               type="text"
               value={form.probe_name}
@@ -186,7 +193,7 @@ export default function ProbeCalibrationPage() {
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Method</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Method</label>
             <div className="grid grid-cols-2 gap-2">
               {METHODS.map(m => (
                 <button
@@ -200,7 +207,7 @@ export default function ProbeCalibrationPage() {
                   }`}
                 >
                   <p className="font-semibold text-xs">{m.value === 'ice_water' ? 'Ice Water' : 'Boiling Water'}</p>
-                  <p className={`text-[11px] mt-0.5 ${form.method === m.value ? 'opacity-60' : 'text-charcoal/35 dark:text-white/30'}`}>
+                  <p className={`text-caption mt-0.5 ${form.method === m.value ? 'opacity-60' : 'text-charcoal/35 dark:text-white/30'}`}>
                     Expected {m.expected}C
                   </p>
                 </button>
@@ -209,7 +216,7 @@ export default function ProbeCalibrationPage() {
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">
               Actual reading (C) <span className="text-danger">*</span>
             </label>
             <input
@@ -223,7 +230,7 @@ export default function ProbeCalibrationPage() {
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Tolerance (+/-)</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Tolerance (+/-)</label>
             <input
               type="number"
               step="0.1"
@@ -245,7 +252,7 @@ export default function ProbeCalibrationPage() {
           )}
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Date &amp; Time</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Date &amp; Time</label>
             <input
               type="datetime-local"
               value={form.calibrated_at}
@@ -256,7 +263,7 @@ export default function ProbeCalibrationPage() {
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Notes</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Notes</label>
             <textarea
               value={form.notes}
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
@@ -266,13 +273,13 @@ export default function ProbeCalibrationPage() {
             />
           </div>
 
-          <button
+          <Button
+            loading={saving}
             onClick={save}
             disabled={saving || !hasReading}
-            className="bg-charcoal text-cream py-3 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
           >
             {saving ? 'Saving...' : 'Record Calibration'}
-          </button>
+          </Button>
         </div>
       </Modal>
     </div>

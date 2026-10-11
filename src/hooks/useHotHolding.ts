@@ -68,12 +68,13 @@ async function fetchActiveHotHoldingItems(venueId: string): Promise<HotHoldingIt
 
   if (!error) return (data ?? []).map(withHotHoldingDefaults)
 
-  const { data: legacyData } = await supabase
+  const { data: legacyData, error: legacyDataErr } = await supabase
     .from('hot_holding_items')
     .select(LEGACY_HOT_HOLDING_ITEM_COLUMNS)
     .eq('venue_id', venueId)
     .eq('is_active', true)
     .order('name')
+  if (legacyDataErr) throw legacyDataErr
 
   return (legacyData ?? []).map(withHotHoldingDefaults)
 }
@@ -123,7 +124,7 @@ export function useHotHoldingTodayStatus(): { status: HotHoldingTodayStatus; loa
     queryKey,
     queryFn: async (): Promise<HotHoldingTodayStatus> => {
       const today = new Date().toISOString().slice(0, 10)
-      const [items, { data }] = await Promise.all([
+      const [items, { data, error }] = await Promise.all([
         // Same cache as useHotHoldingItems, so the list isn't fetched twice.
         queryClient.fetchQuery({
           queryKey: ['hot_holding_items', venueId],
@@ -138,6 +139,7 @@ export function useHotHoldingTodayStatus(): { status: HotHoldingTodayStatus; loa
           .lte('logged_at', `${today}T23:59:59`)
           .order('logged_at', { ascending: false }),
       ])
+      if (error) throw error
 
       const logs = (data ?? []) as HotHoldingLog[]
       const amLogs = logs.filter(l => l.check_period === 'am')
@@ -211,7 +213,8 @@ export function useHotHoldingLogs(dateFrom: string | null = null, dateTo: string
       if (dateFrom) fallback = fallback.gte('logged_at', `${dateFrom}T00:00:00`)
       if (dateTo)   fallback = fallback.lte('logged_at', `${dateTo}T23:59:59`)
 
-      const { data: fallbackData } = await fallback
+      const { data: fallbackData, error: fallbackDataErr } = await fallback
+      if (fallbackDataErr) throw fallbackDataErr
       return (fallbackData ?? []) as HotHoldingLog[]
     },
     enabled: !!venueId,
@@ -241,7 +244,7 @@ export function useHotHoldingMatrix(dateFrom: string, dateTo: string): {
   const { data, isLoading: loading } = useQuery({
     queryKey,
     queryFn: async () => {
-      const [items, { data: logs }] = await Promise.all([
+      const [items, { data: logs, error: logsErr }] = await Promise.all([
         fetchActiveHotHoldingItems(venueId!),
         supabase
           .from('hot_holding_logs')
@@ -252,6 +255,7 @@ export function useHotHoldingMatrix(dateFrom: string, dateTo: string): {
           .order('logged_at', { ascending: false })
           .limit(5000),
       ])
+      if (logsErr) throw logsErr
 
       const matrix: Record<string, Record<string, Record<string, HotHoldingLog>>> = {}
       for (const log of (logs ?? []) as HotHoldingLog[]) {

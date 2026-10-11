@@ -22,6 +22,8 @@ import {
   typeLabel, severityOf, isRiddor, isOpen, incidentTitle, riddorDeadline, dueText,
 } from '../../lib/incidents'
 import { CARD, TONE, PageHeader, TabBar } from '../../components/temperature/TempPageParts'
+import LoadError from '../../components/ui/LoadError'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 const LOCATION_SUGGESTIONS = ['Kitchen', 'Bar', 'Dining area', 'Storeroom', 'Toilets', 'Outside']
 
@@ -32,11 +34,9 @@ const PERSON_TYPES = [
   { value: 'contractor', label: 'Contractor' },
 ]
 
-const FIELD_LABEL = 'block text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
-const TEXT_FIELD  = 'w-full h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
-const TEXT_AREA   = 'w-full px-3.5 py-2.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 resize-none transition-colors'
-const PRIMARY_BTN = 'h-9 rounded-xl bg-brand text-white text-[13px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed'
-const OUTLINE_BTN = 'h-9 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink dark:text-white hover:border-ink4 transition-colors'
+const FIELD_LABEL = 'block text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
+const TEXT_FIELD  = 'w-full h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
+const TEXT_AREA   = 'w-full px-3.5 py-2.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 resize-none transition-colors'
 
 // Severity colours: the card's left bar, the filter dot and the tag
 const SEVERITY_STYLE = {
@@ -57,7 +57,7 @@ function metaLine(incident) {
 
 function RiddorTag({ reported }) {
   return (
-    <span className={`h-7 px-2.5 rounded-lg inline-flex items-center font-mono text-[13px] font-bold border-[1.5px] ${reported ? 'border-line text-ink3 dark:border-white/15 dark:text-white/45' : 'border-bad text-bad dark:border-[#f19a86] dark:text-[#f19a86]'}`}>
+    <span className={`h-7 px-2.5 rounded-lg inline-flex items-center font-mono text-body-sm font-bold border-[1.5px] ${reported ? 'border-line text-ink3 dark:border-white/15 dark:text-white/45' : 'border-bad text-bad dark:border-badDark dark:text-badDark'}`}>
       {reported ? 'RIDDOR ✓' : 'RIDDOR'}
     </span>
   )
@@ -66,7 +66,7 @@ function RiddorTag({ reported }) {
 function StatusPill({ incident }) {
   const open = isOpen(incident)
   return (
-    <span className={`shrink-0 h-7 px-3.5 rounded-full inline-flex items-center text-[13px] font-semibold ${open ? TONE.explained : TONE.ok}`}>
+    <span className={`shrink-0 h-7 px-3.5 rounded-full inline-flex items-center text-body-sm font-semibold ${open ? TONE.explained : TONE.ok}`}>
       {open ? 'Open' : 'Closed'}
     </span>
   )
@@ -79,7 +79,7 @@ function Chip({ active, onClick, children }) {
       aria-pressed={active}
       onClick={onClick}
       className={[
-        'h-8 px-3.5 rounded-full border text-[13px] transition-colors',
+        'h-8 px-3.5 rounded-full border text-body-sm transition-colors',
         active
           ? 'bg-brand-tint border-brand/40 text-brand font-semibold dark:bg-white/10 dark:text-white dark:border-white/30'
           : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
@@ -187,7 +187,7 @@ function ReportIncidentModal({ open, onClose, onSaved }) {
                 aria-pressed={form.severity === s.value}
                 onClick={() => set('severity', s.value)}
                 className={[
-                  'h-8 rounded-xl border text-[13px] font-semibold transition-colors',
+                  'h-8 rounded-xl border text-body-sm font-semibold transition-colors',
                   form.severity === s.value
                     ? `${SEVERITY_STYLE[s.value].tag} border-transparent`
                     : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
@@ -208,22 +208,22 @@ function ReportIncidentModal({ open, onClose, onSaved }) {
             className="w-full flex items-center gap-2.5 text-left"
           >
             <span className="flex-1 min-w-0">
-              <span className="block text-[13px] font-semibold text-ink dark:text-white">Reportable under RIDDOR</span>
-              <span className="block text-[13px] text-ink3 dark:text-white/50 mt-0.5">Serious injuries, over-7-day absences, public taken to hospital</span>
+              <span className="block text-body-sm font-semibold text-ink dark:text-white">Reportable under RIDDOR</span>
+              <span className="block text-body-sm text-ink3 dark:text-white/50 mt-0.5">Serious injuries, over-7-day absences, public taken to hospital</span>
             </span>
-            <span className={`shrink-0 w-[52px] h-7 rounded-full p-1 transition-colors ${form.riddor ? 'bg-bad' : 'bg-ink4/70 dark:bg-white/20'}`}>
-              <span className={`block w-6 h-6 rounded-full bg-white shadow transition-transform ${form.riddor ? 'translate-x-5' : ''}`} />
+            <span className={`shrink-0 w-[52px] h-7 rounded-full p-1 transition-colors ${form.riddor ? 'bg-bad dark:bg-badDark' : 'bg-ink4/70 dark:bg-transparent dark:ring-[1.5px] dark:ring-inset dark:ring-white/50'}`}>
+              <span className={`block w-6 h-6 rounded-full bg-paper shadow transition-transform ${form.riddor ? 'translate-x-5 dark:bg-paperDark' : 'dark:bg-white/70'}`} />
             </span>
           </button>
           {form.riddor && (
             <div className="mt-2 flex flex-col gap-2">
               {RIDDOR_CATEGORIES.map(c => (
-                <label key={c.value} className="flex items-center gap-2.5 text-[13px] text-ink dark:text-white">
-                  <input type="radio" name="riddor_category" checked={form.riddor_category === c.value} onChange={() => set('riddor_category', c.value)} className="accent-[#b3331c] w-4 h-4" />
+                <label key={c.value} className="flex items-center gap-2.5 text-body-sm text-ink dark:text-white">
+                  <input type="radio" name="riddor_category" checked={form.riddor_category === c.value} onChange={() => set('riddor_category', c.value)} className="accent-bad w-4 h-4" />
                   {c.label}
                 </label>
               ))}
-              <p className="text-[13px] text-ink2 dark:text-white/70 mt-1">
+              <p className="text-body-sm text-ink2 dark:text-white/70 mt-1">
                 Report to the HSE within {riddorDays} days of the incident. Check HSE guidance if you're unsure whether it's reportable.
               </p>
             </div>
@@ -238,7 +238,7 @@ function ReportIncidentModal({ open, onClose, onSaved }) {
         <div>
           <div className="flex items-center justify-between mb-2">
             <span className={`${FIELD_LABEL} mb-0`}>People involved</span>
-            <button type="button" onClick={() => setPeople(p => [...p, { name: '', type: 'staff' }])} className="text-[13px] font-semibold text-brand dark:text-white">+ Add person</button>
+            <Button variant="link" size="sm" onClick={() => setPeople(p => [...p, { name: '', type: 'staff' }])}>+ Add person</Button>
           </div>
           <div className="flex flex-col gap-2">
             {people.map((p, i) => (
@@ -251,12 +251,12 @@ function ReportIncidentModal({ open, onClose, onSaved }) {
                 <select
                   value={p.type}
                   onChange={e => setPeople(list => list.map((x, j) => j === i ? { ...x, type: e.target.value } : x))}
-                  className="h-9 px-3 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white"
+                  className="h-9 px-3 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white"
                 >
                   {PERSON_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
                 {people.length > 1 && (
-                  <button type="button" aria-label="Remove person" onClick={() => setPeople(list => list.filter((_, j) => j !== i))} className="w-8 text-xl text-ink4 hover:text-bad">&times;</button>
+                  <CloseButton label="Remove person" onClick={() => setPeople(list => list.filter((_, j) => j !== i))} />
                 )}
               </div>
             ))}
@@ -271,15 +271,15 @@ function ReportIncidentModal({ open, onClose, onSaved }) {
             <label><span className={FIELD_LABEL}>Follow-up actions</span><textarea value={form.follow_up_actions} onChange={e => set('follow_up_actions', e.target.value)} rows={2} placeholder="What's being done so it doesn't happen again" className={TEXT_AREA} /></label>
           </>
         ) : (
-          <button type="button" onClick={() => setShowMore(true)} className="self-start inline-flex items-center gap-2 text-[13px] font-semibold text-ink2 dark:text-white/75 hover:text-ink dark:hover:text-white">
+          <Button variant="ghost" size="sm" onClick={() => setShowMore(true)} className="self-start -ml-3">
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
             Injury, first aid, witnesses
-          </button>
+          </Button>
         )}
 
-        <button type="button" onClick={save} disabled={!canSave} className={`w-full ${PRIMARY_BTN} h-10 rounded-2xl text-[14px]`}>
+        <Button fullWidth loading={saving} onClick={save} disabled={!canSave}>
           {saving ? 'Saving…' : 'Report incident'}
-        </button>
+        </Button>
       </div>
     </Modal>
   )
@@ -291,7 +291,7 @@ function Field({ label, value }) {
   return (
     <div>
       <p className={FIELD_LABEL}>{label}</p>
-      <p className="text-[13px] text-ink2 dark:text-white/75 whitespace-pre-wrap -mt-1">{value}</p>
+      <p className="text-body-sm text-ink2 dark:text-white/75 whitespace-pre-wrap -mt-1">{value}</p>
     </div>
   )
 }
@@ -355,10 +355,10 @@ function IncidentDetailModal({ incident, onClose, onChanged }) {
     <Modal open={!!incident} onClose={onClose} title={incidentTitle(incident)}>
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2 -mt-2">
-          <p className="text-[13px] text-ink3 dark:text-white/45">{metaLine(incident)} · reported by {incident.reporter?.name ?? 'Unknown'}</p>
+          <p className="text-body-sm text-ink3 dark:text-white/45">{metaLine(incident)} · reported by {incident.reporter?.name ?? 'Unknown'}</p>
           <div className="flex flex-wrap items-center gap-2">
             <StatusPill incident={incident} />
-            <span className={`h-7 px-3 rounded-lg inline-flex items-center text-[13px] font-semibold ${SEVERITY_STYLE[severity].tag}`}>{SEVERITY_LABEL[severity]}</span>
+            <span className={`h-7 px-3 rounded-lg inline-flex items-center text-body-sm font-semibold ${SEVERITY_STYLE[severity].tag}`}>{SEVERITY_LABEL[severity]}</span>
             {riddor && <RiddorTag reported={!!incident.riddor_reported_at} />}
           </div>
         </div>
@@ -366,25 +366,24 @@ function IncidentDetailModal({ incident, onClose, onChanged }) {
         {riddor && (
           <div className={`rounded-xl px-3.5 py-2 ${incident.riddor_reported_at ? 'bg-cream dark:bg-white/5' : 'bg-badBg dark:bg-bad/20'}`}>
             {incident.riddor_reported_at ? (
-              <p className="text-[13px] text-ink2 dark:text-white/75">
+              <p className="text-body-sm text-ink2 dark:text-white/75">
                 Reported to the HSE on {format(new Date(incident.riddor_reported_at), 'd MMM yyyy')}
                 {incident.riddor_reference && <> · ref <span className="font-mono">{incident.riddor_reference}</span></>}
               </p>
             ) : (
               <div className="flex flex-col gap-2.5">
-                <p className="text-[13px] font-semibold text-bad dark:text-[#f19a86]">
+                <p className="text-body-sm font-semibold text-bad dark:text-badDark">
                   Report to the HSE · {deadline ? dueText(deadline.daysLeft) : 'due'}{deadline && ` (${format(deadline.due, 'd MMM')})`}
                 </p>
-                {riddorCategory && <p className="text-[13px] text-ink2 dark:text-white/70 -mt-2">{riddorCategory}</p>}
+                {riddorCategory && <p className="text-body-sm text-ink2 dark:text-white/70 -mt-2">{riddorCategory}</p>}
                 <input type="text" value={reference} onChange={e => setReference(e.target.value)} placeholder="HSE reference number (optional)" className={TEXT_FIELD} />
-                <button
-                  type="button"
+                <Button
+                  size="sm"
                   disabled={busy}
                   onClick={() => change({ riddor_reported_at: new Date().toISOString(), riddor_reference: reference.trim() || null }, 'Marked as reported to the HSE')}
-                  className={PRIMARY_BTN}
                 >
                   Mark reported to HSE
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -396,7 +395,7 @@ function IncidentDetailModal({ incident, onClose, onChanged }) {
             <p className={FIELD_LABEL}>People involved</p>
             <div className="flex flex-wrap gap-1.5 -mt-1">
               {people.map((p, i) => (
-                <span key={i} className="text-[13px] bg-cream dark:bg-white/5 text-ink2 dark:text-white/70 px-2.5 py-1 rounded-lg">
+                <span key={i} className="text-body-sm bg-cream dark:bg-white/5 text-ink2 dark:text-white/70 px-2.5 py-1 rounded-lg">
                   {p.name} <span className="text-ink3 dark:text-white/40">({p.type})</span>
                 </span>
               ))}
@@ -419,30 +418,29 @@ function IncidentDetailModal({ incident, onClose, onChanged }) {
               className={TEXT_AREA}
             />
             <div className="grid grid-cols-2 gap-2.5 mt-1">
-              <button type="button" onClick={exportPdf} className={OUTLINE_BTN}>Export PDF</button>
-              <button
-                type="button"
+              <Button variant="secondary" size="sm" onClick={exportPdf}>Export PDF</Button>
+              <Button
+                size="sm"
                 disabled={busy || !closureNote.trim()}
                 onClick={() => change({ status: 'closed', closed_at: new Date().toISOString(), closed_by: session?.staffId ?? null, closure_note: closureNote.trim() }, 'Incident closed')}
-                className={PRIMARY_BTN}
               >
                 Close incident
-              </button>
+              </Button>
             </div>
           </div>
         ) : (
           <div className="flex flex-col gap-2.5 border-t border-line dark:border-white/10 pt-2.5">
             <Field label={`Closed ${incident.closed_at ? format(new Date(incident.closed_at), 'd MMM yyyy') : ''}`} value={incident.closure_note} />
             <div className="grid grid-cols-2 gap-2.5">
-              <button type="button" onClick={exportPdf} className={OUTLINE_BTN}>Export PDF</button>
-              <button
-                type="button"
+              <Button variant="secondary" size="sm" onClick={exportPdf}>Export PDF</Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 disabled={busy}
                 onClick={() => change({ status: 'open', closed_at: null, closed_by: null }, 'Incident reopened')}
-                className={OUTLINE_BTN}
               >
                 Reopen
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -454,7 +452,7 @@ function IncidentDetailModal({ incident, onClose, onChanged }) {
 /* ── Main page ────────────────────────────────────────────────────────────── */
 export default function IncidentsPage() {
   const { venueSlug } = useVenue()
-  const { incidents, loading, reload } = useIncidents()
+  const { incidents, loading, isError, reload } = useIncidents()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [severityFilter, setSeverityFilter] = useState('all')
@@ -500,14 +498,13 @@ export default function IncidentsPage() {
         title="Incidents"
         backTo={`/v/${venueSlug}/checks`}
         action={(
-          <button
-            type="button"
+          <Button
+            size="sm"
             onClick={() => setShowReport(true)}
-            className="shrink-0 inline-flex items-center gap-2 h-8 px-3.5 sm:px-3.5 rounded-xl bg-brand text-white text-[13px] sm:text-[13px] font-semibold hover:bg-brand/90 transition-colors"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
             Report
-          </button>
+          </Button>
         )}
       />
 
@@ -529,7 +526,7 @@ export default function IncidentsPage() {
             aria-pressed={severityFilter === f.value}
             onClick={() => setSeverityFilter(f.value)}
             className={[
-              'h-8 px-3.5 rounded-full border inline-flex items-center gap-2 text-[13px] font-semibold transition-colors',
+              'h-8 px-3.5 rounded-full border inline-flex items-center gap-2 text-body-sm font-semibold transition-colors',
               severityFilter === f.value
                 ? 'bg-brand border-brand text-white'
                 : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
@@ -548,20 +545,20 @@ export default function IncidentsPage() {
           onClick={() => setViewId(incident.id)}
           className="w-full flex items-center gap-2.5 rounded-2xl bg-badBg dark:bg-bad/20 px-3.5 sm:px-3.5 py-2 text-left"
         >
-          <span className="shrink-0 px-2.5 py-1 rounded-lg bg-bad text-white font-mono text-[13px] font-bold">RIDDOR</span>
-          <span className="flex-1 min-w-0 text-[13px] min-[420px]:text-[14px] text-ink dark:text-white">
-            Report “{incidentTitle(incident).replace(/^./, c => c.toLowerCase())}” to HSE · <span className={deadline.daysLeft < 0 ? 'font-semibold text-bad dark:text-[#f19a86]' : ''}>{dueText(deadline.daysLeft)}</span>
+          <span className="shrink-0 px-2.5 py-1 rounded-lg bg-bad text-white font-mono text-body-sm font-bold">RIDDOR</span>
+          <span className="flex-1 min-w-0 text-body-sm min-[420px]:text-body text-ink dark:text-white">
+            Report “{incidentTitle(incident).replace(/^./, c => c.toLowerCase())}” to HSE · <span className={deadline.daysLeft < 0 ? 'font-semibold text-bad dark:text-badDark' : ''}>{dueText(deadline.daysLeft)}</span>
           </span>
-          <span className="shrink-0 text-[13px] min-[420px]:text-[14px] font-semibold text-bad dark:text-[#f19a86]">Open</span>
+          <span className="shrink-0 text-body-sm min-[420px]:text-body font-semibold text-bad dark:text-badDark">Open</span>
         </button>
       ))}
 
-      {visible.length === 0 ? (
+      {isError ? (<LoadError what="incidents" onRetry={reload} />) : visible.length === 0 ? (
         <div className={`${CARD} px-3.5 py-10 text-center`}>
-          <p className="text-[14px] font-semibold text-ink dark:text-white">
+          <p className="text-body font-semibold text-ink dark:text-white">
             {incidents.length === 0 ? 'No incidents recorded' : tab === 'open' ? 'No open incidents' : 'Nothing matches'}
           </p>
-          <p className="text-[13px] text-ink3 dark:text-white/45 mt-1">
+          <p className="text-body-sm text-ink3 dark:text-white/45 mt-1">
             {incidents.length === 0 ? 'Report accidents, injuries and near misses here so there’s a record ready for an inspection.' : 'Try a different tab or filter.'}
           </p>
         </div>
@@ -580,12 +577,12 @@ export default function IncidentsPage() {
                 <span className={`shrink-0 w-1 self-stretch rounded-full ${open ? SEVERITY_STYLE[severity].bar : 'bg-ink4'}`} />
                 <span className="flex-1 min-w-0 flex flex-col gap-2">
                   <span className="flex items-start justify-between gap-2.5">
-                    <span className="text-[14px] min-[420px]:text-[15px] leading-snug font-semibold text-ink dark:text-white">{incidentTitle(incident)}</span>
+                    <span className="text-body min-[420px]:text-body-lg leading-snug font-semibold text-ink dark:text-white">{incidentTitle(incident)}</span>
                     <StatusPill incident={incident} />
                   </span>
-                  <span className="text-[13px] text-ink3 dark:text-white/45 -mt-1">{metaLine(incident)}</span>
+                  <span className="text-body-sm text-ink3 dark:text-white/45 -mt-1">{metaLine(incident)}</span>
                   <span className="flex flex-wrap gap-2">
-                    <span className={`h-7 px-3 rounded-lg inline-flex items-center text-[13px] font-semibold ${open ? SEVERITY_STYLE[severity].tag : SEVERITY_STYLE.minor.tag}`}>
+                    <span className={`h-7 px-3 rounded-lg inline-flex items-center text-body-sm font-semibold ${open ? SEVERITY_STYLE[severity].tag : SEVERITY_STYLE.minor.tag}`}>
                       {SEVERITY_LABEL[severity]}
                     </span>
                     {isRiddor(incident) && <RiddorTag reported={!!incident.riddor_reported_at} />}

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { IconSpark, IconArrow } from './SignupIcons'
+import Button from '../../components/ui/Button'
 
 export default function StepSuccess({ venueName, venueSlug, plan, allVenues = [] }) {
   const navigate = useNavigate()
@@ -16,7 +17,7 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
     <div className="flex flex-col items-center text-center max-w-sm mx-auto gap-6">
       {/* Success icon */}
       <div className="w-20 h-20 rounded-full bg-success/8 border-4 border-success/20 flex items-center justify-center">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-good dark:text-goodDark" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="20 6 9 17 4 12" />
         </svg>
       </div>
@@ -34,7 +35,7 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
 
       {/* Email verification nudge */}
       <div className="w-full bg-charcoal/4 dark:bg-white/5 rounded-xl px-4 py-3 flex items-start gap-3 text-left">
-        <svg className="shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#76817b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="shrink-0 mt-0.5 text-ink3 dark:text-white/50" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
         </svg>
         <p className="text-xs text-charcoal/50 dark:text-white/40 leading-relaxed">
@@ -55,7 +56,7 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
       {/* Venue URL(s) */}
       {allVenues.length > 1 ? (
         <div className="w-full bg-charcoal/4 dark:bg-white/5 rounded-xl px-4 py-3 flex flex-col gap-2">
-          <p className="text-[11px] text-charcoal/40 dark:text-white/35 tracking-widest uppercase mb-1">Your staff login URLs</p>
+          <p className="text-micro text-charcoal/40 dark:text-white/35 tracking-widest uppercase mb-1">Your staff login URLs</p>
           {allVenues.map(v => (
             <div key={v.slug} className="flex items-center justify-between gap-2">
               <p className="text-xs font-medium text-charcoal/70 dark:text-white/60 truncate">{v.name}</p>
@@ -65,20 +66,21 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
         </div>
       ) : (
         <div className="w-full bg-charcoal/4 dark:bg-white/5 rounded-xl px-4 py-3">
-          <p className="text-[11px] text-charcoal/40 dark:text-white/35 tracking-widest uppercase mb-1">Your staff login URL</p>
+          <p className="text-micro text-charcoal/40 dark:text-white/35 tracking-widest uppercase mb-1">Your staff login URL</p>
           <p className="text-xs font-mono text-charcoal/60 dark:text-white/50">get-pelikn.com/v/{venueSlug}</p>
         </div>
       )}
 
       <div className="flex flex-col gap-2 w-full">
-        <button
+        <Button
+          size="lg"
+          fullWidth
           onClick={() => navigate(`/v/${venueSlug}`)}
-          className="w-full bg-brand text-cream py-3.5 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors flex items-center justify-center gap-2"
         >
           Go to your dashboard
           <IconArrow />
-        </button>
-        <p className="text-[11px] text-charcoal/35 dark:text-white/30">Redirecting automatically in a few seconds…</p>
+        </Button>
+        <p className="text-caption text-charcoal/35 dark:text-white/30">Redirecting automatically in a few seconds…</p>
       </div>
     </div>
   )

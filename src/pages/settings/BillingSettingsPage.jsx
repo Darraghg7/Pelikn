@@ -11,6 +11,7 @@ import { STARTER_STAFF_LIMIT } from '../../lib/billing'
 import { EXTRA_VENUE_PRICE, planTotal } from '../../lib/pricing'
 import { changePlan, openBillingPortal, setTrialPlan, startCheckout } from '../../lib/api/billing'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
+import Button from '../../components/ui/Button'
 
 const PLAN_NAME = { [PLANS.STARTER]: PLAN_DETAILS.starter.name, [PLANS.PRO]: PLAN_DETAILS.pro.name }
 const fmtDate = (iso) => format(new Date(iso), 'd MMM yyyy')
@@ -42,7 +43,7 @@ function PlanOption({ plan, selected, onSelect, price, sfx }) {
       className={`flex-1 rounded-xl border-2 px-3 py-3 text-left transition-colors ${active ? 'border-brand bg-brand/5' : 'border-charcoal/10 dark:border-white/10 hover:border-charcoal/25 dark:hover:border-white/25'}`}
     >
       <div className="text-sm font-semibold text-charcoal dark:text-white">{PLAN_NAME[plan]}</div>
-      <div className="text-[13px] text-charcoal/55 dark:text-white/45">£{price}{sfx}</div>
+      <div className="text-body-sm text-charcoal/55 dark:text-white/45">£{price}{sfx}</div>
     </button>
   )
 }
@@ -83,7 +84,7 @@ export default function BillingSettingsPage() {
     const next = new URLSearchParams(params)
     next.delete('billing')
     setParams(next, { replace: true })
-  }, [checkoutResult]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [checkoutResult]) // eslint-disable-line react-hooks/exhaustive-deps -- one-shot per return from Stripe: the effect strips ?billing= itself, and re-running on params/toast identity changes could fire the thank-you toast twice
 
   const subscribed = !!billing?.has_subscription
   useEffect(() => {
@@ -146,9 +147,6 @@ export default function BillingSettingsPage() {
   const currentPrice = planTotal(plan, billing?.billing_interval === 'year' ? 'year' : 'month', venueCount)
   const currentSfx = billing?.billing_interval === 'year' ? '/yr' : '/mo'
 
-  const btnPrimary = 'inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-[10px] bg-brand text-cream text-[13px] font-semibold disabled:opacity-60'
-  const btnSecondary = 'inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-[10px] bg-charcoal/6 dark:bg-white/8 text-charcoal/70 dark:text-white/60 text-[13px] font-medium disabled:opacity-60'
-
   return (
     <div>
       <SettingsSubHeader title="Plan & Billing" onBack={() => navigate(vp('/settings/hub'))} />
@@ -157,21 +155,21 @@ export default function BillingSettingsPage() {
 
         {/* Current plan */}
         <div className="bg-brand rounded-[14px] p-[18px] pb-4 mb-[14px] text-white">
-          <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-white/55 font-semibold">Current plan</div>
+          <div className="font-mono text-micro tracking-[0.1em] uppercase text-white/55 font-semibold">Current plan</div>
           <div className="flex items-baseline gap-[10px] mt-2">
-            <span className="text-[28px] font-bold tracking-[-0.02em]">{PLAN_NAME[plan] ?? 'Starter'}</span>
-            <span className="text-[13px] text-white/60">£{currentPrice}{currentSfx}</span>
+            <span className="text-display font-bold tracking-[-0.02em]">{PLAN_NAME[plan] ?? 'Starter'}</span>
+            <span className="text-body-sm text-white/60">£{currentPrice}{currentSfx}</span>
           </div>
-          {status && <div className="text-[13px] text-white/80 mt-1">{status}</div>}
+          {status && <div className="text-body-sm text-white/80 mt-1">{status}</div>}
           {managed && !isPro && (
-            <div className="text-[13px] text-white/80 mt-1">
+            <div className="text-body-sm text-white/80 mt-1">
               Staff: {billing.active_staff} of {STARTER_STAFF_LIMIT}
             </div>
           )}
           <div className="mt-[14px] flex flex-col gap-1.5">
             {features.map(f => (
-              <div key={f} className="flex items-center gap-2 text-[13px] text-white/85">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              <div key={f} className="flex items-center gap-2 text-body-sm text-white/85">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-white/60" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                 {f}
               </div>
             ))}
@@ -180,39 +178,39 @@ export default function BillingSettingsPage() {
 
         {loading ? null : !managed ? (
           /* Venues from before self-serve billing are invoiced by hand. */
-          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px] text-[13px] text-charcoal/60 dark:text-white/50 leading-[1.5]">
+          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px] text-body-sm text-charcoal/60 dark:text-white/50 leading-[1.5]">
             Your account is billed directly by Pelikn. To change plan, add a venue or cancel, email{' '}
             <a href="mailto:hello@get-pelikn.com?subject=Plan change" className="text-brand dark:text-accent font-medium">hello@get-pelikn.com</a>.
           </div>
         ) : !canManage ? (
-          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px] text-[13px] text-charcoal/60 dark:text-white/50 leading-[1.5]">
+          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px] text-body-sm text-charcoal/60 dark:text-white/50 leading-[1.5]">
             Only the venue owner can change the plan or payment details. Sign in with the owner&apos;s email and password to manage billing.
           </div>
         ) : hasLiveSub ? (
           <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px]">
             {access.state === 'past_due' && (
-              <p className="text-[13px] text-danger font-medium mb-3">
+              <p className="text-body-sm text-danger font-medium mb-3">
                 Your last payment didn&apos;t go through. Stripe will try again, but updating your card now keeps things running.
               </p>
             )}
             <div className="flex flex-col sm:flex-row gap-2">
               {access.state === 'past_due' ? (
                 <>
-                  <button type="button" onClick={handlePortal} disabled={!!busy} className={btnPrimary}>
+                  <Button loading={busy === 'portal'} onClick={handlePortal} disabled={!!busy}>
                     {busy === 'portal' ? 'Opening…' : 'Update card'}
-                  </button>
-                  <button type="button" onClick={handleChangePlan} disabled={!!busy} className={btnSecondary}>
+                  </Button>
+                  <Button variant="secondary" loading={busy === 'change'} onClick={handleChangePlan} disabled={!!busy}>
                     {busy === 'change' ? 'Switching…' : isPro ? 'Switch to Starter' : 'Upgrade to Pro'}
-                  </button>
+                  </Button>
                 </>
               ) : (
                 <>
-                  <button type="button" onClick={handleChangePlan} disabled={!!busy} className={btnPrimary}>
+                  <Button loading={busy === 'change'} onClick={handleChangePlan} disabled={!!busy}>
                     {busy === 'change' ? 'Switching…' : isPro ? 'Switch to Starter' : 'Upgrade to Pro'}
-                  </button>
-                  <button type="button" onClick={handlePortal} disabled={!!busy} className={btnSecondary}>
+                  </Button>
+                  <Button variant="secondary" loading={busy === 'portal'} onClick={handlePortal} disabled={!!busy}>
                     {busy === 'portal' ? 'Opening…' : 'Card, invoices & cancelling'}
-                  </button>
+                  </Button>
                 </>
               )}
             </div>
@@ -223,7 +221,7 @@ export default function BillingSettingsPage() {
         ) : (
           /* Trial, or lapsed: pick a plan and add a card. */
           <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px]">
-            <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase font-semibold mb-3">
+            <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase font-semibold mb-3">
               {access.state === 'trial' ? 'Keep Pelikn after your trial' : 'Choose a plan'}
             </div>
 
@@ -251,13 +249,13 @@ export default function BillingSettingsPage() {
             )}
 
             <div className="flex flex-col gap-2">
-              <button type="button" onClick={handleCheckout} disabled={!!busy} className={btnPrimary}>
+              <Button loading={busy === 'checkout'} onClick={handleCheckout} disabled={!!busy}>
                 {busy === 'checkout' ? 'Opening secure checkout…' : `Add card · ${PLAN_NAME[choice]} £${planTotal(choice, period, venueCount)}${sfx}`}
-              </button>
+              </Button>
               {access.state === 'trial' && choice !== plan && (
-                <button type="button" onClick={handleTrialSwitch} disabled={!!busy} className={btnSecondary}>
+                <Button variant="secondary" loading={busy === 'trial'} onClick={handleTrialSwitch} disabled={!!busy}>
                   {busy === 'trial' ? 'Switching…' : `Try ${PLAN_NAME[choice]} for the rest of your trial`}
-                </button>
+                </Button>
               )}
             </div>
             <p className="text-xs text-charcoal/45 dark:text-white/35 mt-3 leading-[1.5]">
@@ -270,8 +268,8 @@ export default function BillingSettingsPage() {
 
         {managed && (
           <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px] mt-[14px]">
-            <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase font-semibold mb-2">Add another venue</div>
-            <div className="text-[13px] text-charcoal/55 dark:text-white/45 leading-[1.5]">
+            <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase font-semibold mb-2">Add another venue</div>
+            <div className="text-body-sm text-charcoal/55 dark:text-white/45 leading-[1.5]">
               {isPro
                 ? `Each extra venue is ${EXTRA_VENUE_PRICE}/mo on Pro. Add one from Settings → My Venues and your bill updates automatically.`
                 : 'Multiple venues come with Pro.'}

@@ -14,21 +14,23 @@ export interface RecallLog {
 }
 
 export async function fetchRecallProcedure(venueId: string): Promise<RecallProcedure | null> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('recall_procedures')
     .select('*')
     .eq('venue_id', venueId)
     .maybeSingle()
+  if (error) throw error
   return (data ?? null) as RecallProcedure | null
 }
 
 export async function fetchRecallLogs(venueId: string): Promise<RecallLog[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('recall_logs')
     .select('*')
     .eq('venue_id', venueId)
     .order('date_identified', { ascending: false })
     .limit(200)
+  if (error) throw error
   return (data ?? []) as unknown as RecallLog[]
 }
 

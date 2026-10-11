@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { format, subDays, parseISO } from 'date-fns'
 import { supabase } from '../lib/supabase'
+import { throwIfError } from '../lib/queryErrors'
 import { useVenue } from '../contexts/VenueContext'
 import { isCheckRequired } from '../lib/temperatureChecks'
 import { cleaningStatus, isVenueClosedOn } from './useCleaningTasks'
@@ -153,6 +154,11 @@ async function fetchViaQueries(vid: string, now: Date): Promise<NotificationData
     supabase.from('clock_edit_requests').select('id, staff:staff_id ( name )').eq('venue_id', vid).eq('status', 'pending').order('created_at', { ascending: false }).limit(20),
     supabase.from('hour_edit_log').select('staff_name, shift_date, created_at').eq('venue_id', vid).gte('created_at', w.editsSince).order('created_at', { ascending: false }).limit(20),
   ])
+  throwIfError(
+    breakRow, closedDaysRow, swaps, timeOff, shiftsToday, clockInsToday, breaksToday,
+    templates, completions, shifts30d, clockIns30d, fridgeLogs, fridges, training,
+    cleaningTasks, closures, cleaningCompletions, actions, probe, editRequests, hourEdits,
+  )
 
   // Completions arrive newest first; the first one seen per task is its latest.
   const cleaningLast: NotificationData['cleaning_last'] = []

@@ -2,12 +2,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useVenue } from '../contexts/VenueContext'
 import { fetchComplaints, type Complaint } from '../lib/api/complaints'
 
-export function useComplaints(): { complaints: Complaint[]; loading: boolean; reload: () => void } {
+export function useComplaints(): { complaints: Complaint[]; loading: boolean; isError: boolean; reload: () => void } {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
   const queryKey = ['complaints', venueId]
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey,
     queryFn: () => fetchComplaints(venueId!),
     enabled: !!venueId,
@@ -15,5 +15,5 @@ export function useComplaints(): { complaints: Complaint[]; loading: boolean; re
     placeholderData: [],
   })
 
-  return { complaints: data ?? [], loading: isLoading, reload: () => queryClient.invalidateQueries({ queryKey }) }
+  return { complaints: data ?? [], loading: isLoading, isError, reload: () => queryClient.invalidateQueries({ queryKey }) }
 }

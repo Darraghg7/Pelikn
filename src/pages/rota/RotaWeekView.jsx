@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { format, isToday } from 'date-fns'
 import { getWeekDays, staffColour } from '../../lib/utils'
+import Avatar from '../../components/ui/Avatar'
+import { firstName } from '../../lib/names'
 import { shiftDurationHours, paidShiftHours, unpaidBreakMins } from '../../hooks/useShifts'
 
 const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
@@ -22,10 +24,10 @@ function MobileShiftCell({ shift, accent, onClick }) {
       className={`rounded-[10px] px-2 pt-[7px] pb-[6px] mb-1 last:mb-0${canClick ? ' cursor-pointer active:scale-[0.97] transition-transform' : ''}`}
       style={{ background: accent + '1C' }}
     >
-      <div className="font-semibold text-[13px] leading-none tabular-nums" style={{ color: accent }}>
+      <div className="font-semibold text-body-sm leading-none tabular-nums" style={{ color: accent }}>
         {startH}–{endH}
       </div>
-      <div className="text-[11px] leading-none mt-[5px] tabular-nums" style={{ color: accent, opacity: 0.65 }}>
+      <div className="text-micro leading-none mt-[5px] tabular-nums" style={{ color: accent, opacity: 0.65 }}>
         {hrsStr}
       </div>
     </div>
@@ -71,11 +73,11 @@ function MobileWeekGrid({ days, shifts, shiftIndex, staff, onCellClick, currentS
                   {DAY_LABELS[i]}
                 </div>
                 {today ? (
-                  <div className="w-7 h-7 rounded-full mx-auto flex items-center justify-center" style={{ background: '#13362a' }}>
-                    <span className="text-[13px] font-bold text-white leading-none">{format(d, 'd')}</span>
+                  <div className="w-7 h-7 rounded-full mx-auto flex items-center justify-center bg-brand">
+                    <span className="text-body-sm font-bold text-white leading-none">{format(d, 'd')}</span>
                   </div>
                 ) : (
-                  <div className={`text-[13px] font-semibold leading-none ${closed ? 'text-charcoal/25 dark:text-white/25' : 'text-charcoal/80 dark:text-white/68'}`}>
+                  <div className={`text-body-sm font-semibold leading-none ${closed ? 'text-charcoal/25 dark:text-white/25' : 'text-charcoal/80 dark:text-white/68'}`}>
                     {format(d, 'd')}
                   </div>
                 )}
@@ -97,16 +99,11 @@ function MobileWeekGrid({ days, shifts, shiftIndex, staff, onCellClick, currentS
                 style={{ width: NAME_W, minWidth: NAME_W }}
               >
                 <div className="flex flex-col items-center gap-1 shrink-0">
-                  <span
-                    className="w-9 h-9 rounded-[9px] grid place-items-center font-semibold text-[12px]"
-                    style={{ background: accent + '20', color: accent }}
-                  >
-                    {s.name.split(' ').map(w => w[0]).slice(0, 2).join('')}
-                  </span>
+                  <Avatar name={s.name} id={s.id} colour={s.colour} photoUrl={s.photo_url} size="md" decorative />
                   <span className="w-1.5 h-1.5 rounded-full" style={{ background: accent }} />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[13px] font-semibold text-charcoal dark:text-white truncate">{s.name.split(' ')[0]}</div>
+                  <div className="text-body-sm font-semibold text-charcoal dark:text-white truncate">{firstName(s.name)}</div>
                 </div>
               </div>
 
@@ -165,7 +162,7 @@ function MobileWeekGrid({ days, shifts, shiftIndex, staff, onCellClick, currentS
               className={`shrink-0 py-3 px-1 text-center ${i < 6 ? 'border-r border-charcoal/6 dark:border-white/8' : ''}`}
               style={{ width: COL_W, minWidth: COL_W }}
             >
-              <div className="font-semibold text-[13px] text-charcoal/80 dark:text-white/68 tabular-nums">{t.hours > 0 ? `${t.hours}h` : '—'}</div>
+              <div className="font-semibold text-body-sm text-charcoal/80 dark:text-white/68 tabular-nums">{t.hours > 0 ? `${t.hours}h` : '—'}</div>
               {t.heads > 0 && (
                 <div className="font-mono text-[10px] text-charcoal/40 dark:text-white/35 mt-0.5 uppercase tracking-[0.04em]">{t.heads} on</div>
               )}
@@ -179,179 +176,6 @@ function MobileWeekGrid({ days, shifts, shiftIndex, staff, onCellClick, currentS
   )
 }
 
-/* ── Mobile Day View ─────────────────────────────────────────────────────── */
-function MobileDayView({ days, shifts, shiftIndex, staff, onCellClick, currentStaffId, isManager, unavailability, closedDays, closedDates, closureMode, onToggleClosure, crossShifts = [] }) {
-  // Default to today's index within the week (0–6), or 0 if today isn't in this week
-  const todayIdx = days.findIndex(d => isToday(d))
-  const [selectedDay, setSelectedDay] = useState(todayIdx >= 0 ? todayIdx : 0)
-
-  // When week changes, reset to today if in week
-  useEffect(() => {
-    const idx = days.findIndex(d => isToday(d))
-    setSelectedDay(idx >= 0 ? idx : 0)
-  }, [days[0]?.toISOString()])
-
-  const day      = days[selectedDay]
-  const dateStr  = format(day, 'yyyy-MM-dd')
-  const isClosed = closedDays.includes(selectedDay) || closedDates.has(dateStr)
-  const isDbClosed = closedDates.has(dateStr)
-
-  // All shifts for this day across all staff
-  const dayShifts = shifts.filter(sh => sh.shift_date === dateStr)  // used for "has shifts" dot only
-
-  return (
-    <div className="flex flex-col gap-3">
-      {/* Day selector scrollable pills */}
-      <div className="overflow-x-auto -mx-0 scrollbar-hide">
-        <div className="flex gap-2 pb-1">
-          {days.map((d, i) => {
-            const today   = isToday(d)
-            const dStr    = format(d, 'yyyy-MM-dd')
-            const closed  = closedDays.includes(i) || closedDates.has(dStr)
-            const dbClosed = closedDates.has(dStr)
-            const active  = i === selectedDay
-            const hasShifts = shifts.some(sh => sh.shift_date === dStr)
-            return (
-              <button
-                key={i}
-                onClick={() => closureMode ? onToggleClosure?.(dStr) : setSelectedDay(i)}
-                className={[
-                  'flex flex-col items-center px-3 py-2 rounded-xl shrink-0 border transition-all min-w-[54px]',
-                  closureMode && dbClosed ? 'bg-danger/10 border-danger/30 text-danger' :
-                  active
-                    ? 'bg-charcoal text-cream border-charcoal dark:border-white'
-                    : today
-                      ? 'bg-accent/8 text-accent border-accent/25'
-                      : closed
-                        ? 'bg-charcoal/4 dark:bg-white/5 text-charcoal/25 dark:text-white/25 border-charcoal/8 dark:border-white/8'
-                        : 'bg-white dark:bg-paperDark text-charcoal/70 dark:text-white/60 border-charcoal/12 dark:border-white/15 hover:border-charcoal/25 dark:hover:border-white/25',
-                ].join(' ')}
-              >
-                <span className="text-[9px] font-semibold tracking-widest uppercase">{DAY_LABELS[i]}</span>
-                <span className="text-sm font-semibold mt-0.5">{format(d, 'd')}</span>
-                {hasShifts && !closed && !closureMode && (
-                  <span className={`w-1.5 h-1.5 rounded-full mt-1 ${active ? 'bg-white dark:bg-paperDark' : 'bg-accent'}`} />
-                )}
-                {closureMode && (
-                  <span className={`text-[7px] tracking-widest uppercase mt-0.5 font-bold ${dbClosed ? 'text-danger/60' : 'text-charcoal/20 dark:text-white/20'}`}>
-                    {dbClosed ? 'Closed' : '+close'}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Selected day header */}
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-charcoal dark:text-white text-sm">
-          {format(day, 'EEEE, d MMMM')}
-          {isToday(day) && (
-            <span className="ml-2 text-[11px] tracking-widest uppercase bg-accent/12 text-accent px-2 py-0.5 rounded-full font-medium">Today</span>
-          )}
-        </h3>
-        {isClosed && !closureMode && (
-          <span className="text-[11px] tracking-widest uppercase text-charcoal/35 dark:text-white/30 font-semibold">Closed</span>
-        )}
-        {closureMode && isDbClosed && (
-          <button
-            onClick={() => onToggleClosure?.(dateStr)}
-            className="text-[11px] tracking-widest uppercase text-danger/60 hover:text-danger font-semibold transition-colors"
-          >
-            Tap to unmark ×
-          </button>
-        )}
-      </div>
-
-      {isClosed && !closureMode ? (
-        <div className="py-8 text-center text-sm text-charcoal/30 dark:text-white/30 italic">Venue closed this day.</div>
-      ) : dayShifts.length === 0 && !closureMode ? (
-        <div className="py-8 text-center">
-          <p className="text-sm text-charcoal/35 dark:text-white/30 italic mb-3">No shifts scheduled for this day.</p>
-          {isManager && (
-            <p className="text-xs text-charcoal/30 dark:text-white/30">Tap a staff member to add a shift.</p>
-          )}
-        </div>
-      ) : null}
-
-      {/* Staff list for this day — hidden on closed days */}
-      {!isClosed && (
-      <div className="flex flex-col gap-2">
-        {staff.map(s => {
-          const staffDayShifts = shiftIndex[`${s.id}:${dateStr}`] ?? []
-          const unavail        = unavailability[`${s.id}:${dateStr}`]
-          const isOwnStaff     = !isManager && currentStaffId === s.id
-          const isTimeOff      = unavail?.type === 'time_off'
-          const canClick       = isManager || (isOwnStaff && staffDayShifts.length > 0)
-          const crossShift     = s._crossVenue ? crossShifts.find(cs => cs.staff_id === s.id && cs.shift_date === dateStr) : null
-
-          if (staffDayShifts.length === 0 && !isManager) return null  // staff only see their own
-
-          return (
-            <div
-              key={s.id}
-              onClick={canClick ? () => onCellClick?.(s, day, staffDayShifts) : undefined}
-              className={[
-                'flex items-center gap-3 px-4 py-3 rounded-xl border transition-all',
-                canClick ? 'cursor-pointer active:scale-[0.98]' : '',
-                isOwnStaff && !isManager ? 'border-accent/30 bg-accent/4' : 'border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark',
-                isTimeOff && staffDayShifts.length === 0 ? 'bg-danger/5 border-danger/20' : '',
-                crossShift && staffDayShifts.length === 0 ? 'bg-indigo-50/60 border-indigo-200' : '',
-              ].join(' ')}
-            >
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  {s._crossVenue && (
-                    <span
-                      className="w-2 h-2 rounded-full shrink-0"
-                      style={{ backgroundColor: staffColour(s) }}
-                    />
-                  )}
-                  <p className="text-sm font-medium text-charcoal dark:text-white truncate">{s.name}</p>
-                  {isOwnStaff && (
-                    <span className="text-[9px] tracking-widest uppercase bg-accent/15 text-accent px-1.5 py-0.5 rounded-full font-medium shrink-0">You</span>
-                  )}
-                  {s._crossVenue && (
-                    <span className="text-[9px] tracking-widest uppercase bg-indigo-50 text-indigo-400 px-1.5 py-0.5 rounded-full font-medium shrink-0">Visiting</span>
-                  )}
-                </div>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/35 dark:text-white/30 mt-0.5">{s.job_title ?? s.role}</p>
-              </div>
-
-              <div className="shrink-0 flex flex-col items-end gap-1">
-                {staffDayShifts.length === 0 ? (
-                  crossShift ? (
-                    <span className="text-[11px] font-semibold text-indigo-400 tracking-wide">Busy · {crossShift.venue_name}</span>
-                  ) : isTimeOff ? (
-                    <span className="text-[11px] font-semibold text-danger tracking-wide">Time Off</span>
-                  ) : isManager ? (
-                    <span className="text-[11px] text-charcoal/25 dark:text-white/25 border border-dashed border-charcoal/15 dark:border-white/15 rounded-lg px-2.5 py-1">+ Add shift</span>
-                  ) : (
-                    <span className="text-[11px] text-charcoal/25 dark:text-white/25">No shift</span>
-                  )
-                ) : (
-                  staffDayShifts.map(sh => (
-                    <div key={sh.id} className="flex flex-col items-end">
-                      <span className="font-mono text-sm font-semibold text-charcoal dark:text-white">
-                        {sh.start_time?.slice(0,5) ?? ''}–{sh.end_time?.slice(0,5) ?? ''}
-                      </span>
-                      {sh.role_label && (
-                        <span className="text-[11px] text-charcoal/40 dark:text-white/35 tracking-wide">{sh.role_label}</span>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-      )}
-    </div>
-  )
-}
-
 /* ── Desktop Week Table ───────────────────────────────────────────────────── */
 function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onToggleAvailability, currentStaffId, isManager, unavailability, closedDays, closedDates, closureMode, onToggleClosure, weeklyTotal, breakDurationMins, crossShifts = [] }) {
   return (
@@ -359,7 +183,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
       <table className="min-w-full text-sm border-separate border-spacing-0">
         <thead>
           <tr>
-            <th className="sticky left-0 bg-white dark:bg-paperDark w-36 text-left px-5 py-3 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium border-b border-charcoal/8 dark:border-white/8 z-10">
+            <th className="sticky left-0 bg-white dark:bg-paperDark w-36 text-left px-5 py-3 text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium border-b border-charcoal/8 dark:border-white/8 z-10">
               Staff
             </th>
             {days.map((d, i) => {
@@ -378,7 +202,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                     closureMode && isDbClosed ? 'bg-danger/8 ring-1 ring-danger/20' : '',
                   ].join(' ')}>
                   <p className={[
-                    'text-[11px] tracking-widest font-medium',
+                    'text-micro tracking-widest font-medium',
                     isClosed ? 'text-charcoal/25 dark:text-white/25' : today ? 'text-accent' : 'text-charcoal/35 dark:text-white/30',
                   ].join(' ')}>{DAY_LABELS[i]}</p>
                   <p className={[
@@ -397,7 +221,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
               )
             })}
             {isManager && (
-              <th className="px-4 py-3 border-b border-charcoal/8 dark:border-white/8 text-right text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium whitespace-nowrap min-w-[80px]">
+              <th className="px-4 py-3 border-b border-charcoal/8 dark:border-white/8 text-right text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium whitespace-nowrap min-w-[80px]">
                 Est. Cost
               </th>
             )}
@@ -431,7 +255,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                     )}
                     <div>
                       <p className="font-medium text-charcoal dark:text-white text-sm">{s.name}</p>
-                      <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">{s.job_title ?? s.role}</p>
+                      <p className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30">{s.job_title ?? s.role}</p>
                     </div>
                     {isOwnStaff && (
                       <span className="text-[9px] tracking-widest uppercase bg-accent/15 text-accent px-1.5 py-0.5 rounded-full font-medium">You</span>
@@ -479,8 +303,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                       {dayShifts.length === 0 ? (
                         crossShift ? (
                           <div
-                            className="h-10 flex flex-col items-center justify-center rounded border border-indigo-200/60 px-1"
-                            style={{ background: 'repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(99,102,241,0.08) 3px, rgba(99,102,241,0.08) 6px)' }}
+                            className="h-10 flex flex-col items-center justify-center rounded border border-indigo-200/60 px-1 bg-[repeating-linear-gradient(-45deg,transparent,transparent_3px,theme(colors.indigo.500/8%)_3px,theme(colors.indigo.500/8%)_6px)]"
                           >
                             <span className="text-[8px] tracking-widest uppercase text-indigo-400 font-semibold leading-tight">Busy</span>
                             <span className="text-[8px] text-indigo-300 truncate max-w-full px-1">{crossShift.venue_name}</span>
@@ -502,7 +325,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                             {isManager && (
                               <button
                                 onClick={() => onCellClick(s, d, dayShifts)}
-                                className="h-6 flex items-center justify-center text-[11px] rounded border border-dashed border-charcoal/12 dark:border-white/15 hover:border-charcoal/25 dark:hover:border-white/25 text-charcoal/20 dark:text-white/20 hover:text-charcoal/40 dark:hover:text-white/35 transition-colors cursor-pointer"
+                                className="h-6 flex items-center justify-center text-micro rounded border border-dashed border-charcoal/12 dark:border-white/15 hover:border-charcoal/25 dark:hover:border-white/25 text-charcoal/20 dark:text-white/20 hover:text-charcoal/40 dark:hover:text-white/35 transition-colors cursor-pointer"
                               >+</button>
                             )}
                           </div>
@@ -541,7 +364,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                               style={{ backgroundColor: staffColour(s) }}
                             >
                               <p className="font-medium">{sh.start_time?.slice(0,5) ?? ''}&ndash;{sh.end_time?.slice(0,5) ?? ''}</p>
-                              <p className="opacity-60 truncate text-[11px]">{sh.role_label}</p>
+                              <p className="opacity-60 truncate text-caption">{sh.role_label}</p>
                               {isOwnStaff && !isManager && (
                                 <span className="absolute -top-1 -right-1 bg-accent text-white text-[8px] rounded-full w-3.5 h-3.5 flex items-center justify-center font-bold leading-none">↔</span>
                               )}
@@ -568,7 +391,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                     {wageCost > 0 ? (
                       <div>
                         <p className="font-mono text-sm font-semibold text-charcoal dark:text-white">{fmtGBP(wageCost)}</p>
-                        <p className="text-[11px] text-charcoal/35 dark:text-white/30">{totalHrs.toFixed(1)}h paid</p>
+                        <p className="text-caption text-charcoal/35 dark:text-white/30">{totalHrs.toFixed(1)}h paid</p>
                         {breakCount > 0 && (
                           <p className="text-[9px] text-charcoal/25 dark:text-white/25">
                             {breakCount > 1
@@ -589,7 +412,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
         {isManager && weeklyTotal > 0 && (
           <tfoot>
             <tr>
-              <td colSpan={days.length + 1} className="px-5 py-3 text-right text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">
+              <td colSpan={days.length + 1} className="px-5 py-3 text-right text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">
                 Total weekly wage bill
               </td>
               <td className="px-4 py-3 text-right">

@@ -9,6 +9,7 @@ import Button from '../../components/ui/Button'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
 import { SkeletonList } from '../../components/ui/Skeleton'
+import LoadError from '../../components/ui/LoadError'
 
 
 function PostCard({ notice, isManager, onDelete }) {
@@ -31,7 +32,10 @@ function PostCard({ notice, isManager, onDelete }) {
             {confirming ? (
               <div className="flex items-center gap-1.5">
                 <span className="text-xs text-charcoal/40 dark:text-white/35">Delete?</span>
-                <button
+                <Button
+                  variant="danger-ghost"
+                  size="sm"
+                  loading={deleting}
                   onClick={async () => {
                     setDeleting(true)
                     await onDelete(notice.id)
@@ -39,24 +43,25 @@ function PostCard({ notice, isManager, onDelete }) {
                     setConfirming(false)
                   }}
                   disabled={deleting}
-                  className="text-xs text-danger font-medium hover:text-danger/80 transition-colors"
                 >
-                  {deleting ? '…' : 'Yes'}
-                </button>
-                <button
+                  Yes
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setConfirming(false)}
-                  className="text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors"
                 >
                   No
-                </button>
+                </Button>
               </div>
             ) : (
-              <button
+              <Button
+                variant="danger-ghost"
+                size="sm"
                 onClick={() => setConfirming(true)}
-                className="text-xs text-charcoal/30 dark:text-white/30 hover:text-danger transition-colors"
               >
                 Delete
-              </button>
+              </Button>
             )}
           </div>
         )}
@@ -68,10 +73,10 @@ function PostCard({ notice, isManager, onDelete }) {
 
       <div className="flex items-center gap-2 pt-1 border-t border-charcoal/6 dark:border-white/8">
         {notice.created_by_name && (
-          <span className="text-[11px] text-charcoal/35 dark:text-white/30">{notice.created_by_name}</span>
+          <span className="text-micro text-charcoal/35 dark:text-white/30">{notice.created_by_name}</span>
         )}
-        <span className="text-[11px] text-charcoal/25 dark:text-white/25">·</span>
-        <span className="text-[11px] text-charcoal/35 dark:text-white/30">
+        <span className="text-micro text-charcoal/25 dark:text-white/25">·</span>
+        <span className="text-micro text-charcoal/35 dark:text-white/30">
           {format(new Date(notice.created_at), 'd MMM yyyy, HH:mm')}
         </span>
       </div>
@@ -105,10 +110,10 @@ function NewPostForm({ venueId, staffName, onPosted, onCancel }) {
 
   return (
     <form onSubmit={submit} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
-      <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">New Notice</p>
+      <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">New Notice</p>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Title <span className="text-danger">*</span></label>
+        <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Title <span className="text-danger">*</span></label>
         <input
           type="text"
           value={form.title}
@@ -119,7 +124,7 @@ function NewPostForm({ venueId, staffName, onPosted, onCancel }) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Message</label>
+        <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Message</label>
         <textarea
           value={form.body}
           onChange={(e) => set('body', e.target.value)}
@@ -132,9 +137,9 @@ function NewPostForm({ venueId, staffName, onPosted, onCancel }) {
       <label className="flex items-center gap-3 cursor-pointer select-none">
         <div
           onClick={() => set('pinned', !form.pinned)}
-          className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${form.pinned ? 'bg-accent' : 'bg-charcoal/20 dark:bg-white/20'}`}
+          className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${form.pinned ? 'bg-accent' : 'bg-charcoal/20 dark:bg-transparent dark:ring-[1.5px] dark:ring-inset dark:ring-white/50'}`}
         >
-          <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white dark:bg-paperDark rounded-full shadow transition-transform ${form.pinned ? 'translate-x-4' : ''}`} />
+          <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-paper rounded-full shadow transition-transform ${form.pinned ? 'translate-x-4' : 'dark:bg-white/70'}`} />
         </div>
         <span className="text-sm text-charcoal/70 dark:text-white/60">Pin this notice to the top</span>
       </label>
@@ -155,7 +160,7 @@ export default function NoticeBoardPage() {
   const { venueId } = useVenue()
   const { session, isManager } = useSession()
   const toast = useToast()
-  const { notices, loading, reload } = useNotices()
+  const { notices, loading, isError, reload } = useNotices()
   const [showForm, setShowForm] = useState(false)
 
   const handleDeleteNotice = async (id) => {
@@ -187,7 +192,7 @@ export default function NoticeBoardPage() {
 
       {loading ? (
         <SkeletonList rows={3} className="py-4" />
-      ) : notices.length === 0 ? (
+      ) : isError ? (<LoadError what="notices" onRetry={reload} />) : notices.length === 0 ? (
         <EmptyState
           icon="list"
           title="No notices yet"

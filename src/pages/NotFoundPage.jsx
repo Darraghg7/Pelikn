@@ -27,13 +27,13 @@ export default function NotFoundPage() {
   const secondary = venueSlug ? null : { to: '/login', label: 'Sign in' }
 
   return (
-    <div className="min-h-dvh bg-surface dark:bg-[#111111] flex flex-col items-center justify-center px-4 py-10 font-sans">
+    <div className="min-h-dvh bg-surface dark:bg-bgDark flex flex-col items-center justify-center px-4 py-10 font-sans">
       <Link to="/" className="mb-6 text-center" aria-label="Pelikn home">
         <span className="block font-bold text-brand dark:text-white text-3xl tracking-tight">Pelikn</span>
       </Link>
 
       <main className="w-full max-w-sm bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 dark:border-white/8 shadow-sm p-6 text-center">
-        <p className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-accent mb-2">
+        <p className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-accent mb-2">
           Error 404
         </p>
         <h1 className="text-xl font-semibold text-charcoal dark:text-white mb-2">

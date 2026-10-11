@@ -26,9 +26,30 @@ export const isConfigured = !!(supabaseUrl && supabaseAnonKey)
 //     prompting a refresh rather than a hard 401.
 //   • A refresher (registered by SessionContext) re-issues the JWT proactively
 //     when it is close to expiry, and reactively on a 401.
+//   • Since 146 the database also refuses a JWT whose staff_sessions row is
+//     gone (revoked, signed out, expired, deactivated) with a 401. The
+//     refresher then can't re-issue either and throws SessionEndedError; the
+//     JWT is dropped, SessionContext is told (back to the PIN screen) and the
+//     caller gets the 401 — never a quiet anon retry that reads as "no data".
 let _sessionJwt    = null
 let _sessionJwtExp = 0      // unix seconds; 0 = unknown/unparseable
-let _jwtRefresher  = null   // async () => freshJwt | null
+let _jwtRefresher  = null   // async () => freshJwt | null; throws SessionEndedError
+let _refreshing    = null   // the refresh in flight, shared by concurrent calls
+let _onSessionEnded = null  // (token) => void
+
+/**
+ * Thrown by the JWT refresher when pin-login says the session behind the JWT
+ * no longer exists — as opposed to returning null, which means "couldn't
+ * reach it, try later". `token` is the staff_sessions token that died, so the
+ * handler can ignore an answer about a session that has since been replaced.
+ */
+export class SessionEndedError extends Error {
+  constructor(token) {
+    super('Session ended')
+    this.name  = 'SessionEndedError'
+    this.token = token ?? null
+  }
+}
 
 function jwtExpSeconds(jwt) {
   try {
@@ -68,6 +89,33 @@ export const clearSessionJwt = () => {
 // SessionContext registers a callback that re-issues the venue JWT from the
 // active session token. Kept here (not imported) to avoid a circular import.
 export const registerJwtRefresher = (fn) => { _jwtRefresher = fn }
+
+// SessionContext registers what to do when the session is over: clear it and
+// show the PIN screen.
+export const registerSessionEndedHandler = (fn) => { _onSessionEnded = fn }
+
+// One refresh at a time: a screen that fires ten queries at once and gets ten
+// 401s asks pin-login once, not ten times.
+function refreshJwt() {
+  if (!_refreshing) {
+    _refreshing = Promise.resolve()
+      .then(() => _jwtRefresher())
+      .finally(() => { _refreshing = null })
+  }
+  return _refreshing
+}
+
+function endSession(err) {
+  clearSessionJwt()
+  try { _onSessionEnded?.(err.token) } catch (e) { reportError(e, 'supabase:session-ended') }
+}
+
+// What a data call gets when its session ended before it was sent: the same
+// 401 the database gives a dead JWT (146), so it surfaces as an error.
+const sessionEndedResponse = () => new Response(
+  JSON.stringify({ code: 'PK401', message: 'Session ended', details: null, hint: 'Sign in again with your PIN.' }),
+  { status: 401, headers: { 'Content-Type': 'application/json' } },
+)
 
 // A JWT is usable only if it parses and has >60 s of life left (clock-skew pad).
 const jwtUsable = () => !!_sessionJwt && _sessionJwtExp * 1000 > Date.now() + 60_000
@@ -170,9 +218,15 @@ function makeRetryFetch(timeoutMs = 20_000, maxWriteRetries = 2) {
     // Proactively refresh a venue JWT that is missing/expiring before a data call.
     if (needsVenueJwt && _sessionJwt && !jwtUsable() && _jwtRefresher) {
       try {
-        const fresh = await _jwtRefresher()
+        const fresh = await refreshJwt()
         if (fresh) setSessionJwt(fresh)
-      } catch { /* fall back to anon below */ }
+      } catch (err) {
+        if (err instanceof SessionEndedError) {
+          endSession(err)
+          return sessionEndedResponse()
+        }
+        /* couldn't reach pin-login — fall back to anon below */
+      }
     }
 
     // Inject the venue-scoped JWT on data requests when it is usable.
@@ -189,14 +243,22 @@ function makeRetryFetch(timeoutMs = 20_000, maxWriteRetries = 2) {
         const response = await doFetch(url, options)
 
         // Reactive recovery (once): an injected token was rejected (expired in
-        // the moment, or revoked). Re-issue and retry with the fresh token.
+        // the moment, or its session revoked — 146). Re-issue and retry with
+        // the fresh token. If pin-login confirms the session is gone, stop
+        // here and hand back the 401.
         if (injected && !didAuthRetry && response.status === 401 && _jwtRefresher) {
           didAuthRetry = true
           try {
-            const fresh = await _jwtRefresher()
+            const fresh = await refreshJwt()
             if (fresh) { setSessionJwt(fresh); options = withBearer(options, fresh) }
             else injected = false
-          } catch { injected = false }
+          } catch (err) {
+            if (err instanceof SessionEndedError) {
+              endSession(err)
+              return response
+            }
+            injected = false
+          }
           continue
         }
 

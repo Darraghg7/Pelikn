@@ -43,6 +43,7 @@ interface ShiftDutyAssignment {
 export function useDutyTemplates(): {
   templates: DutyTemplate[]
   loading: boolean
+  isError: boolean
   reload: () => void
   addTemplate: (title: string, itemTitles: string[]) => Promise<{ error: unknown }>
   deleteTemplate: (id: string) => Promise<{ error: unknown }>
@@ -51,24 +52,26 @@ export function useDutyTemplates(): {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['dutyTemplates', venueId],
     queryFn: async () => {
       if (!venueId) return [] as DutyTemplate[]
-      const { data: tmpl } = await supabase
+      const { data: tmpl, error: tmplErr } = await supabase
         .from('duty_templates')
         .select('id, title, created_at')
         .eq('venue_id', venueId)
         .eq('is_active', true)
         .order('created_at', { ascending: true })
+      if (tmplErr) throw tmplErr
 
       if (!tmpl?.length) return [] as DutyTemplate[]
 
-      const { data: items } = await supabase
+      const { data: items, error: itemsErr } = await supabase
         .from('duty_template_items')
         .select('id, duty_template_id, title, sort_order')
         .in('duty_template_id', tmpl.map(t => t.id))
         .order('sort_order', { ascending: true })
+      if (itemsErr) throw itemsErr
 
       const itemsByTemplate = (items ?? []).reduce<Record<string, DutyTemplateItem[]>>((acc, item) => {
         ;(acc[item.duty_template_id] ??= []).push(item as DutyTemplateItem)
@@ -128,7 +131,7 @@ export function useDutyTemplates(): {
     return { error }
   }, [refetch])
 
-  return { templates: data ?? [], loading: isLoading, reload: refetch, addTemplate, deleteTemplate, updateItems }
+  return { templates: data ?? [], loading: isLoading, isError, reload: refetch, addTemplate, deleteTemplate, updateItems }
 }
 
 // Duties assigned to a specific staff member today, with completions
@@ -242,11 +245,12 @@ export function useAllTodayDuties(): { duties: AllTodayDuty[]; loading: boolean 
       if (!venueId) return []
       const todayStr = format(new Date(), 'yyyy-MM-dd')
 
-      const { data: shifts } = await supabase
+      const { data: shifts, error: shiftsErr } = await supabase
         .from('shifts')
         .select('id, staff_id, staff ( name )')
         .eq('venue_id', venueId)
         .eq('shift_date', todayStr)
+      if (shiftsErr) throw shiftsErr
 
       if (!shifts?.length) return []
 
@@ -256,7 +260,7 @@ export function useAllTodayDuties(): { duties: AllTodayDuty[]; loading: boolean 
         return [st.id, st.staff]
       }))
 
-      const { data: assignments } = await supabase
+      const { data: assignments, error: assignmentsErr } = await supabase
         .from('duty_assignments')
         .select(`
           id, shift_id,
@@ -264,14 +268,16 @@ export function useAllTodayDuties(): { duties: AllTodayDuty[]; loading: boolean 
           duty_template_items ( id )
         `)
         .in('shift_id', shiftIds)
+      if (assignmentsErr) throw assignmentsErr
 
       if (!assignments?.length) return []
 
       const assignmentIds = assignments.map(a => (a as { id: string }).id)
-      const { data: completions } = await supabase
+      const { data: completions, error: completionsErr } = await supabase
         .from('duty_item_completions')
         .select('duty_assignment_id')
         .in('duty_assignment_id', assignmentIds)
+      if (completionsErr) throw completionsErr
 
       const completedByAssignment = (completions ?? []).reduce<Record<string, number>>((acc, c) => {
         const id = (c as { duty_assignment_id: string }).duty_assignment_id
@@ -306,11 +312,12 @@ export function useShiftDuty(shiftId: string): { assignment: ShiftDutyAssignment
   const { data, isLoading } = useQuery({
     queryKey: ['shiftDuty', shiftId],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('duty_assignments')
         .select('id, duty_template_id')
         .eq('shift_id', shiftId)
         .maybeSingle()
+      if (error) throw error
       return (data ?? null) as ShiftDutyAssignment | null
     },
     enabled: !!shiftId,

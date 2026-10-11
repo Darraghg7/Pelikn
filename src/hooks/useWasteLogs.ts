@@ -17,11 +17,12 @@ interface WasteLog {
 export function useWasteLogs(dateFrom: string | null, dateTo: string | null): {
   logs: WasteLog[]
   loading: boolean
+  isError: boolean
   reload: () => void
 } {
   const { venueId } = useVenue()
 
-  const { data: logs = [], isLoading: loading, refetch } = useQuery({
+  const { data: logs = [], isLoading: loading, isError, refetch } = useQuery({
     queryKey: ['waste_logs', venueId, dateFrom, dateTo],
     queryFn: async () => {
       let q = supabase
@@ -34,11 +35,12 @@ export function useWasteLogs(dateFrom: string | null, dateTo: string | null): {
       if (dateFrom) q = q.gte('recorded_at', dateFrom)
       if (dateTo)   q = q.lte('recorded_at', dateTo + 'T23:59:59')
 
-      const { data } = await q
+      const { data, error } = await q
+      if (error) throw error
       return (data ?? []) as WasteLog[]
     },
     enabled: !!venueId,
   })
 
-  return { logs, loading, reload: refetch }
+  return { logs, loading, isError, reload: refetch }
 }

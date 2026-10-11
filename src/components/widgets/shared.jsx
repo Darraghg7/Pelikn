@@ -1,6 +1,8 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
+import LoadingSpinner from '../ui/LoadingSpinner'
+import Button from '../ui/Button'
 
 /**
  * Card frame shared by every dashboard widget.
@@ -22,12 +24,12 @@ export function WidgetShell({ title, badge, to, linkLabel, aside, flush = false,
       <div className={`flex items-center justify-between gap-2.5 px-3.5 sm:px-3.5 pt-2.5 shrink-0 ${flush ? 'pb-2.5 border-b border-line dark:border-white/10' : 'pb-2'}`}>
         <div className="flex items-center gap-2 min-w-0">
           {status && !badge && <span className={`w-2 h-2 rounded-full shrink-0 ${statusDot[status] ?? 'bg-ink4'}`} />}
-          <p className="text-[12px] min-[420px]:text-[12px] font-semibold tracking-[0.06em] min-[420px]:tracking-[0.08em] uppercase text-ink3 dark:text-white/45 truncate">{title}</p>
+          <p className="text-caption font-semibold tracking-[0.06em] min-[420px]:tracking-[0.08em] uppercase text-ink3 dark:text-white/45 truncate">{title}</p>
           {badge}
         </div>
         {aside ?? (href && (
           linkLabel ? (
-            <Link to={href} className="shrink-0 text-[13px] font-semibold text-ink dark:text-white hover:opacity-70 transition-opacity">
+            <Link to={href} className="shrink-0 text-body-sm font-semibold text-ink dark:text-white hover:opacity-70 transition-opacity">
               {linkLabel}
             </Link>
           ) : (
@@ -45,27 +47,46 @@ export function WidgetShell({ title, badge, to, linkLabel, aside, flush = false,
 /** Small red/amber pill after a widget title, e.g. "21 overdue". */
 export function TitleBadge({ tone = 'bad', children }) {
   const cls = tone === 'bad'
-    ? 'bg-badBg text-bad dark:bg-bad/25 dark:text-[#f19a86]'
-    : 'bg-warnBg text-warn dark:bg-warn/20 dark:text-[#e8b06a]'
-  return <span className={`shrink-0 h-7 px-2.5 rounded-full inline-flex items-center text-[13px] font-semibold normal-case tracking-normal ${cls}`}>{children}</span>
+    ? 'bg-badBg text-bad dark:bg-bad/25 dark:text-badDark'
+    : 'bg-warnBg text-warn dark:bg-warn/20 dark:text-warnDark'
+  return <span className={`shrink-0 h-7 px-2.5 rounded-full inline-flex items-center text-body-sm font-semibold normal-case tracking-normal ${cls}`}>{children}</span>
 }
 
 export function BigNumber({ value, label, alert }) {
   return (
     <div className="py-1">
-      <p className={`font-mono text-[24px] leading-tight font-semibold ${alert ? 'text-bad dark:text-[#f19a86]' : 'text-ink dark:text-white'}`}>{value}</p>
-      {label && <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">{label}</p>}
+      <p className={`font-mono text-title leading-tight font-semibold ${alert ? 'text-bad dark:text-badDark' : 'text-ink dark:text-white'}`}>{value}</p>
+      {label && <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">{label}</p>}
     </div>
   )
 }
 
 /** Label / value line. warn = red value; good = green value (e.g. a reassuring 0). */
 export function MiniRow({ label, value, warn, good }) {
-  const tone = warn ? 'text-bad dark:text-[#f19a86]' : good ? 'text-good dark:text-[#7fd1a4]' : 'text-ink dark:text-white'
+  const tone = warn ? 'text-bad dark:text-badDark' : good ? 'text-good dark:text-goodDark' : 'text-ink dark:text-white'
   return (
     <div className="flex items-center justify-between gap-2.5 py-1.5">
-      <span className="text-[13px] text-ink2 dark:text-white/75">{label}</span>
-      <span className={`font-mono text-[13px] font-semibold ${tone}`}>{value}</span>
+      <span className="text-body-sm text-ink2 dark:text-white/75">{label}</span>
+      <span className={`font-mono text-body-sm font-semibold ${tone}`}>{value}</span>
     </div>
   )
+}
+
+/**
+ * Body for a widget with no data yet: a spinner while loading, or a retry
+ * once the read has failed (useWidgetQuery reports the error). Without this a
+ * failed read either spun forever or, worse, rendered as zeros.
+ */
+export function WidgetPending({ isError, onRetry, className = 'py-4' }) {
+  if (isError) {
+    return (
+      <div role="alert" className="py-2 text-center">
+        <p className="text-sm text-danger/80">Couldn’t load this.</p>
+        <Button variant="link" size="sm" onClick={() => onRetry?.()} className="mt-1">
+          Try again
+        </Button>
+      </div>
+    )
+  }
+  return <div className={`flex justify-center ${className}`}><LoadingSpinner /></div>
 }

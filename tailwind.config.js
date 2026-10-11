@@ -1,3 +1,5 @@
+import { colors, alpha, fontSize } from './src/lib/tokens.js'
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: 'class',
@@ -7,61 +9,8 @@ export default {
   ],
   theme: {
     extend: {
-      colors: {
-        // ── Spec design tokens (exact) ─────────────────────────────────────
-        // Ink scale
-        ink:   '#0d1a14',
-        ink2:  '#3d4a44',
-        ink3:  '#76817b',
-        ink4:  '#b3b9b5',
-
-        // Surfaces
-        bg:    '#f3f3ef',
-        paper: '#ffffff',
-        paperDark: '#1e1e1e',  // dark-mode card surface
-        line:  '#e4e6e2',
-        line2: '#eef0ec',
-
-        // Brand
-        brand: {
-          DEFAULT: '#13362a',
-          tint:    '#eef4f0',
-          soft:    '#e2ece7',
-          // Legacy scale kept for any existing references
-          50:  '#f0f7f4',
-          100: '#d1e8db',
-          200: '#a3d1b7',
-          300: '#6bb893',
-          400: '#3d9a6f',
-          500: '#2a7c56',
-          600: '#1f5e40',
-          700: '#1a4a33',
-          800: '#13362a',
-          900: '#0a1f19',
-        },
-
-        // Status
-        good:    '#1a7a4c',
-        goodBg:  '#e3f0e7',
-        warn:    '#a85d12',
-        warnBg:  '#fbeedc',
-        bad:     '#b3331c',
-        badBg:   '#fbeae6',
-        severe:  '#7a1d0c',
-        info:    '#2c4577',
-        infoBg:  '#e7edf6',
-        accent:  '#c94f2a',
-
-        // ── Legacy aliases kept for backwards compat ───────────────────────
-        cream:    '#f5f4f1',
-        charcoal: '#1a1a18',
-        surface:  '#f3f3ef',
-        navpill:  '#eef4f0',
-        midgreen: '#1a7a4c',
-        danger:   { DEFAULT: '#b3331c', light: '#fbeae6' },
-        warning:  { DEFAULT: '#a85d12', light: '#fbeedc' },
-        success:  { DEFAULT: '#1a7a4c', light: '#e3f0e7' },
-      },
+      // All colours live in src/lib/tokens.js — add or change them there.
+      colors,
       // Tailwind's default scale only has 5-step opacities (5, 10, 15 …), so
       // classes like bg-charcoal/8 or border-charcoal/12 silently generated no
       // CSS. These are the extra steps used across src/ — add any new one here.
@@ -70,14 +19,16 @@ export default {
         9: '0.09', 12: '0.12', 14: '0.14', 16: '0.16', 18: '0.18', 22: '0.22',
         28: '0.28', 38: '0.38', 68: '0.68', 87: '0.87', 88: '0.88', 92: '0.92',
       },
+      // The type scale (text-micro … text-stat) also lives in src/lib/tokens.js.
+      fontSize,
       fontFamily: {
         sans:  ['Geist', '-apple-system', 'system-ui', 'sans-serif'],
         mono:  ['Geist Mono', 'ui-monospace', 'monospace'],
         serif: ['Geist', 'sans-serif'],
       },
       boxShadow: {
-        'dropdown': '0 8px 28px rgba(26,26,24,0.10), 0 2px 6px rgba(26,26,24,0.04)',
-        'modal':    '0 16px 48px rgba(26,26,24,0.12), 0 4px 12px rgba(26,26,24,0.06)',
+        'dropdown': `0 8px 28px ${alpha(colors.charcoal, 0.10)}, 0 2px 6px ${alpha(colors.charcoal, 0.04)}`,
+        'modal':    `0 16px 48px ${alpha(colors.charcoal, 0.12)}, 0 4px 12px ${alpha(colors.charcoal, 0.06)}`,
       },
       keyframes: {
         shimmer: {
@@ -100,5 +51,11 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // `idle-disabled:` = disabled but not loading. Button keeps its colour while
+    // a save is in flight (aria-busy) and only greys out when truly unavailable.
+    function ({ addVariant }) {
+      addVariant('idle-disabled', '&:disabled:not([aria-busy])')
+    },
+  ],
 }

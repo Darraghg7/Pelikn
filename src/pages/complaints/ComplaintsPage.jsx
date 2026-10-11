@@ -6,6 +6,8 @@ import { insertComplaint, updateComplaint } from '../../lib/api/complaints'
 import { useToast } from '../../components/ui/Toast'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
+import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -43,7 +45,7 @@ const EMPTY = {
 function Field({ label, required, children }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">
+      <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">
         {label}{required && <span className="text-danger ml-0.5">*</span>}
       </label>
       {children}
@@ -138,10 +140,9 @@ function ComplaintModal({ open, onClose, editItem, venueId, onSaved }) {
           <input type="date" value={form.resolved_at} onChange={e => set('resolved_at', e.target.value)} className={inp} />
         </Field>
 
-        <button onClick={save} disabled={saving}
-          className="w-full bg-charcoal text-cream py-2.5 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40">
+        <Button fullWidth loading={saving} onClick={save} disabled={saving}>
           {saving ? 'Saving…' : editItem ? 'Save Changes' : 'Log Complaint'}
-        </button>
+        </Button>
       </div>
     </Modal>
   )
@@ -159,8 +160,8 @@ function ComplaintCard({ item, onEdit }) {
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded border ${info.color}`}>{info.label}</span>
-              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+              <span className={`text-micro font-semibold px-2 py-0.5 rounded border ${info.color}`}>{info.label}</span>
+              <span className={`text-micro font-semibold px-2 py-0.5 rounded-full ${
                 resolved ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'
               }`}>
                 {resolved ? 'Resolved' : 'Open'}
@@ -171,10 +172,10 @@ function ComplaintCard({ item, onEdit }) {
               {item.product_involved && <> · {item.product_involved}</>}
             </p>
           </div>
-          <button onClick={() => onEdit(item)}
-            className="text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white border border-charcoal/12 dark:border-white/15 hover:border-charcoal/25 dark:hover:border-white/25 px-3 py-1.5 rounded-lg transition-colors shrink-0">
+          <Button variant="secondary" size="sm" onClick={() => onEdit(item)}
+            className="shrink-0">
             Edit
-          </button>
+          </Button>
         </div>
 
         <p className="text-sm text-charcoal dark:text-white leading-relaxed">{item.description}</p>
@@ -183,19 +184,19 @@ function ComplaintCard({ item, onEdit }) {
           <div className="mt-3 pt-3 border-t border-charcoal/6 dark:border-white/8 flex flex-col gap-1.5">
             {item.investigation_notes && (
               <div>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">Investigation</p>
+                <p className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30">Investigation</p>
                 <p className="text-xs text-charcoal/60 dark:text-white/50 mt-0.5">{item.investigation_notes}</p>
               </div>
             )}
             {item.outcome && (
               <div>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">Outcome</p>
+                <p className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30">Outcome</p>
                 <p className="text-xs text-charcoal/60 dark:text-white/50 mt-0.5">{item.outcome}</p>
               </div>
             )}
             {item.corrective_action && (
               <div>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">Corrective action</p>
+                <p className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30">Corrective action</p>
                 <p className="text-xs text-charcoal/60 dark:text-white/50 mt-0.5">{item.corrective_action}</p>
               </div>
             )}
@@ -215,7 +216,7 @@ function ComplaintCard({ item, onEdit }) {
 
 export default function ComplaintsPage() {
   const { venueId }                       = useVenue()
-  const { complaints, loading, reload }   = useComplaints()
+  const { complaints, loading, isError, reload } = useComplaints()
   const [showModal, setShowModal]         = useState(false)
   const [editItem, setEditItem]           = useState(null)
   const [filter, setFilter]              = useState('all')
@@ -243,10 +244,10 @@ export default function ComplaintsPage() {
             Log and investigate illness reports, allergen reactions, and foreign body complaints
           </p>
         </div>
-        <button onClick={openNew}
-          className="bg-charcoal text-cream px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors shrink-0">
+        <Button onClick={openNew}
+          className="shrink-0">
           + Log Complaint
-        </button>
+        </Button>
       </div>
 
       {/* Open alert banner */}
@@ -286,16 +287,16 @@ export default function ComplaintsPage() {
       {/* List */}
       {loading ? (
         <SkeletonList rows={4} />
-      ) : filtered.length === 0 ? (
+      ) : isError ? (<LoadError what="complaints" onRetry={reload} />) : filtered.length === 0 ? (
         <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 px-5 py-12 text-center">
           <p className="text-charcoal/40 dark:text-white/35 text-sm">
             {filter === 'open' ? 'No open complaints.' : filter === 'resolved' ? 'No resolved complaints yet.' : 'No complaints logged yet.'}
           </p>
           {filter === 'all' && (
-            <button onClick={openNew}
-              className="mt-4 text-sm text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white border border-charcoal/15 dark:border-white/15 px-4 py-2 rounded-xl transition-colors">
+            <Button variant="secondary" onClick={openNew}
+              className="mt-4">
               + Log first complaint
-            </button>
+            </Button>
           )}
         </div>
       ) : (

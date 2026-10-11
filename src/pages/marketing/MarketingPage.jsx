@@ -9,6 +9,7 @@ import {
 import { STARTER_FEATURES, PRO_FEATURES, PLAN_ORDER, PLAN_DETAILS, STARTER_STAFF_LIMIT } from '../../lib/plans'
 import { PLANS } from '../../lib/constants'
 import DesktopDashboardMock, { BrowserFrame, ScaledCanvas } from './DesktopDashboardMock'
+import { colors, alpha, white, black } from '../../lib/tokens'
 
 /* ─── Keyframes ─────────────────────────────────────────────────────────── */
 function GlobalCSS() {
@@ -23,8 +24,8 @@ function GlobalCSS() {
         to   { opacity:1; transform:translateY(0) scale(1); }
       }
       @keyframes pkPulse {
-        0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(26,122,76,0.5); }
-        60%      { opacity:0.55; box-shadow:0 0 0 5px rgba(26,122,76,0); }
+        0%,100% { opacity:1; box-shadow:0 0 0 0 ${alpha(colors.good, 0.5)}; }
+        60%      { opacity:0.55; box-shadow:0 0 0 5px ${alpha(colors.good, 0)}; }
       }
       /* Scrolling ticker — seamless loop */
       @keyframes pkTicker {
@@ -54,8 +55,8 @@ const REPLACED_TOOLS = ['Rota spreadsheets','WhatsApp groups','Paper temp logs',
 // is hidden from screen readers.
 function ReplacesStrip() {
   return (
-    <div className="bg-[#f0efec] border-y border-charcoal/8 py-4 select-none flex items-center">
-      <span aria-hidden="true" className="pk-ticker-label relative z-10 shrink-0 pl-6 sm:pl-10 pr-4 sm:pr-6 font-mono text-[11px] tracking-[0.12em] uppercase font-semibold text-charcoal/55 bg-[#f0efec] shadow-[12px_0_12px_#f0efec]">Replaces</span>
+    <div className="bg-surface border-y border-charcoal/8 py-4 select-none flex items-center">
+      <span aria-hidden="true" className="pk-ticker-label relative z-10 shrink-0 pl-6 sm:pl-10 pr-4 sm:pr-6 font-mono text-micro tracking-[0.12em] uppercase font-semibold text-charcoal/55 bg-surface shadow-[12px_0_12px_theme(colors.surface)]">Replaces</span>
       <div className="overflow-hidden flex-1">
         <div className="flex pk-ticker-track whitespace-nowrap">
           {[0, 1].map(pass => (
@@ -66,7 +67,7 @@ function ReplacesStrip() {
               aria-hidden={pass === 1 ? 'true' : undefined}
             >
               {REPLACED_TOOLS.map(item => (
-                <li key={item} className="mx-7 text-[14px] font-medium text-charcoal/45 line-through decoration-charcoal/30">{item}</li>
+                <li key={item} className="mx-7 text-body font-medium text-charcoal/45 line-through decoration-charcoal/30">{item}</li>
               ))}
             </ul>
           ))}
@@ -77,21 +78,23 @@ function ReplacesStrip() {
 }
 
 /* ─── iPhone frame ──────────────────────────────────────────────────────── */
+// The phone mock-ups are pictures: hidden from screen readers, nothing focusable.
 function IPhoneFrame({ children }) {
   return (
     <div
+      aria-hidden="true"
       className="relative shrink-0 transition-transform duration-500 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-2"
-      style={{ width:300, background:'#141414', borderRadius:52, padding:14, boxShadow:'0 40px 80px rgba(0,0,0,0.4), inset 0 0 0 1.5px rgba(255,255,255,0.13)' }}
+      style={{ width:300, background:colors.charcoal, borderRadius:52, padding:14, boxShadow:`0 40px 80px ${black(0.4)}, inset 0 0 0 1.5px ${white(0.13)}` }}
     >
       {/* Side buttons */}
-      <div style={{ position:'absolute', right:-3, top:100, width:3, height:34, background:'#2a2a2a', borderRadius:'0 3px 3px 0' }}/>
-      <div style={{ position:'absolute', left:-3, top:88,  width:3, height:26, background:'#2a2a2a', borderRadius:'3px 0 0 3px' }}/>
-      <div style={{ position:'absolute', left:-3, top:122, width:3, height:26, background:'#2a2a2a', borderRadius:'3px 0 0 3px' }}/>
-      <div style={{ position:'absolute', left:-3, top:156, width:3, height:52, background:'#2a2a2a', borderRadius:'3px 0 0 3px' }}/>
+      <div style={{ position:'absolute', right:-3, top:100, width:3, height:34, background:colors.ink2, borderRadius:'0 3px 3px 0' }}/>
+      <div style={{ position:'absolute', left:-3, top:88,  width:3, height:26, background:colors.ink2, borderRadius:'3px 0 0 3px' }}/>
+      <div style={{ position:'absolute', left:-3, top:122, width:3, height:26, background:colors.ink2, borderRadius:'3px 0 0 3px' }}/>
+      <div style={{ position:'absolute', left:-3, top:156, width:3, height:52, background:colors.ink2, borderRadius:'3px 0 0 3px' }}/>
       {/* Screen — fixed height for realistic iPhone 15 proportions */}
-      <div style={{ borderRadius:40, overflow:'hidden', background:'#f3f3ef', position:'relative', height:572 }}>
+      <div style={{ borderRadius:40, overflow:'hidden', background:colors.surface, position:'relative', height:572 }}>
         {/* Dynamic island */}
-        <div style={{ position:'absolute', top:12, left:'50%', transform:'translateX(-50%)', width:100, height:28, background:'#141414', borderRadius:14, zIndex:10 }}/>
+        <div style={{ position:'absolute', top:12, left:'50%', transform:'translateX(-50%)', width:100, height:28, background:colors.charcoal, borderRadius:14, zIndex:10 }}/>
         {children}
       </div>
     </div>
@@ -130,7 +133,7 @@ function PeliknLogo({ light = false }) {
       <div className={light ? 'ring-2 ring-white/30 rounded-xl shadow-lg' : ''}>
         <img src="/icons/icon.svg" className="w-7 h-7 rounded-xl" alt="" />
       </div>
-      <span className={`text-sm tracking-[0.18em] uppercase ${light ? 'text-white font-bold drop-shadow-[0_1px_3px_rgba(0,0,0,0.4)]' : 'text-charcoal font-bold'}`}>Pelikn</span>
+      <span className={`text-sm tracking-[0.18em] uppercase ${light ? 'text-white font-bold drop-shadow-[0_1px_3px_theme(colors.black/40%)]' : 'text-charcoal font-bold'}`}>Pelikn</span>
     </div>
   )
 }
@@ -149,7 +152,7 @@ const Ico = ({ d, size = 18, cls = '' }) => (
 /* Desktop dashboard */
 function MockDashboard() {
   return (
-    <div className="flex bg-[#f3f3ef]" style={{ minHeight: 360, fontSize: 10 }}>
+    <div aria-hidden="true" className="flex bg-surface" style={{ minHeight: 360, fontSize: 10 }}>
       {/* Icon rail */}
       <div className="bg-brand flex flex-col items-center pt-3 pb-3 gap-3.5 shrink-0" style={{ width: 50 }}>
         <div className="w-7 h-7 rounded-lg bg-cream/15 flex items-center justify-center mb-1">
@@ -171,7 +174,7 @@ function MockDashboard() {
         ))}
       </div>
       {/* Sub-nav */}
-      <div className="flex flex-col pt-3 shrink-0" style={{ width: 145, background: 'rgba(19,54,42,0.96)' }}>
+      <div className="flex flex-col pt-3 shrink-0" style={{ width: 145, background: alpha(colors.brand.DEFAULT, 0.96) }}>
         <div className="px-3 mb-3">
           <p className="text-[7px] tracking-widest uppercase text-cream/25">THE FORGE</p>
           <p className="text-[8px] text-cream/50 mt-0.5">Today · 4 items</p>
@@ -193,17 +196,17 @@ function MockDashboard() {
         <div className="flex items-start justify-between mb-2.5">
           <div>
             <p className="text-[7px] tracking-widest uppercase text-charcoal/30">WEDNESDAY, 24 JUNE</p>
-            <h3 className="text-[15px] font-bold text-charcoal mt-0.5">Good afternoon, Sarah</h3>
+            <h3 className="text-body-lg font-bold text-charcoal mt-0.5">Good afternoon, Sarah</h3>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="text-[7px] text-charcoal/45">THE FORGE</span>
               <span className="text-[7px] font-bold bg-brand text-cream px-1.5 py-0.5 rounded tracking-wide">PRO</span>
               <span className="text-[7px] text-charcoal/30">· 0 of 14 daily checks complete</span>
             </div>
           </div>
-          <button className="text-[7px] font-medium text-charcoal/40 border border-charcoal/15 px-2 py-1 rounded">Export</button>
+          <span className="text-center text-[7px] font-medium text-charcoal/40 border border-charcoal/15 px-2 py-1 rounded">Export</span>
         </div>
         {/* Alert */}
-        <div className="flex items-center gap-1.5 bg-[#fff3ee] border border-accent/20 rounded-lg px-2.5 py-1.5 mb-2.5">
+        <div className="flex items-center gap-1.5 bg-accentBg border border-accent/20 rounded-lg px-2.5 py-1.5 mb-2.5">
           <div className="w-1.5 h-1.5 rounded-full bg-accent" style={{ animation:'pkPulse 2s infinite' }} />
           <span className="text-[8px] font-semibold text-accent">13 overdue cleans</span>
         </div>
@@ -219,7 +222,7 @@ function MockDashboard() {
               <p className="text-[6px] tracking-widest uppercase text-charcoal/28 mb-1">{l}</p>
               {v !== null
                 ? <p className={`text-lg font-bold ${c} tabular-nums leading-none`}>{v}</p>
-                : <div><p className="text-[7px] text-charcoal/35 mb-1">Not Clocked In</p><button className="w-full bg-charcoal text-cream text-[7px] font-semibold py-0.5 rounded">Clock In</button></div>
+                : <div><p className="text-[7px] text-charcoal/35 mb-1">Not Clocked In</p><span className="inline-block text-center w-full bg-charcoal text-cream text-[7px] font-semibold py-0.5 rounded">Clock In</span></div>
               }
             </div>
           ))}
@@ -229,7 +232,7 @@ function MockDashboard() {
           {[
             { l:'OVERDUE CLEANS', v:'13', c:'text-accent', dot:'bg-accent' },
             { l:'CRITICAL', v:'0', c:'text-charcoal', dot:'bg-charcoal/20' },
-            { l:'TIME OFF', v:'1', c:'text-[#a85d12]', dot:'bg-[#a85d12]' },
+            { l:'TIME OFF', v:'1', c:'text-warn', dot:'bg-warn' },
           ].map(({ l, v, c, dot }) => (
             <div key={l} className="bg-white border border-charcoal/8 rounded-lg p-2">
               <div className="flex items-center gap-1 mb-1"><div className={`w-1 h-1 rounded-full ${dot}`}/><p className="text-[6px] tracking-widest uppercase text-charcoal/28">{l}</p></div>
@@ -240,13 +243,13 @@ function MockDashboard() {
         {/* Widgets */}
         <div className="grid grid-cols-3 gap-1.5">
           <div className="bg-white border border-charcoal/8 rounded-lg p-2">
-            <div className="flex items-center justify-between mb-1"><div className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-[#1a7a4c]"/><p className="text-[6px] tracking-widest uppercase text-charcoal/28">COMPLIANCE SCORE</p></div><span className="text-[6px] text-brand/40">VIEW ›</span></div>
-            <p className="text-2xl font-bold text-[#1a7a4c] tabular-nums">100%</p>
-            <div className="flex items-center gap-1 mt-0.5"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#1a7a4c" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span className="text-[7px] text-[#1a7a4c] font-semibold">All checks on track</span></div>
+            <div className="flex items-center justify-between mb-1"><div className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-good"/><p className="text-[6px] tracking-widest uppercase text-charcoal/28">COMPLIANCE SCORE</p></div><span className="text-[6px] text-brand/40">VIEW ›</span></div>
+            <p className="text-2xl font-bold text-good tabular-nums">100%</p>
+            <div className="flex items-center gap-1 mt-0.5"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke={colors.good} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span className="text-[7px] text-good font-semibold">All checks on track</span></div>
             <p className="text-[6px] text-charcoal/22 mt-1">30-DAY AVERAGE</p>
           </div>
           <div className="bg-white border border-charcoal/8 rounded-lg p-2">
-            <div className="flex items-center justify-between mb-1.5"><div className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-[#a85d12]"/><p className="text-[6px] tracking-widest uppercase text-charcoal/28">FRIDGE STATUS</p></div><span className="text-[6px] text-brand/40">VIEW ›</span></div>
+            <div className="flex items-center justify-between mb-1.5"><div className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-warn"/><p className="text-[6px] tracking-widest uppercase text-charcoal/28">FRIDGE STATUS</p></div><span className="text-[6px] text-brand/40">VIEW ›</span></div>
             {[['Readings today','4'],['Out of range','0'],['Not yet checked','0']].map(([l,v])=>(
               <div key={l} className="flex justify-between py-0.5"><span className="text-[7px] text-charcoal/45">{l}</span><span className="text-[7px] font-semibold text-charcoal">{v}</span></div>
             ))}
@@ -277,7 +280,7 @@ function MockAppHeader() {
     <div className="bg-brand px-4 pt-14 pb-3 shrink-0">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold text-cream tracking-widest">DEPOT</span>
+          <span className="text-micro font-bold text-cream tracking-widest">DEPOT</span>
           <div className="relative">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/60"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
             <div className="absolute -top-1 -right-1.5 w-3.5 h-3.5 bg-accent rounded-full flex items-center justify-center">
@@ -342,16 +345,16 @@ function MockChecksHub() {
           <span className="font-mono text-[8px] tracking-[0.08em] uppercase text-charcoal/50">Checks</span>
           <span className="font-mono text-[8px] font-semibold text-charcoal/50">Edit</span>
         </div>
-        <p className="text-[19px] font-semibold tracking-[-0.028em] text-charcoal leading-tight mt-0.5 mb-2">Today's checks</p>
+        <p className="text-title-sm font-semibold tracking-[-0.028em] text-charcoal leading-tight mt-0.5 mb-2">Today's checks</p>
 
         {/* Today banner */}
         <div className="bg-brand rounded-xl px-3 py-2.5 mb-2.5 flex items-center gap-2">
           <div className="flex-1 min-w-0">
             <p className="font-mono text-[7px] tracking-[0.1em] uppercase text-white/55 font-semibold">Today</p>
-            <p className="text-[12px] font-semibold text-white tracking-[-0.015em] mt-0.5">6 checks need doing</p>
+            <p className="text-caption font-semibold text-white tracking-[-0.015em] mt-0.5">6 checks need doing</p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="inline-flex items-center gap-1 font-mono text-[7px] font-semibold text-[#ffb4a6]"><span className="w-1 h-1 rounded-full bg-current"/>2 overdue</span>
-              <span className="inline-flex items-center gap-1 font-mono text-[7px] font-semibold text-[#f2c48f]"><span className="w-1 h-1 rounded-full bg-current"/>4 due now</span>
+              <span className="inline-flex items-center gap-1 font-mono text-[7px] font-semibold text-badDark"><span className="w-1 h-1 rounded-full bg-current"/>2 overdue</span>
+              <span className="inline-flex items-center gap-1 font-mono text-[7px] font-semibold text-warnDark"><span className="w-1 h-1 rounded-full bg-current"/>4 due now</span>
             </div>
           </div>
           <span className="font-mono text-[7px] tracking-[0.06em] uppercase font-semibold text-white/85">View all ›</span>
@@ -403,7 +406,7 @@ function MockChecksHub() {
 /* Mobile staff home */
 function MockMobileHome() {
   return (
-    <div className="bg-[#f0efec] flex flex-col" style={{ width:272, height:572, overflow:'hidden' }}>
+    <div className="bg-surface flex flex-col" style={{ width:272, height:572, overflow:'hidden' }}>
       <MockAppHeader />
 
       {/* Scrollable content */}
@@ -411,7 +414,7 @@ function MockMobileHome() {
         {/* Greeting */}
         <div className="px-4 pt-3 pb-2">
           <p className="text-[9px] tracking-widest uppercase text-charcoal/35 mb-0.5">SATURDAY, 28 JUNE · 09:14</p>
-          <p className="text-[18px] font-bold text-charcoal leading-tight">Good morning, James.</p>
+          <p className="text-title-sm font-bold text-charcoal leading-tight">Good morning, James.</p>
           <p className="text-[9px] text-charcoal/40 mt-0.5">DEPOT <span className="inline-flex items-center gap-0.5 bg-accent/15 text-accent px-1 py-px rounded text-[8px] font-semibold">PRO</span> · 9 of 22 daily checks complete</p>
         </div>
 
@@ -429,9 +432,9 @@ function MockMobileHome() {
             </div>
           </div>
           <div className="flex items-center gap-0">
-            <div className="w-0.5 self-stretch bg-[#3b82f6] shrink-0" />
+            <div className="w-0.5 self-stretch bg-info shrink-0" />
             <div className="flex-1 px-3 py-2.5 flex items-center justify-between border-b border-charcoal/6">
-              <span className="text-[10px] font-semibold text-[#3b82f6]">2 leave requests pending</span>
+              <span className="text-[10px] font-semibold text-info">2 leave requests pending</span>
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
           </div>
@@ -458,7 +461,7 @@ function MockMobileHome() {
             ].map(({ label, val, sub, col }) => (
               <div key={label} className="bg-white border border-charcoal/8 rounded-xl p-2">
                 <p className="text-[7px] tracking-wide uppercase text-charcoal/35 leading-tight mb-1">{label}</p>
-                <p className={`text-[16px] font-bold leading-none ${col}`}>{val}</p>
+                <p className={`text-title-sm font-bold leading-none ${col}`}>{val}</p>
                 <p className="text-[7px] text-charcoal/40 mt-0.5">{sub}</p>
               </div>
             ))}
@@ -470,11 +473,11 @@ function MockMobileHome() {
           <div className="flex items-center justify-between mb-1">
             <span className="text-[9px] tracking-widest uppercase text-cream/40">MY CLOCK</span>
             <div className="flex items-center gap-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#4ade80]" style={{ boxShadow:'0 0 5px #4ade80' }}/>
+              <div className="w-1.5 h-1.5 rounded-full bg-goodDark" style={{ boxShadow:`0 0 5px ${colors.goodDark}` }}/>
               <span className="text-[8px] text-cream/60 font-medium">CLOCKED IN</span>
             </div>
           </div>
-          <p className="text-[26px] font-bold text-cream leading-none tracking-tight mb-2">09:14</p>
+          <p className="text-display font-bold text-cream leading-none tracking-tight mb-2">09:14</p>
           <div className="flex items-center gap-4">
             {[['THIS WEEK','3h 12m'],['BREAK','–'],['LAST IN','Fri 14:00']].map(([k,v])=>(
               <div key={k}>
@@ -494,16 +497,16 @@ function MockMobileHome() {
 /* Mobile team hub */
 function MockTeamHub() {
   const tiles = [
-    { iBg:'#fef0e8', iCol:'#c94f2a', icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',      label:'My Shifts',     sub:'3 SWAPS PENDING',        sCol:'#c94f2a',              badge:'3', bCol:'#c94f2a', check:false },
-    { iBg:'#fef0e8', iCol:'#c94f2a', icon:'M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14',                label:'Time Off',      sub:'1 PENDING',              sCol:'#c94f2a',              badge:'1', bCol:'#c94f2a', check:false },
-    { iBg:'#fef0e8', iCol:'#c94f2a', icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',      label:'Rota',          sub:'DRAFT · READY TO PUBLISH',sCol:'#c94f2a',             badge:null,bCol:null,    check:false },
-    { iBg:'#e8f5ee', iCol:'#1a7a4c', icon:'M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z', label:'Training', sub:'ALL UP TO DATE', sCol:'#1a7a4c', badge:null, bCol:null, check:true },
-    { iBg:'#f0efec', iCol:'#9ca3af', icon:'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',                                                   label:'Hours',         sub:'VIEW TIMESHEETS',        sCol:'rgba(26,26,24,0.35)',  badge:null,bCol:null,    check:false },
-    { iBg:'#f0efec', iCol:'#9ca3af', icon:'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', label:'Staff Members', sub:'11 ACTIVE', sCol:'rgba(26,26,24,0.35)', badge:null, bCol:null, check:false },
-    { iBg:'#f0efec', iCol:'#9ca3af', icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',      label:'My Calendar',   sub:'NO UPCOMING EVENTS',     sCol:'rgba(26,26,24,0.35)',  badge:null,bCol:null,    check:false },
+    { iBg:colors.accentBg, iCol:colors.accent, icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',      label:'My Shifts',     sub:'3 SWAPS PENDING',        sCol:colors.accent,              badge:'3', bCol:colors.accent, check:false },
+    { iBg:colors.accentBg, iCol:colors.accent, icon:'M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14',                label:'Time Off',      sub:'1 PENDING',              sCol:colors.accent,              badge:'1', bCol:colors.accent, check:false },
+    { iBg:colors.accentBg, iCol:colors.accent, icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',      label:'Rota',          sub:'DRAFT · READY TO PUBLISH',sCol:colors.accent,             badge:null,bCol:null,    check:false },
+    { iBg:colors.goodBg, iCol:colors.good, icon:'M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z', label:'Training', sub:'ALL UP TO DATE', sCol:colors.good, badge:null, bCol:null, check:true },
+    { iBg:colors.surface, iCol:colors.ink4, icon:'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',                                                   label:'Hours',         sub:'VIEW TIMESHEETS',        sCol:alpha(colors.charcoal, 0.35),  badge:null,bCol:null,    check:false },
+    { iBg:colors.surface, iCol:colors.ink4, icon:'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', label:'Staff Members', sub:'11 ACTIVE', sCol:alpha(colors.charcoal, 0.35), badge:null, bCol:null, check:false },
+    { iBg:colors.surface, iCol:colors.ink4, icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',      label:'My Calendar',   sub:'NO UPCOMING EVENTS',     sCol:alpha(colors.charcoal, 0.35),  badge:null,bCol:null,    check:false },
   ]
   return (
-    <div className="bg-[#f0efec] flex flex-col" style={{ width:272, height:572, overflow:'hidden' }}>
+    <div className="bg-surface flex flex-col" style={{ width:272, height:572, overflow:'hidden' }}>
       <MockAppHeader />
 
       {/* Scrollable content */}
@@ -512,7 +515,7 @@ function MockTeamHub() {
         <div className="flex items-center justify-between mb-2.5">
           <div>
             <p className="text-[9px] tracking-widest uppercase text-charcoal/35">TEAM</p>
-            <p className="text-[17px] font-bold text-charcoal leading-tight">Your team</p>
+            <p className="text-title-sm font-bold text-charcoal leading-tight">Your team</p>
           </div>
           <span className="text-[10px] text-brand/50 font-medium">Edit</span>
         </div>
@@ -521,7 +524,7 @@ function MockTeamHub() {
         <div className="bg-brand rounded-2xl px-3.5 py-3 mb-3 flex items-center justify-between">
           <div>
             <p className="text-[8px] tracking-widest uppercase text-cream/40 mb-0.5">ON SHIFT NOW</p>
-            <p className="text-[12px] font-bold text-cream">5 staff clocked in</p>
+            <p className="text-caption font-bold text-cream">5 staff clocked in</p>
           </div>
           <div className="flex items-center gap-1 text-cream/50">
             <span className="text-[9px] font-semibold tracking-wide">ATTENDANCE</span>
@@ -537,12 +540,12 @@ function MockTeamHub() {
                 <span className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white" style={{ background: bCol }}>{badge}</span>
               )}
               {check && !badge && (
-                <svg className="absolute top-3 right-3" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a7a4c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <svg className="absolute top-3 right-3" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={colors.good} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
               )}
               <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2" style={{ background: iBg }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={iCol} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d={icon}/></svg>
               </div>
-              <p className="text-[11px] font-bold text-charcoal leading-tight">{label}</p>
+              <p className="text-caption font-bold text-charcoal leading-tight">{label}</p>
               <p className="text-[8px] font-semibold mt-0.5 uppercase tracking-wide" style={{ color: sCol }}>{sub}</p>
             </div>
           ))}
@@ -566,31 +569,31 @@ function MockRota() {
     { d:'SUN', dt:'28 Jun' },
   ]
   const staff = [
-    { n:'Amy',    r:'KITCHEN', cost:'£397.50', shifts:[null, { t:'08:00–14:00', l:'Kitchen', c:'#2a7c56' }, null, { t:'06:00–14:00', l:'Kitchen', c:'#2a7c56' }, { t:'06:30–14:00', l:'Kitchen', c:'#2a7c56' }, { t:'07:30–14:00', l:'Kitchen', c:'#2a7c56' }, null] },
-    { n:'Beth',   r:'FOH',     cost:'£262.67', shifts:[null, null, null, { t:'06:55–15:00', l:'Barista', c:'#c94f2a' }, { t:'06:55–15:00', l:'Barista', c:'#c94f2a' }, { t:'TIME OFF', c:'off' }, { t:'08:30–14:00', l:'Barista', c:'#c94f2a' }] },
-    { n:'Claire', r:'FOH',     cost:'£126.58', shifts:[null, null, null, null, null, { t:'07:55–15:00', l:'FOH', c:'#1a7a4c' }, { t:'08:55–14:00', l:'Barista', c:'#c94f2a' }] },
-    { n:'Diana',  r:'FOH',     cost:'£326.00', shifts:[null, null, null, { t:'06:55–15:00', l:'Barista', c:'#c94f2a' }, { t:'06:55–15:00', l:'FOH', c:'#1a7a4c' }, { t:'07:00–14:00', l:'FOH', c:'#1a7a4c' }, { t:'08:30–14:00', l:'FOH', c:'#1a7a4c' }] },
+    { n:'Amy',    r:'KITCHEN', cost:'£397.50', shifts:[null, { t:'08:00–14:00', l:'Kitchen', c:colors.brand[500] }, null, { t:'06:00–14:00', l:'Kitchen', c:colors.brand[500] }, { t:'06:30–14:00', l:'Kitchen', c:colors.brand[500] }, { t:'07:30–14:00', l:'Kitchen', c:colors.brand[500] }, null] },
+    { n:'Beth',   r:'FOH',     cost:'£262.67', shifts:[null, null, null, { t:'06:55–15:00', l:'Barista', c:colors.accent }, { t:'06:55–15:00', l:'Barista', c:colors.accent }, { t:'TIME OFF', c:'off' }, { t:'08:30–14:00', l:'Barista', c:colors.accent }] },
+    { n:'Claire', r:'FOH',     cost:'£126.58', shifts:[null, null, null, null, null, { t:'07:55–15:00', l:'FOH', c:colors.good }, { t:'08:55–14:00', l:'Barista', c:colors.accent }] },
+    { n:'Diana',  r:'FOH',     cost:'£326.00', shifts:[null, null, null, { t:'06:55–15:00', l:'Barista', c:colors.accent }, { t:'06:55–15:00', l:'FOH', c:colors.good }, { t:'07:00–14:00', l:'FOH', c:colors.good }, { t:'08:30–14:00', l:'FOH', c:colors.good }] },
     { n:'Dan',    r:'FOH',     cost:'—',        shifts:[null, null, null, { t:'TIME OFF', c:'off' }, { t:'TIME OFF', c:'off' }, { t:'TIME OFF', c:'off' }, null] },
   ]
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.22)] ring-1 ring-charcoal/8">
+    <div aria-hidden="true" className="bg-white rounded-2xl overflow-hidden shadow-[0_32px_80px_theme(colors.black/22%)] ring-1 ring-charcoal/8">
       {/* Header */}
-      <div className="bg-[#f8f8f6] border-b border-charcoal/8 px-4 py-3 flex items-center justify-between">
+      <div className="bg-surface border-b border-charcoal/8 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div>
             <span className="text-[8px] text-charcoal/35 tracking-widest uppercase">TEAM / </span>
-            <span className="text-[14px] font-bold text-charcoal">Rota Manager</span>
+            <span className="text-body font-bold text-charcoal">Rota Manager</span>
           </div>
           <span className="text-[8px] font-semibold bg-accent/10 text-accent px-2 py-0.5 rounded-full">3 shift swap requests pending</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <button className="text-[8px] font-semibold text-charcoal/45 border border-charcoal/15 px-2 py-1 rounded">AUTO-FILL</button>
-          <button className="text-[8px] font-semibold bg-brand text-cream px-2.5 py-1 rounded">Send notification</button>
+          <span className="text-center text-[8px] font-semibold text-charcoal/45 border border-charcoal/15 px-2 py-1 rounded">AUTO-FILL</span>
+          <span className="text-center text-[8px] font-semibold bg-brand text-cream px-2.5 py-1 rounded">Send notification</span>
         </div>
       </div>
       {/* Legend */}
       <div className="px-4 py-2 flex items-center gap-4 border-b border-charcoal/6">
-        {[['AVAILABLE','#1a7a4c'],['UNAVAILABLE','#9ca3af'],['TIME OFF','#a85d12'],['CLOSED','#d1d5db']].map(([l,c])=>(
+        {[['AVAILABLE',colors.good],['UNAVAILABLE',colors.ink4],['TIME OFF',colors.warn],['CLOSED',colors.line]].map(([l,c])=>(
           <div key={l} className="flex items-center gap-1"><div className="w-2 h-2 rounded-full" style={{ backgroundColor:c }}/><span className="text-[7px] text-charcoal/40 font-medium">{l}</span></div>
         ))}
       </div>
@@ -620,15 +623,15 @@ function MockRota() {
                 key={i}
                 className="rounded-md mx-0.5 flex flex-col items-center justify-center py-1.5 min-h-[34px]"
                 style={{
-                  backgroundColor: s ? (s.c==='off' ? 'rgba(168,93,18,0.12)' : s.c+'20') : 'transparent',
-                  border: s ? `1px solid ${s.c==='off'?'rgba(168,93,18,0.3)':s.c+'44'}` : '1px dashed rgba(26,26,24,0.06)',
+                  backgroundColor: s ? (s.c==='off' ? alpha(colors.warn, 0.12) : s.c+'20') : 'transparent',
+                  border: s ? `1px solid ${s.c==='off'?alpha(colors.warn, 0.3):s.c+'44'}` : `1px dashed ${alpha(colors.charcoal, 0.06)}`,
                 }}
               >
                 {s && s.c !== 'off' && <>
                   <p className="text-[6px] font-bold leading-tight text-center" style={{ color:s.c }}>{s.t}</p>
                   <p className="text-[6px] leading-tight text-center" style={{ color:s.c+'aa' }}>{s.l}</p>
                 </>}
-                {s && s.c === 'off' && <p className="text-[6px] font-semibold text-[#a85d12]">TIME OFF</p>}
+                {s && s.c === 'off' && <p className="text-[6px] font-semibold text-warn">TIME OFF</p>}
               </div>
             ))}
             <div className="text-right pr-1 flex flex-col justify-center">
@@ -667,13 +670,13 @@ function Pricing() {
   const epn = annual ? EXTRA_VENUE_ANNUAL_NUM : EXTRA_VENUE_PRICE_NUM
   const sfx = annual ? '/yr' : '/mo'
   const Chk = ({ green }) => (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={green ? 'text-[#1a7a4c]' : 'text-brand/60'}>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={green ? 'text-good' : 'text-brand/60'}>
       <polyline points="20 6 9 17 4 12"/>
     </svg>
   )
 
   return (
-    <section id="pricing" className="bg-[#f3f3ef]">
+    <section id="pricing" className="bg-surface">
       <div className="max-w-4xl mx-auto px-6 sm:px-10 py-20 sm:py-28">
         <FadeUp>
           <h2 className="text-4xl sm:text-5xl font-bold text-charcoal tracking-tight leading-tight mb-2">One price. No surprises.</h2>
@@ -693,7 +696,7 @@ function Pricing() {
           {PLAN_ORDER.map((id, idx) => (
             <FadeUp key={id} delay={70 + idx * 60}>
               {id === PLANS.PRO ? (
-                <div className="bg-white rounded-xl border-2 border-brand shadow-[0_8px_24px_rgba(19,54,42,0.10)] p-7 flex flex-col h-full">
+                <div className="bg-white rounded-xl border-2 border-brand shadow-[0_8px_24px_theme(colors.brand/10%)] p-7 flex flex-col h-full">
                   <p className="text-[10px] tracking-widest uppercase text-brand font-semibold mb-4">{PLAN_DETAILS.pro.name}</p>
                   <div className="flex items-baseline gap-1 mb-1">
                     <span className="text-4xl font-bold text-charcoal">{pp}</span>
@@ -701,7 +704,7 @@ function Pricing() {
                   </div>
                   <p className="text-xs text-charcoal/35 mb-1">{PLAN_DETAILS.pro.venueNote} · {ep}{sfx} each extra</p>
                   {annual && <p className="text-xs font-medium text-brand mb-1">Save £50 vs monthly</p>}
-                  <div className="bg-[#f5f4f1] rounded-xl p-4 my-5">
+                  <div className="bg-cream rounded-xl p-4 my-5">
                     <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-3">As you grow</p>
                     {[1,2,3,5].map(n=>(
                       <div key={n} className="flex justify-between py-1">
@@ -723,7 +726,7 @@ function Pricing() {
                   </Link>
                 </div>
               ) : (
-                <div className="bg-white rounded-xl border border-charcoal/12 shadow-[0_4px_12px_rgba(0,0,0,0.04)] p-7 flex flex-col h-full">
+                <div className="bg-white rounded-xl border border-charcoal/12 shadow-[0_4px_12px_theme(colors.black/4%)] p-7 flex flex-col h-full">
                   <p className="text-[10px] tracking-widest uppercase text-brand font-semibold mb-4">{PLAN_DETAILS.starter.name}</p>
                   <div className="flex items-baseline gap-1 mb-1">
                     <span className="text-4xl font-bold text-charcoal">{sp}</span>
@@ -770,7 +773,7 @@ export default function MarketingPage() {
       <GlobalCSS />
 
       {/* ── Nav ─────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 transition-all duration-500" style={{ background: navScrolled ? 'rgba(255,255,255,0.95)' : 'rgba(19,54,42,0.76)', backdropFilter: 'blur(24px) saturate(200%)', borderBottom: navScrolled ? '1px solid rgba(26,26,24,0.07)' : '1px solid rgba(255,255,255,0.07)' }}>
+      <header className="sticky top-0 z-50 transition-all duration-500" style={{ background: navScrolled ? white(0.95) : alpha(colors.brand.DEFAULT, 0.76), backdropFilter: 'blur(24px) saturate(200%)', borderBottom: navScrolled ? `1px solid ${alpha(colors.charcoal, 0.07)}` : `1px solid ${white(0.07)}` }}>
         <div className="max-w-5xl mx-auto px-6 sm:px-10 h-14 flex items-center justify-between">
           <PeliknLogo light={!navScrolled} />
           <nav className="hidden sm:flex items-center gap-1">
@@ -780,7 +783,7 @@ export default function MarketingPage() {
           </nav>
           <div className="flex items-center gap-1.5">
             <Link to="/login" className={`text-sm font-medium transition-colors duration-200 px-4 py-2 rounded-lg cursor-pointer ${navScrolled?'text-charcoal/40 hover:text-charcoal':'text-cream/45 hover:text-cream/80'}`}>Sign in</Link>
-            <Link to="/signup" className="relative overflow-hidden text-sm font-semibold text-cream bg-accent hover:bg-[#b8431f] transition-colors duration-200 px-4 py-2 rounded-xl cursor-pointer shadow-[0_2px_8px_rgba(201,79,42,0.35)] hover:shadow-[0_4px_14px_rgba(201,79,42,0.45)]">
+            <Link to="/signup" className="relative overflow-hidden text-sm font-semibold text-cream bg-accent hover:brightness-95 transition-colors duration-200 px-4 py-2 rounded-xl cursor-pointer shadow-[0_2px_8px_theme(colors.accent/35%)] hover:shadow-[0_4px_14px_theme(colors.accent/45%)]">
               Free trial
             </Link>
           </div>
@@ -790,19 +793,19 @@ export default function MarketingPage() {
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="bg-brand relative overflow-hidden">
         {/* Dot grid */}
-        <div className="absolute inset-0 pointer-events-none" aria-hidden style={{ backgroundImage:'radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px)', backgroundSize:'28px 28px' }} />
+        <div className="absolute inset-0 pointer-events-none" aria-hidden style={{ backgroundImage:`radial-gradient(${white(0.07)} 1px, transparent 1px)`, backgroundSize:'28px 28px' }} />
         {/* Glow */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] pointer-events-none" aria-hidden style={{ background:'radial-gradient(ellipse at top right, rgba(201,79,42,0.12) 0%, transparent 60%)' }} />
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] pointer-events-none" aria-hidden style={{ background:`radial-gradient(ellipse at top right, ${alpha(colors.accent, 0.12)} 0%, transparent 60%)` }} />
         {/* Logomark watermark */}
         <div className="absolute pointer-events-none select-none" aria-hidden style={{ right:'-6%', top:'50%', transform:'translateY(-50%)', width:600, opacity:0.06 }}>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="35 45 159 130" width="600" height="491">
             <defs>
               <mask id="bowlCutHero">
-                <rect x="35" y="45" width="159" height="130" fill="#fff"/>
-                <path d="M115.885 112.528L117.692 112.43L117.82 113.122C108.293 130.003 99.3165 168.774 72.1173 158.689C69.2664 157.636 66.767 155.524 64.4598 153.57C56.1221 143.529 55.4785 134.779 55.0114 122.257C74.4165 118.926 96.4877 114.885 115.885 112.528Z" fill="#000"/>
+                <rect x="35" y="45" width="159" height="130" fill={white()}/>
+                <path d="M115.885 112.528L117.692 112.43L117.82 113.122C108.293 130.003 99.3165 168.774 72.1173 158.689C69.2664 157.636 66.767 155.524 64.4598 153.57C56.1221 143.529 55.4785 134.779 55.0114 122.257C74.4165 118.926 96.4877 114.885 115.885 112.528Z" fill={black()}/>
               </mask>
             </defs>
-            <g mask="url(#bowlCutHero)" fill="#ffffff">
+            <g mask="url(#bowlCutHero)" fill={white()}>
               <path d="M111.581 104.182C96.2532 104.543 80.9327 105.088 65.6202 105.829C60.5271 106.056 45.127 107.88 41.575 105.113C40.7355 102.743 40.8666 103.955 41.3785 101.335C43.6299 98.8182 47.2266 98.3284 50.4259 98.659C63.5708 100.006 131.793 91.8746 139.38 94.6178C143.225 99.2529 133.006 106.588 129.368 111.762C114.802 132.477 110.197 170.39 77.5307 168.731C49.3708 165.694 45.8813 136.75 46.7483 115.308C70.6601 112.405 93.878 108.474 117.612 105.315C116.161 104.28 113.504 104.335 111.581 104.182Z"/>
               <path d="M148.644 51.1993C183.239 49.7481 187.978 90.0071 164.264 109.344C142.392 127.174 130.764 152.291 163.008 168.658L160.027 168.645C139.961 168.474 133.495 157.422 134.31 138.44C137.83 118.498 152.458 110.25 164.662 95.8485C177.496 80.4735 167.956 55.9997 146.305 60.1389C135.522 62.1963 128.977 74.4423 123.111 82.935C119.461 82.935 115.959 83.1248 112.322 83.3085C122.658 68.6928 129.24 54.0955 148.644 51.1993Z"/>
             </g>
@@ -810,7 +813,7 @@ export default function MarketingPage() {
         </div>
 
         {/* Bottom gradient fade into next section */}
-        <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" aria-hidden style={{ background:'linear-gradient(to bottom, transparent, rgba(19,54,42,0.6))' }} />
+        <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" aria-hidden style={{ background:`linear-gradient(to bottom, transparent, ${alpha(colors.brand.DEFAULT, 0.6)})` }} />
 
         {/* Mobile/tablet: centred text with the phones below. Desktop (lg+):
             text on the left, lined up with the nav logo, and the product on
@@ -821,25 +824,25 @@ export default function MarketingPage() {
           {/* Pill badge */}
           <div style={{ animation:'pkIn 0.55s cubic-bezier(.16,1,.3,1) both' }}>
             <div className="inline-flex items-center gap-2.5 bg-cream/6 border border-cream/10 rounded-full px-4 py-2 mb-10 lg:mb-7">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#4ade80]" style={{ animation:'pkPulse 2.4s ease-in-out infinite' }} />
-              <span className="text-[12px] font-semibold text-cream/70 tracking-[0.12em] uppercase">Always inspection-ready</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-goodDark" style={{ animation:'pkPulse 2.4s ease-in-out infinite' }} />
+              <span className="text-caption font-semibold text-cream/70 tracking-[0.12em] uppercase">Always inspection-ready</span>
             </div>
           </div>
           {/* Headline */}
           <h1 className="text-[56px] sm:text-[80px] lg:text-[56px] xl:text-[64px] min-[1600px]:text-[76px] font-bold text-cream leading-[0.96] tracking-[-0.04em] mb-8 lg:mb-6" style={{ animation:'pkIn 0.75s 60ms cubic-bezier(.16,1,.3,1) both' }}>
             Ditch the<br />clipboard,<br />
-            <span style={{ backgroundImage:'linear-gradient(180deg,rgba(245,244,241,0.92) 0%,rgba(245,244,241,0.4) 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>keep the compliance.</span>
+            <span style={{ backgroundImage:`linear-gradient(180deg,${alpha(colors.cream, 0.92)} 0%,${alpha(colors.cream, 0.4)} 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>keep the compliance.</span>
           </h1>
           {/* Subtitle */}
-          <p className="text-cream/60 text-[17px] sm:text-[18px] max-w-[480px] mx-auto lg:mx-0 leading-[1.7] mb-10 lg:mb-8" style={{ animation:'pkIn 0.75s 140ms cubic-bezier(.16,1,.3,1) both' }}>
+          <p className="text-cream/60 text-title-sm max-w-[480px] mx-auto lg:mx-0 leading-[1.7] mb-10 lg:mb-8" style={{ animation:'pkIn 0.75s 140ms cubic-bezier(.16,1,.3,1) both' }}>
             One app for food safety records, rotas, timesheets and team management. EHO-ready from day one, on any device, for the whole team.
           </p>
           {/* CTAs */}
           <div className="flex flex-wrap justify-center lg:justify-start items-center gap-4 mb-7 lg:mb-6" style={{ animation:'pkIn 0.65s 210ms cubic-bezier(.16,1,.3,1) both' }}>
-            <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-xl text-[15px] font-semibold hover:bg-[#b8431f] hover:shadow-[0_10px_32px_rgba(201,79,42,0.55)] active:scale-[0.97] transition-all duration-200 cursor-pointer shadow-[0_4px_20px_rgba(201,79,42,0.45)]">
+            <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-xl text-body-lg font-semibold hover:brightness-95 hover:shadow-[0_10px_32px_theme(colors.accent/55%)] active:scale-[0.97] transition-all duration-200 cursor-pointer shadow-[0_4px_20px_theme(colors.accent/45%)]">
               Start free for 7 days
             </Link>
-            <a href="#compliance" className="flex items-center gap-2 text-cream/45 text-[15px] hover:text-cream/70 transition-colors duration-200 cursor-pointer">
+            <a href="#compliance" className="flex items-center gap-2 text-cream/45 text-body-lg hover:text-cream/70 transition-colors duration-200 cursor-pointer">
               See how it works
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </a>
@@ -849,7 +852,7 @@ export default function MarketingPage() {
             {['No card required','Cancel any time','EU data hosting'].map(t=>(
               <div key={t} className="flex items-center gap-2">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cream/35"><polyline points="20 6 9 17 4 12"/></svg>
-                <span className="text-[13px] text-cream/40">{t}</span>
+                <span className="text-body-sm text-cream/40">{t}</span>
               </div>
             ))}
           </div>
@@ -891,11 +894,11 @@ export default function MarketingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
             <div>
               <FadeUp>
-                <span className="inline-block text-[11px] tracking-[0.12em] uppercase text-brand font-semibold bg-brand/8 px-3.5 py-1.5 rounded-full mb-6">Food safety</span>
+                <span className="inline-block text-micro tracking-[0.12em] uppercase text-brand font-semibold bg-brand/8 px-3.5 py-1.5 rounded-full mb-6">Food safety</span>
                 <h2 className="text-[40px] sm:text-[52px] lg:text-[56px] font-bold text-charcoal tracking-[-0.025em] leading-[1.05] mb-6">
                   If the EHO walked<br />in today, would<br />you be ready?
                 </h2>
-                <p className="text-charcoal/55 text-[17px] leading-[1.75] mb-10 max-w-md">
+                <p className="text-charcoal/55 text-title-sm leading-[1.75] mb-10 max-w-md">
                   Every temp log, cleaning record, allergen check and delivery sign-off captured and stored. Export a full audit trail PDF in one tap, exactly how an inspector expects it.
                 </p>
               </FadeUp>
@@ -910,15 +913,15 @@ export default function MarketingPage() {
                     <div className="flex gap-4 group cursor-default">
                       <div className="w-0.5 rounded-full bg-brand/20 group-hover:bg-brand transition-colors duration-300 shrink-0 mt-1.5" style={{ minHeight:52 }}/>
                       <div className="transition-transform duration-300 group-hover:translate-x-0.5">
-                        <p className="text-[15px] font-semibold text-charcoal mb-1.5">{title}</p>
-                        <p className="text-[15px] text-charcoal/55 leading-[1.7]">{desc}</p>
+                        <p className="text-body-lg font-semibold text-charcoal mb-1.5">{title}</p>
+                        <p className="text-body-lg text-charcoal/55 leading-[1.7]">{desc}</p>
                       </div>
                     </div>
                   </FadeUp>
                 ))}
               </div>
               <FadeUp delay={250}>
-                <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3.5 rounded-xl text-[15px] font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_rgba(19,54,42,0.25)] hover:-translate-y-0.5 transition-all duration-200 mt-10 cursor-pointer">
+                <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3.5 rounded-xl text-body-lg font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_theme(colors.brand/25%)] hover:-translate-y-0.5 transition-all duration-200 mt-10 cursor-pointer">
                   Start free trial
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </Link>
@@ -927,11 +930,11 @@ export default function MarketingPage() {
             <FadeUp dir="right" delay={80} className="flex justify-center lg:justify-end">
               <div className="flex flex-col items-center gap-10">
                 <div className="lg:hidden">
-                  <p className="text-[11px] tracking-[0.1em] uppercase text-charcoal/35 font-medium text-center mb-4">Staff view</p>
+                  <p className="text-micro tracking-[0.1em] uppercase text-charcoal/35 font-medium text-center mb-4">Staff view</p>
                   <IPhoneFrame><MockMobileHome /></IPhoneFrame>
                 </div>
                 <div>
-                  <p className="text-[11px] tracking-[0.1em] uppercase text-charcoal/35 font-medium text-center mb-4">Checks hub</p>
+                  <p className="text-micro tracking-[0.1em] uppercase text-charcoal/35 font-medium text-center mb-4">Checks hub</p>
                   <IPhoneFrame><MockChecksHub /></IPhoneFrame>
                 </div>
               </div>
@@ -945,11 +948,11 @@ export default function MarketingPage() {
         <div className="max-w-5xl mx-auto px-6 sm:px-10 pt-24 sm:pt-36 pb-24 sm:pb-36">
           {/* Heading */}
           <FadeUp className="max-w-3xl mb-12 sm:mb-16">
-            <span className="inline-block text-[11px] tracking-[0.12em] uppercase text-accent font-semibold bg-accent/12 px-3.5 py-1.5 rounded-full mb-6">Team &amp; scheduling · Pro</span>
+            <span className="inline-block text-micro tracking-[0.12em] uppercase text-accent font-semibold bg-accent/12 px-3.5 py-1.5 rounded-full mb-6">Team &amp; scheduling · Pro</span>
             <h2 className="text-[40px] sm:text-[52px] lg:text-[60px] font-bold text-cream tracking-[-0.025em] leading-[1.05] mb-6">
               Stop managing your<br />team over WhatsApp.
             </h2>
-            <p className="text-cream/55 text-[17px] leading-[1.75] max-w-xl">
+            <p className="text-cream/55 text-title-sm leading-[1.75] max-w-xl">
               Build the rota in minutes, publish it, done. Timesheets write themselves. Swaps and time-off come through the app. You stop being the middleman.
             </p>
           </FadeUp>
@@ -971,8 +974,8 @@ export default function MarketingPage() {
             ].map(({ n, d }, i) => (
               <FadeUp key={n} delay={i * 40}>
                 <div className="border border-cream/8 rounded-2xl p-5 hover:border-cream/18 hover:bg-cream/5 hover:-translate-y-0.5 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)] cursor-default">
-                  <p className="text-[15px] font-semibold text-cream mb-1.5">{n}</p>
-                  <p className="text-[13px] text-cream/50 leading-[1.65]">{d}</p>
+                  <p className="text-body-lg font-semibold text-cream mb-1.5">{n}</p>
+                  <p className="text-body-sm text-cream/50 leading-[1.65]">{d}</p>
                 </div>
               </FadeUp>
             ))}
@@ -991,7 +994,7 @@ export default function MarketingPage() {
             ].map(({ value, sub, delay }) => (
               <FadeUp key={value} delay={delay} className="lg:px-8 first:pl-0 last:pr-0">
                 <p className="text-[44px] lg:text-[40px] font-bold text-cream mb-3 tracking-[-0.03em] leading-none whitespace-nowrap">{value}</p>
-                <p className="text-[15px] text-cream/55 leading-[1.6] max-w-xs">{sub}</p>
+                <p className="text-body-lg text-cream/55 leading-[1.6] max-w-xs">{sub}</p>
               </FadeUp>
             ))}
           </div>
@@ -999,11 +1002,11 @@ export default function MarketingPage() {
       </section>
 
       {/* ── Feature grid ─────────────────────────────────────────────────── */}
-      <section className="bg-[#f0efec]">
+      <section className="bg-surface">
         <div className="max-w-5xl mx-auto px-6 sm:px-10 py-24 sm:py-36">
           <FadeUp className="mb-14">
             <h2 className="text-[40px] sm:text-[52px] font-bold text-charcoal tracking-[-0.025em] leading-[1.05] mb-3">There's a lot more inside.</h2>
-            <p className="text-charcoal/50 text-[17px] leading-[1.7] max-w-sm">A glimpse at what's waiting once you're in.</p>
+            <p className="text-charcoal/50 text-title-sm leading-[1.7] max-w-sm">A glimpse at what's waiting once you're in.</p>
           </FadeUp>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
             {[
@@ -1015,12 +1018,12 @@ export default function MarketingPage() {
               { icon:'M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z', title:'Document vault', desc:'Certificates, policies and insurance in one organised place.' },
             ].map(({ icon, title, desc }, i) => (
               <FadeUp key={title} delay={i * 30}>
-                <div className="bg-white rounded-2xl border border-charcoal/8 p-6 hover:border-brand/20 hover:shadow-[0_12px_40px_rgba(19,54,42,0.09)] hover:-translate-y-1.5 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)] h-full group cursor-default">
+                <div className="bg-white rounded-2xl border border-charcoal/8 p-6 hover:border-brand/20 hover:shadow-[0_12px_40px_theme(colors.brand/9%)] hover:-translate-y-1.5 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)] h-full group cursor-default">
                   <div className="w-10 h-10 rounded-xl bg-brand/7 text-brand flex items-center justify-center mb-5 group-hover:bg-brand group-hover:text-cream transition-all duration-300">
                     <Ico d={icon} size={18} />
                   </div>
-                  <p className="text-[15px] font-semibold text-charcoal mb-2">{title}</p>
-                  <p className="text-[14px] text-charcoal/55 leading-[1.65]">{desc}</p>
+                  <p className="text-body-lg font-semibold text-charcoal mb-2">{title}</p>
+                  <p className="text-body text-charcoal/55 leading-[1.65]">{desc}</p>
                 </div>
               </FadeUp>
             ))}
@@ -1033,12 +1036,12 @@ export default function MarketingPage() {
         <div className="max-w-5xl mx-auto px-6 sm:px-10 py-24 sm:py-36">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
             <FadeUp>
-              <span className="inline-block text-[11px] tracking-[0.12em] uppercase text-brand font-semibold bg-brand/8 px-3.5 py-1.5 rounded-full mb-6">Setup</span>
+              <span className="inline-block text-micro tracking-[0.12em] uppercase text-brand font-semibold bg-brand/8 px-3.5 py-1.5 rounded-full mb-6">Setup</span>
               <h2 className="text-[40px] sm:text-[52px] lg:text-[56px] font-bold text-charcoal tracking-[-0.025em] leading-[1.05] mb-6">Live this afternoon.</h2>
-              <p className="text-charcoal/55 text-[17px] leading-[1.75] mb-8 max-w-sm">
+              <p className="text-charcoal/55 text-title-sm leading-[1.75] mb-8 max-w-sm">
                 No IT department needed. Open Pelikn in your browser, add it to your home screen and it works like any other app. Offline included.
               </p>
-              <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3.5 rounded-xl text-[15px] font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_rgba(19,54,42,0.25)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
+              <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3.5 rounded-xl text-body-lg font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_theme(colors.brand/25%)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
                 Get started free
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </Link>
@@ -1052,12 +1055,12 @@ export default function MarketingPage() {
                 <FadeUp key={n} delay={i * 65}>
                   <div className="flex gap-5 items-start pb-9 last:pb-0 relative group cursor-default">
                     {i < 2 && <div className="absolute left-[20px] top-12 bottom-0 w-px bg-charcoal/8"/>}
-                    <div className="w-11 h-11 rounded-full border-2 border-charcoal/10 bg-white flex items-center justify-center shrink-0 z-10 transition-all duration-300 group-hover:border-brand/30 group-hover:shadow-[0_4px_14px_rgba(19,54,42,0.12)]">
-                      <span className="text-[12px] font-bold text-charcoal/30 tabular-nums group-hover:text-brand/60 transition-colors duration-300">{n}</span>
+                    <div className="w-11 h-11 rounded-full border-2 border-charcoal/10 bg-white flex items-center justify-center shrink-0 z-10 transition-all duration-300 group-hover:border-brand/30 group-hover:shadow-[0_4px_14px_theme(colors.brand/12%)]">
+                      <span className="text-caption font-bold text-charcoal/30 tabular-nums group-hover:text-brand/60 transition-colors duration-300">{n}</span>
                     </div>
                     <div className="pt-2">
-                      <p className="text-[16px] font-semibold text-charcoal mb-2">{title}</p>
-                      <p className="text-[15px] text-charcoal/55 leading-[1.7]">{desc}</p>
+                      <p className="text-title-sm font-semibold text-charcoal mb-2">{title}</p>
+                      <p className="text-body-lg text-charcoal/55 leading-[1.7]">{desc}</p>
                     </div>
                   </div>
                 </FadeUp>
@@ -1093,22 +1096,22 @@ export default function MarketingPage() {
 
       {/* ── Final CTA ────────────────────────────────────────────────────── */}
       <section className="bg-brand relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none" aria-hidden style={{ backgroundImage:'radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)', backgroundSize:'28px 28px' }} />
-        <div className="absolute top-0 left-0 w-[600px] h-[600px] pointer-events-none" aria-hidden style={{ background:'radial-gradient(ellipse at top left, rgba(201,79,42,0.14) 0%, transparent 60%)' }} />
-        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] pointer-events-none" aria-hidden style={{ background:'radial-gradient(ellipse at bottom right, rgba(19,54,42,0.8) 0%, transparent 70%)' }} />
+        <div className="absolute inset-0 pointer-events-none" aria-hidden style={{ backgroundImage:`radial-gradient(${white(0.06)} 1px, transparent 1px)`, backgroundSize:'28px 28px' }} />
+        <div className="absolute top-0 left-0 w-[600px] h-[600px] pointer-events-none" aria-hidden style={{ background:`radial-gradient(ellipse at top left, ${alpha(colors.accent, 0.14)} 0%, transparent 60%)` }} />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] pointer-events-none" aria-hidden style={{ background:`radial-gradient(ellipse at bottom right, ${alpha(colors.brand.DEFAULT, 0.8)} 0%, transparent 70%)` }} />
         <div className="max-w-5xl mx-auto px-6 sm:px-10 py-28 sm:py-40 relative">
           <FadeUp>
             <h2 className="text-[52px] sm:text-[68px] lg:text-[84px] font-bold text-cream tracking-[-0.035em] leading-[1.0] mb-6 max-w-2xl">
               Ditch the clipboard.<br />Keep the compliance.
             </h2>
-            <p className="text-cream/50 text-[17px] leading-[1.7] mb-10 max-w-xs">
+            <p className="text-cream/50 text-title-sm leading-[1.7] mb-10 max-w-xs">
               7 days free. No card. Set up in an afternoon.
             </p>
             <div className="flex flex-col sm:flex-row items-start gap-4">
-              <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-xl text-[15px] font-semibold hover:bg-[#b8431f] hover:shadow-[0_10px_36px_rgba(201,79,42,0.55)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 text-center cursor-pointer shadow-[0_4px_24px_rgba(201,79,42,0.42)]">
+              <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-xl text-body-lg font-semibold hover:brightness-95 hover:shadow-[0_10px_36px_theme(colors.accent/55%)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 text-center cursor-pointer shadow-[0_4px_24px_theme(colors.accent/42%)]">
                 Start free trial
               </Link>
-              <a href="mailto:hello@get-pelikn.com" className="border border-cream/14 text-cream/45 hover:text-cream/65 hover:border-cream/28 hover:-translate-y-0.5 px-8 py-4 rounded-xl text-[15px] font-medium transition-all duration-200 text-center cursor-pointer">
+              <a href="mailto:hello@get-pelikn.com" className="border border-cream/14 text-cream/45 hover:text-cream/65 hover:border-cream/28 hover:-translate-y-0.5 px-8 py-4 rounded-xl text-body-lg font-medium transition-all duration-200 text-center cursor-pointer">
                 Get in touch
               </a>
             </div>
@@ -1128,7 +1131,7 @@ export default function MarketingPage() {
           </div>
         </div>
         <div className="border-t border-charcoal/5 py-3 text-center">
-          <p className="text-[11px] text-charcoal/16">© {new Date().getFullYear()} <span className="font-semibold tracking-[0.18em] uppercase">Pelikn</span> · EU data hosting</p>
+          <p className="text-caption text-charcoal/16">© {new Date().getFullYear()} <span className="font-semibold tracking-[0.18em] uppercase">Pelikn</span> · EU data hosting</p>
         </div>
       </footer>
     </div>

@@ -17,7 +17,7 @@ export function useHRSummary() {
   const in30 = addDays(new Date(), 30).toISOString().slice(0, 10)
   const queryKey = ['hr-summary', venueId, since90, in30]
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey,
     queryFn: () => fetchHRSummary(venueId!, since90, in30),
     enabled: !!venueId,
@@ -32,6 +32,7 @@ export function useHRSummary() {
     formalActionStaffIds: (data as HRSummaryData | undefined)?.formalActionStaffIds ?? [],
     expiringDocs: (data as HRSummaryData | undefined)?.expiringDocs ?? [],
     loading: isLoading,
+    isError,
     reload,
   }
 }

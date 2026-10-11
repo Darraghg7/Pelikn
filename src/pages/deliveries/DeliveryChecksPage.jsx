@@ -7,11 +7,14 @@ import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
+import { reportError } from '../../lib/reportError'
 import useDeliveryChecks from '../../hooks/useDeliveryChecks'
 import { useSuppliers } from '../../hooks/useSuppliers'
 import { insertSupplier } from '../../lib/api/suppliers'
 import { insertDeliveryCheck } from '../../lib/api/deliveries'
 import { TRAINING_BUCKET, deliveryPhotoPath } from '../../lib/trainingFiles'
+import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 // tesseract.js is ~7 MB — dynamically imported only when OCR is actually used
 
 // Local wall-clock time for a datetime-local input. toISOString() is UTC, so
@@ -30,13 +33,15 @@ function useSupplierItems(supplierId) {
   const load = useCallback(async () => {
     if (!supplierId) { setItems([]); return }
     setLoading(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('supplier_items')
       .select('id, name, temp_required, min_temp, max_temp, category')
       .eq('supplier_id', supplierId)
       .eq('is_active', true)
       .order('name')
-    setItems(data ?? [])
+    // The supplier's saved items are a shortcut; items can still be typed in.
+    if (error) reportError(error, 'DeliveryChecksPage:supplier-items')
+    else setItems(data ?? [])
     setLoading(false)
   }, [supplierId])
   useEffect(() => { load() }, [load])
@@ -95,7 +100,7 @@ function parseItemsFromText(text) {
 
 function PassFailChip({ pass }) {
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] tracking-wider uppercase font-medium ${
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-micro tracking-wider uppercase font-medium ${
       pass ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'
     }`}>
       {pass ? 'PASS' : 'FAIL'}
@@ -132,13 +137,14 @@ function AddSupplierModal({ open, onClose, onAdded, venueId }) {
           className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           autoFocus
         />
-        <button
+        <Button
+          fullWidth
+          loading={saving}
           onClick={save}
           disabled={saving || !name.trim()}
-          className="bg-charcoal text-cream py-2.5 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
         >
           {saving ? 'Saving...' : 'Add Supplier'}
-        </button>
+        </Button>
       </div>
     </Modal>
   )
@@ -157,7 +163,7 @@ function ItemCategoryPicker({ itemName, onSave, onSkip }) {
           <button
             key={c.value}
             onClick={() => setCategory(c.value)}
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-all ${
+            className={`px-2.5 py-1 rounded-lg text-micro font-medium border transition-all ${
               category === c.value
                 ? 'bg-charcoal text-cream border-charcoal dark:border-white'
                 : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15'
@@ -168,18 +174,20 @@ function ItemCategoryPicker({ itemName, onSave, onSkip }) {
         ))}
       </div>
       <div className="flex gap-2 mt-1">
-        <button
+        <Button
+          size="sm"
           onClick={() => onSave(category, cat.temp)}
-          className="flex-1 bg-charcoal text-cream py-1.5 rounded-lg text-xs font-medium"
+          className="flex-1"
         >
           Save
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={onSkip}
-          className="px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-xs text-charcoal/40 dark:text-white/35"
         >
           Skip
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -457,12 +465,13 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                 </button>
               ))
             )}
-            <button
+            <Button
+              variant="secondary"
+              fullWidth
               onClick={() => setShowAddSupplier(true)}
-              className="px-4 py-3 rounded-xl border border-dashed border-charcoal/20 dark:border-white/20 text-sm text-charcoal/40 dark:text-white/35 hover:text-charcoal/60 dark:hover:text-white/50 hover:border-charcoal/35 dark:hover:border-white/35 transition-all"
             >
               + Add New Supplier
-            </button>
+            </Button>
           </div>
         )}
 
@@ -492,7 +501,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
             {/* OCR categorisation */}
             {ocrItems.length > 0 && categorisingIdx < ocrItems.length && (
               <div>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">
+                <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">
                   Categorise new item ({categorisingIdx + 1}/{ocrItems.length})
                 </p>
                 <ItemCategoryPicker
@@ -506,7 +515,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
             {/* Checklist — items needing temp */}
             {tempItems.length > 0 && (
               <div>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">
+                <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">
                   Temperature Items ({tempItems.length})
                 </p>
                 <div className="flex flex-col gap-2">
@@ -522,7 +531,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                           {item.received && <svg className="w-4 h-4" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}
                         </button>
                         <span className="text-sm font-medium text-charcoal dark:text-white flex-1 truncate">{item.itemName}</span>
-                        <span className="text-[11px] tracking-wider uppercase text-charcoal/30 dark:text-white/30">{item.category}</span>
+                        <span className="text-micro tracking-wider uppercase text-charcoal/30 dark:text-white/30">{item.category}</span>
                       </div>
                       {item.received && (
                         <div className="flex items-center gap-2 sm:ml-12">
@@ -549,7 +558,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
             {/* Checklist — non-temp items */}
             {nonTempItems.length > 0 && (
               <div>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">
+                <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">
                   Other Items ({nonTempItems.length})
                 </p>
                 <div className="flex flex-col gap-1.5">
@@ -566,7 +575,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                       <span className={`text-sm flex-1 truncate ${item.received ? 'text-charcoal dark:text-white' : 'text-charcoal/40 dark:text-white/35 line-through'}`}>
                         {item.itemName}
                       </span>
-                      <span className="text-[11px] tracking-wider uppercase text-charcoal/25 dark:text-white/25">{item.category}</span>
+                      <span className="text-micro tracking-wider uppercase text-charcoal/25 dark:text-white/25">{item.category}</span>
                     </div>
                   ))}
                 </div>
@@ -583,7 +592,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
 
             {/* Overall checks */}
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Overall Checks</p>
+              <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Overall Checks</p>
               {[
                 { key: 'packaging', label: 'Packaging intact', value: packagingOk, set: setPackagingOk },
                 { key: 'useby', label: 'Use-by dates valid', value: useByOk, set: setUseByOk },
@@ -608,7 +617,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
 
             {/* Photo */}
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Delivery note photo</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Delivery note photo</label>
               <input type="file" accept="image/*" onChange={handlePhoto} className="text-sm" />
               {uploading && <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1">Uploading...</p>}
               {photoPath && <p className="text-xs text-success mt-1">Photo attached</p>}
@@ -616,7 +625,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
 
             {/* Notes */}
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Notes</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Notes</label>
               <textarea
                 value={overallNotes}
                 onChange={e => setOverallNotes(e.target.value)}
@@ -639,13 +648,14 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
             </div>
 
             {/* Submit */}
-            <button
+            <Button
+              fullWidth
+              loading={saving}
               onClick={saveDelivery}
               disabled={saving}
-              className="bg-charcoal text-cream py-3 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
             >
               {saving ? 'Saving...' : 'Complete Delivery Check'}
-            </button>
+            </Button>
           </div>
         )}
       </Modal>
@@ -669,7 +679,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
 
 export default function DeliveryChecksPage() {
   const { venueId } = useVenue()
-  const { checks, loading, reload } = useDeliveryChecks(venueId)
+  const { checks, loading, isError, reload } = useDeliveryChecks(venueId)
   const { suppliers, reload: reloadSuppliers } = useSuppliers()
   const [showCheck, setShowCheck] = useState(false)
   const [filter, setFilter] = useState('all')
@@ -687,12 +697,11 @@ export default function DeliveryChecksPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-charcoal dark:text-white">Delivery Checks</h1>
-        <button
+        <Button
           onClick={() => setShowCheck(true)}
-          className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors"
         >
           + Check Delivery
-        </button>
+        </Button>
       </div>
 
       {/* Summary */}
@@ -703,7 +712,7 @@ export default function DeliveryChecksPage() {
           { label: 'Failed', value: failCount, color: 'text-danger' },
         ].map(s => (
           <div key={s.label} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-3 sm:p-4 text-center">
-            <p className="text-[11px] sm:text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">{s.label}</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">{s.label}</p>
             <p className={`text-xl sm:text-2xl font-bold ${s.color}`}>{s.value}</p>
           </div>
         ))}
@@ -729,7 +738,7 @@ export default function DeliveryChecksPage() {
       {/* Records */}
       {loading ? (
         <SkeletonList rows={4} />
-      ) : filtered.length === 0 ? (
+      ) : isError ? (<LoadError what="deliveries" onRetry={reload} />) : filtered.length === 0 ? (
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-10 text-center">
           <p className="text-charcoal/30 dark:text-white/30 text-sm">No delivery checks recorded yet.</p>
           <p className="text-charcoal/20 dark:text-white/20 text-xs mt-1">Tap "+ Check Delivery" to log your first one.</p>
@@ -749,7 +758,7 @@ export default function DeliveryChecksPage() {
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-xs text-charcoal/40 dark:text-white/35">{format(new Date(c.checked_at), 'd MMM HH:mm')}</p>
-                  <p className="text-[11px] text-charcoal/30 dark:text-white/30 mt-0.5">{c.checker?.name ?? 'Unknown'}</p>
+                  <p className="text-caption text-charcoal/30 dark:text-white/30 mt-0.5">{c.checker?.name ?? 'Unknown'}</p>
                 </div>
               </div>
             </div>

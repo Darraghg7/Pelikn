@@ -30,7 +30,7 @@ export default function HelpSettingsPage() {
 
       <div className="pb-24 max-w-[480px] mx-auto">
 
-        <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[18px] pb-[7px] px-0.5">Common questions</div>
+        <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[18px] pb-[7px] px-0.5">Common questions</div>
         <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
           {FAQS.map((faq, i) => (
             <div key={i} className={i < FAQS.length - 1 ? 'border-b border-charcoal/6 dark:border-white/8' : ''}>
@@ -38,7 +38,7 @@ export default function HelpSettingsPage() {
                 onClick={() => setExpanded(expanded === i ? null : i)}
                 className="w-full p-[14px] text-left flex items-center justify-between gap-3"
               >
-                <span className="text-[14.5px] font-medium text-charcoal dark:text-white leading-[1.3]">{faq.q}</span>
+                <span className="text-body-lg font-medium text-charcoal dark:text-white leading-[1.3]">{faq.q}</span>
                 <span className={`transition-transform duration-200 shrink-0 ${expanded === i ? 'rotate-90' : ''}`}>
                   <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/30 dark:text-white/30">
                     <path d="M1 1l4 4-4 4"/>
@@ -46,7 +46,7 @@ export default function HelpSettingsPage() {
                 </span>
               </button>
               {expanded === i && (
-                <div className="px-[14px] pb-[14px] font-mono text-[11.5px] text-charcoal/50 dark:text-white/40 leading-[1.65]">{faq.a}</div>
+                <div className="px-[14px] pb-[14px] font-mono text-caption text-charcoal/50 dark:text-white/40 leading-[1.65]">{faq.a}</div>
               )}
             </div>
           ))}
@@ -54,7 +54,7 @@ export default function HelpSettingsPage() {
 
         <FeatureGuide />
 
-        <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[18px] pb-[7px] px-0.5">Get help</div>
+        <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[18px] pb-[7px] px-0.5">Get help</div>
         <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
           <a
             href="mailto:hello@get-pelikn.com"
@@ -66,8 +66,8 @@ export default function HelpSettingsPage() {
               </svg>
             </span>
             <div className="flex-1 min-w-0">
-              <div className="text-[15px] font-medium text-charcoal dark:text-white">Chat with support</div>
-              <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 mt-0.5">Usually responds in under an hour</div>
+              <div className="text-body-lg font-medium text-charcoal dark:text-white">Chat with support</div>
+              <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 mt-0.5">Usually responds in under an hour</div>
             </div>
             <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/30 dark:text-white/30">
               <path d="M1 1l4 4-4 4"/>

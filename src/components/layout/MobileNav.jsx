@@ -6,6 +6,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 import { useAppSettings } from '../../hooks/useSettings'
 import { preloadRoute } from '../../lib/routePreload'
+import Button, { CloseButton } from '../ui/Button'
 
 /* ── SVG Icon components — thin outline, Revolut/Linear style ─────────────
    Active state: slightly bolder stroke + brand colour (via parent text-brand)
@@ -163,11 +164,9 @@ function NavReorderSheet({ items, onSave, onClose }) {
         <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-charcoal/8 dark:border-white/10">
           <div>
             <p className="font-semibold text-charcoal dark:text-white text-base">Reorder tabs</p>
-            <p className="text-[12px] text-charcoal/45 dark:text-white/40 mt-0.5">Drag to rearrange your nav</p>
+            <p className="text-caption text-charcoal/45 dark:text-white/40 mt-0.5">Drag to rearrange your nav</p>
           </div>
-          <button onClick={onClose} className="text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white p-1">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
+          <CloseButton className="-mr-2" onClick={onClose} />
         </div>
 
         <div className="px-4 py-2" onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}>
@@ -206,12 +205,13 @@ function NavReorderSheet({ items, onSave, onClose }) {
         </div>
 
         <div className="px-5 pt-2 pb-1">
-          <button
+          <Button
+            size="lg"
+            fullWidth
             onClick={() => { onSave(list.map(t => t.key)); onClose() }}
-            className="w-full bg-charcoal text-cream dark:bg-white dark:text-charcoal font-semibold text-sm rounded-2xl py-3.5 hover:bg-charcoal/90 dark:hover:bg-white/90 transition-colors"
           >
             Save order
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -236,7 +236,7 @@ function SubNav({ items, currentPath }) {
   }, [currentPath])
 
   return (
-    <nav ref={scrollRef} className="lg:hidden relative flex gap-2 px-4 py-2.5 overflow-x-auto scrollbar-hide bg-white dark:bg-paperDark dark:bg-[#1a1a1a] border-b border-charcoal/8 dark:border-white/10" aria-label="Section navigation" style={{ maskImage: 'linear-gradient(90deg, black 90%, transparent)', WebkitMaskImage: 'linear-gradient(90deg, black 90%, transparent)' }}>
+    <nav ref={scrollRef} className="lg:hidden relative flex gap-2 px-4 py-2.5 overflow-x-auto scrollbar-hide bg-white dark:bg-paperDark border-b border-charcoal/8 dark:border-white/10" aria-label="Section navigation" style={{ maskImage: 'linear-gradient(90deg, black 90%, transparent)', WebkitMaskImage: 'linear-gradient(90deg, black 90%, transparent)' }}>
       {items.map(item => {
         const isActive = currentPath === item.to || currentPath.startsWith(item.to + '/')
         return (
@@ -250,7 +250,7 @@ function SubNav({ items, currentPath }) {
             onFocus={() => preloadRoute(item.to)}
             aria-current={isActive ? 'page' : undefined}
             className={[
-              'px-3.5 py-2 rounded-full text-[12px] font-semibold tracking-wide whitespace-nowrap transition-all shrink-0',
+              'px-3.5 py-2 rounded-full text-caption font-semibold tracking-wide whitespace-nowrap transition-all shrink-0',
               isActive
                 ? 'bg-brand text-cream shadow-sm shadow-brand/20 dark:bg-cream dark:text-charcoal'
                 : 'text-charcoal/55 dark:text-white/45 hover:text-charcoal/80 dark:hover:text-white/70',
@@ -437,12 +437,12 @@ export default function MobileNav() {
   return (
     <>
       {showBackRow && (
-        <div className="lg:hidden bg-white dark:bg-paperDark dark:bg-[#1a1a1a] border-b border-charcoal/8 dark:border-white/10" style={{
+        <div className="lg:hidden bg-white dark:bg-paperDark border-b border-charcoal/8 dark:border-white/10" style={{
           padding: '8px 16px',
         }}>
           <NavLink
             to={backRoute}
-            className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand dark:text-accent no-underline"
+            className="inline-flex items-center gap-1.5 text-body-sm font-semibold text-brand dark:text-accent no-underline"
           >
             <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 1L1 5l4 4"/>
@@ -455,7 +455,7 @@ export default function MobileNav() {
       {createPortal(
         <>
           <nav
-            className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-paperDark dark:bg-[#1a1a1a] border-t border-charcoal/8 dark:border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,0.04)]"
+            className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-paperDark border-t border-charcoal/8 dark:border-white/10 shadow-[0_-4px_20px_theme(colors.black/4%)]"
             style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
             aria-label="Main navigation"
             role="tablist"
@@ -475,7 +475,7 @@ export default function MobileNav() {
                     >
                       <span className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl">
                         <Icon active={false} />
-                        <span className="text-[11px] leading-none tracking-wide font-medium">
+                        <span className="text-micro leading-none tracking-wide font-medium">
                           {tab.label}
                         </span>
                       </span>
@@ -507,7 +507,7 @@ export default function MobileNav() {
                       isActive ? 'bg-navpill dark:bg-brand/30' : '',
                     ].join(' ')}>
                       <Icon active={isActive} />
-                      <span className={['text-[11px] leading-none tracking-wide', isActive ? 'font-semibold' : 'font-medium'].join(' ')}>
+                      <span className={['text-micro leading-none tracking-wide', isActive ? 'font-semibold' : 'font-medium'].join(' ')}>
                         {tab.label}
                       </span>
                     </span>

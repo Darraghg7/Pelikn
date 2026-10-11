@@ -39,19 +39,20 @@ export function documentStatus(doc: Pick<VenueDocument, 'expiry_date'>, today = 
   return { status: 'valid', daysLeft }
 }
 
-export function useDocuments(): { docs: VenueDocument[]; loading: boolean; reload: () => void } {
+export function useDocuments(): { docs: VenueDocument[]; loading: boolean; isError: boolean; reload: () => void } {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
   const queryKey = ['documents', venueId]
 
-  const { data = [], isLoading } = useQuery({
+  const { data = [], isLoading, isError } = useQuery({
     queryKey,
     queryFn: async () => {
-      const { data: rows } = await supabase
+      const { data: rows, error: rowsErr } = await supabase
         .from('documents')
         .select('id, venue_id, title, category, file_url, file_path, file_name, file_size, expiry_date, notes, uploaded_by, created_at')
         .eq('venue_id', venueId)
         .order('created_at', { ascending: false })
+      if (rowsErr) throw rowsErr
       return (rows ?? []) as VenueDocument[]
     },
     enabled: !!venueId,
@@ -59,5 +60,5 @@ export function useDocuments(): { docs: VenueDocument[]; loading: boolean; reloa
 
   const reload = () => queryClient.invalidateQueries({ queryKey })
 
-  return { docs: data, loading: isLoading, reload }
+  return { docs: data, loading: isLoading, isError, reload }
 }

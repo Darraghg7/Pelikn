@@ -15,6 +15,7 @@ export interface Staff {
   skills?: string[]
   is_under_18?: boolean
   colour?: string
+  photo_url?: string | null
   is_active?: boolean
   venue_id?: string
   _crossVenue?: boolean

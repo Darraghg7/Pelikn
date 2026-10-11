@@ -55,8 +55,9 @@ test.describe('Login page — structure', () => {
   })
 
   test('staff avatars show two initials', async ({ page }) => {
-    // Avatars are divs with font-mono class containing 2 uppercase letters
-    const avatars = page.locator('div.font-mono, div[class*="font-mono"]')
+    // The shared Avatar is a round span of initials. On the login rows it's
+    // decorative (aria-hidden) because the name is written next to it.
+    const avatars = page.locator('button span.rounded-full.font-mono[aria-hidden="true"]')
       .filter({ hasText: /^[A-Z]{2}$/ })
     await expect(avatars.first()).toBeVisible({ timeout: 12000 })
   })

@@ -28,12 +28,14 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { CARD, TONE, PageHeader, TabBar } from '../../components/temperature/TempPageParts'
 import { HistoryRangePills, StatStrip, historyDateFrom } from '../../components/temperature/TempHistoryView'
 import PestExportModal from './PestExportModal'
+import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 const ALL_CLEAR_TEXT = 'All clear — no activity, traps checked and reset.'
 
-const FIELD_LABEL = 'block text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
-const TEXT_FIELD  = 'w-full h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
-const TEXT_AREA   = 'w-full px-3.5 py-2.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 resize-none transition-colors'
+const FIELD_LABEL = 'block text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
+const TEXT_FIELD  = 'w-full h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
+const TEXT_AREA   = 'w-full px-3.5 py-2.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 resize-none transition-colors'
 
 const SEVERITY_TONE = { low: TONE.ok, medium: TONE.explained, high: TONE.bad }
 
@@ -114,7 +116,7 @@ function Chip({ active, onClick, children }) {
       aria-pressed={active}
       onClick={onClick}
       className={[
-        'h-8 px-3.5 rounded-full border text-[13px] transition-colors',
+        'h-8 px-3.5 rounded-full border text-body-sm transition-colors',
         active
           ? 'bg-brand-tint border-brand/40 text-brand font-semibold dark:bg-white/10 dark:text-white dark:border-white/30'
           : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
@@ -135,11 +137,11 @@ function ToggleRow({ title, hint, checked, onChange }) {
       className={`w-full flex items-center gap-2.5 text-left rounded-xl px-3.5 sm:px-3.5 py-2 transition-colors ${checked ? 'bg-goodBg dark:bg-good/15' : 'bg-cream dark:bg-white/5'}`}
     >
       <span className="flex-1 min-w-0">
-        <span className="block text-[14px] font-semibold text-ink dark:text-white">{title}</span>
-        {hint && <span className="block text-[13px] text-ink3 dark:text-white/50 mt-0.5">{hint}</span>}
+        <span className="block text-body font-semibold text-ink dark:text-white">{title}</span>
+        {hint && <span className="block text-body-sm text-ink3 dark:text-white/50 mt-0.5">{hint}</span>}
       </span>
-      <span className={`shrink-0 w-[52px] h-7 rounded-full p-1 transition-colors ${checked ? 'bg-accent' : 'bg-ink4/70 dark:bg-white/20'}`}>
-        <span className={`block w-6 h-6 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-5' : ''}`} />
+      <span className={`shrink-0 w-[52px] h-7 rounded-full p-1 transition-colors ${checked ? 'bg-accent' : 'bg-ink4/70 dark:bg-transparent dark:ring-[1.5px] dark:ring-inset dark:ring-white/50'}`}>
+        <span className={`block w-6 h-6 rounded-full bg-paper shadow transition-transform ${checked ? 'translate-x-5' : 'dark:bg-white/70'}`} />
       </span>
     </button>
   )
@@ -258,8 +260,8 @@ function LogEntryForm({ issues, followUpIssueId, onFollowUpIssue, onSaved }) {
                 active ? 'border-brand bg-brand-tint dark:bg-white/10 dark:border-white/70' : 'border-line dark:border-white/10 bg-white dark:bg-paperDark hover:border-ink4/60',
               ].join(' ')}
             >
-              <span className="block text-[13px] min-[420px]:text-[14px] font-semibold text-ink dark:text-white">{t.label}</span>
-              <span className={`block text-[12px] min-[420px]:text-[13px] mt-0.5 ${active ? 'text-ink2 dark:text-white/70' : 'text-ink3 dark:text-white/45'}`}>{t.hint}</span>
+              <span className="block text-body-sm min-[420px]:text-body font-semibold text-ink dark:text-white">{t.label}</span>
+              <span className={`block text-caption min-[420px]:text-body-sm mt-0.5 ${active ? 'text-ink2 dark:text-white/70' : 'text-ink3 dark:text-white/45'}`}>{t.hint}</span>
             </button>
           )
         })}
@@ -278,7 +280,7 @@ function LogEntryForm({ issues, followUpIssueId, onFollowUpIssue, onSaved }) {
       {/* Follow-up: which issue */}
       {logType === 'follow_up' && (
         issues.length === 0 ? (
-          <p className="rounded-xl bg-goodBg dark:bg-good/15 px-3.5 py-2 text-[13px] text-good dark:text-[#7fd1a4] font-semibold">
+          <p className="rounded-xl bg-goodBg dark:bg-good/15 px-3.5 py-2 text-body-sm text-good dark:text-goodDark font-semibold">
             No open issues to follow up.
           </p>
         ) : (
@@ -298,8 +300,8 @@ function LogEntryForm({ issues, followUpIssueId, onFollowUpIssue, onSaved }) {
                       active ? 'border-brand bg-brand-tint dark:bg-white/10 dark:border-white/70' : 'border-line dark:border-white/10 hover:border-ink4/60',
                     ].join(' ')}
                   >
-                    <span className="block text-[13px] font-semibold text-ink dark:text-white">{issueSummary(i)}</span>
-                    <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5">
+                    <span className="block text-body-sm font-semibold text-ink dark:text-white">{issueSummary(i)}</span>
+                    <span className="block text-body-sm text-ink3 dark:text-white/45 mt-0.5">
                       {[pestLabel(i.pest_type), typeLabel(i.log_type), format(new Date(i.logged_at), 'd MMM')].filter(Boolean).join(' · ')}
                     </span>
                   </button>
@@ -350,7 +352,7 @@ function LogEntryForm({ issues, followUpIssueId, onFollowUpIssue, onSaved }) {
                   aria-pressed={severity === s.value}
                   onClick={() => setSeverity(s.value)}
                   className={[
-                    'h-8 rounded-xl border text-[13px] font-semibold transition-colors',
+                    'h-8 rounded-xl border text-body-sm font-semibold transition-colors',
                     severity === s.value
                       ? `${SEVERITY_TONE[s.value]} border-transparent`
                       : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
@@ -397,11 +399,11 @@ function LogEntryForm({ issues, followUpIssueId, onFollowUpIssue, onSaved }) {
             className={TEXT_AREA}
           />
           {logType === 'inspection' && (
-            <p className="text-[13px] text-ink3 dark:text-white/45 mt-2">
+            <p className="text-body-sm text-ink3 dark:text-white/45 mt-2">
               Found signs of pests?{' '}
-              <button type="button" onClick={() => setLogType('sighting')} className="font-semibold text-brand dark:text-white underline underline-offset-2">
+              <Button variant="link" size="sm" onClick={() => setLogType('sighting')}>
                 Log a pest sighting
-              </button>{' '}
+              </Button>{' '}
               instead, so it stays open until it's dealt with.
             </p>
           )}
@@ -431,24 +433,25 @@ function LogEntryForm({ issues, followUpIssueId, onFollowUpIssue, onSaved }) {
           </label>
         </div>
       ) : (
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setShowExtra(true)}
-          className="self-start inline-flex items-center gap-2 text-[13px] font-semibold text-ink2 dark:text-white/75 hover:text-ink dark:hover:text-white"
+          className="self-start -ml-3"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
           Action taken, contractor
-        </button>
+        </Button>
       )}
 
-      <button
-        type="button"
+      <Button
+        fullWidth
+        loading={saving}
         onClick={save}
         disabled={!valid || saving}
-        className="w-full h-10 rounded-2xl bg-brand text-white text-[14px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
       >
         {saving ? 'Saving…' : 'Save entry'}
-      </button>
+      </Button>
     </div>
   )
 }
@@ -476,24 +479,24 @@ function OpenIssueCard({ issue, onFollowUp, onResolve }) {
     <div className={`${CARD} px-3.5 sm:px-3.5 py-2.5 flex flex-col gap-2.5`}>
       <div className="flex items-start justify-between gap-2.5">
         <div className="min-w-0">
-          <p className="text-[15px] font-semibold text-ink dark:text-white">{title}</p>
-          <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">
+          <p className="text-body-lg font-semibold text-ink dark:text-white">{title}</p>
+          <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">
             {[issue.location, pestLabel(issue.pest_type), `raised ${format(new Date(issue.logged_at), 'd MMM')}`].filter(Boolean).join(' · ')}
           </p>
         </div>
-        <span className={`shrink-0 h-7 px-3 rounded-full inline-flex items-center text-[13px] font-semibold whitespace-nowrap ${issue.severity === 'high' ? TONE.bad : TONE.explained}`}>
+        <span className={`shrink-0 h-7 px-3 rounded-full inline-flex items-center text-body-sm font-semibold whitespace-nowrap ${issue.severity === 'high' ? TONE.bad : TONE.explained}`}>
           {daysOpen === 0 ? 'Opened today' : `${daysOpen} day${daysOpen === 1 ? '' : 's'} open`}
         </span>
       </div>
 
       {issue.description && issue.description !== title && (
-        <p className="text-[13px] text-ink2 dark:text-white/75">{issue.description}</p>
+        <p className="text-body-sm text-ink2 dark:text-white/75">{issue.description}</p>
       )}
 
       <div className="rounded-xl bg-cream dark:bg-white/5 px-3.5 py-2.5 flex flex-col gap-2">
         {timeline.map(entry => (
-          <div key={entry.id} className="flex gap-2.5 text-[13px]">
-            <span className="shrink-0 w-10 font-mono text-[13px] text-ink3 dark:text-white/45 pt-px">{shortDay(entry.at)}</span>
+          <div key={entry.id} className="flex gap-2.5 text-body-sm">
+            <span className="shrink-0 w-10 font-mono text-body-sm text-ink3 dark:text-white/45 pt-px">{shortDay(entry.at)}</span>
             <p className="min-w-0 text-ink2 dark:text-white/75">
               <span className="font-semibold text-ink dark:text-white">{typeLabel(entry.type)}</span>
               {entry.text && ` · ${entry.text}`}
@@ -503,20 +506,19 @@ function OpenIssueCard({ issue, onFollowUp, onResolve }) {
       </div>
 
       <div className="grid grid-cols-2 gap-2.5">
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={onFollowUp}
-          className="h-9 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink dark:text-white hover:border-ink4 transition-colors"
         >
           Log follow-up
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          size="sm"
           onClick={onResolve}
-          className="h-9 rounded-xl bg-brand text-white text-[13px] font-semibold hover:bg-brand/90 transition-colors"
         >
           Resolve
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -531,7 +533,7 @@ function historyPill(log) {
   }
   return {
     inspection: { label: 'Inspection', cls: TONE.ok },
-    treatment:  { label: 'Treatment',  cls: 'bg-infoBg text-info dark:bg-info/30 dark:text-[#a9bfe8]' },
+    treatment:  { label: 'Treatment',  cls: 'bg-infoBg text-info dark:bg-info/30 dark:text-infoDark' },
     sighting:   { label: 'Sighting',   cls: TONE.bad },
   }[log.log_type] ?? { label: typeLabel(log.log_type), cls: TONE.pending }
 }
@@ -539,7 +541,7 @@ function historyPill(log) {
 function PestHistory({ openCount }) {
   const [range, setRange] = useState(30)
   const todayStr = format(new Date(), 'yyyy-MM-dd')
-  const { logs, loading } = usePestControlLogs(historyDateFrom(range), todayStr)
+  const { logs, loading, isError, reload } = usePestControlLogs(historyDateFrom(range), todayStr)
 
   const inspections = logs.filter(l => l.log_type === 'inspection').length
   const sightings   = logs.filter(l => l.log_type === 'sighting').length
@@ -552,6 +554,8 @@ function PestHistory({ openCount }) {
         <div className="py-12 text-center">
           <div className="w-5 h-5 rounded-full border-2 border-charcoal/15 dark:border-white/15 border-t-charcoal animate-spin mx-auto" />
         </div>
+      ) : isError ? (
+        <LoadError what="pest control history" onRetry={reload} />
       ) : (
         <>
           <StatStrip stats={[
@@ -561,24 +565,24 @@ function PestHistory({ openCount }) {
           ]} />
 
           {logs.length === 0 ? (
-            <p className="text-[13px] text-ink3 dark:text-white/40 py-10 text-center">No pest control entries in this period.</p>
+            <p className="text-body-sm text-ink3 dark:text-white/40 py-10 text-center">No pest control entries in this period.</p>
           ) : (
             <div className={`${CARD} divide-y divide-line dark:divide-white/10`}>
               {logs.map(log => {
                 const pill = historyPill(log)
                 return (
                   <div key={log.id} className="flex gap-2.5 px-3.5 sm:px-3.5 py-2.5">
-                    <span className="shrink-0 w-10 font-mono text-[13px] text-ink3 dark:text-white/45 pt-1">{shortDay(log.logged_at)}</span>
+                    <span className="shrink-0 w-10 font-mono text-body-sm text-ink3 dark:text-white/45 pt-1">{shortDay(log.logged_at)}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2.5">
-                        <p className="text-[14px] font-semibold text-ink dark:text-white truncate">{log.location}</p>
-                        <span className={`shrink-0 h-7 px-3 rounded-full inline-flex items-center text-[12px] font-semibold ${pill.cls}`}>{pill.label}</span>
+                        <p className="text-body font-semibold text-ink dark:text-white truncate">{log.location}</p>
+                        <span className={`shrink-0 h-7 px-3 rounded-full inline-flex items-center text-caption font-semibold ${pill.cls}`}>{pill.label}</span>
                       </div>
-                      <p className="text-[13px] text-ink2 dark:text-white/75 mt-1">{log.description}</p>
+                      <p className="text-body-sm text-ink2 dark:text-white/75 mt-1">{log.description}</p>
                       {log.action_taken && (
-                        <p className="text-[13px] text-ink2 dark:text-white/70 mt-1">Action: {log.action_taken}</p>
+                        <p className="text-body-sm text-ink2 dark:text-white/70 mt-1">Action: {log.action_taken}</p>
                       )}
-                      <p className="text-[13px] text-ink3 dark:text-white/45 mt-1.5">
+                      <p className="text-body-sm text-ink3 dark:text-white/45 mt-1.5">
                         {[log.contractor || log.logged_by_name, format(new Date(log.logged_at), 'HH:mm')].filter(Boolean).join(' · ')}
                       </p>
                     </div>
@@ -662,12 +666,12 @@ export default function PestControlPage() {
               className="w-full flex items-center gap-2.5 rounded-2xl bg-badBg dark:bg-bad/20 px-3.5 sm:px-3.5 py-2 text-left"
             >
               <span className="shrink-0 w-2.5 h-2.5 rounded-full bg-bad" />
-              <span className="flex-1 min-w-0 text-[13px] min-[420px]:text-[14px] font-semibold text-ink dark:text-white truncate">
+              <span className="flex-1 min-w-0 text-body-sm min-[420px]:text-body font-semibold text-ink dark:text-white truncate">
                 {issues.length === 1
                   ? `1 open issue · ${issueSummary(issues[0])}`
                   : `${issues.length} open issues${high ? ` · ${high} high severity` : ` · latest: ${issueSummary(issues[0])}`}`}
               </span>
-              <span className="shrink-0 text-[13px] min-[420px]:text-[14px] font-semibold text-bad dark:text-[#f19a86]">View</span>
+              <span className="shrink-0 text-body-sm min-[420px]:text-body font-semibold text-bad dark:text-badDark">View</span>
             </button>
           )}
           <LogEntryForm
@@ -683,8 +687,8 @@ export default function PestControlPage() {
       {tab === 'open' && (
         issues.length === 0 ? (
           <div className={`${CARD} px-3.5 py-8 text-center`}>
-            <p className="text-[14px] font-semibold text-good dark:text-[#7fd1a4]">No open pest issues</p>
-            <p className="text-[13px] text-ink3 dark:text-white/45 mt-1">Every sighting and treatment has been followed up and resolved.</p>
+            <p className="text-body font-semibold text-good dark:text-goodDark">No open pest issues</p>
+            <p className="text-body-sm text-ink3 dark:text-white/45 mt-1">Every sighting and treatment has been followed up and resolved.</p>
           </div>
         ) : (
           issues.map(issue => (

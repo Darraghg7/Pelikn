@@ -38,6 +38,9 @@ export function useWidgetQuery(name, scope, queryFn, options = {}) {
 
   return useQuery({
     queryKey: ['widget', name, ...scope],
+    // A widget's queryFn throws its Supabase error instead of returning
+    // zeros, so the widget can show a retry (WidgetPending) rather than a
+    // reassuring "0 open issues". App.jsx's QueryCache reports the error.
     queryFn: async () => {
       const data = await queryFn()
       try {

@@ -4,6 +4,7 @@ import { usePushNotifications } from '../../hooks/usePushNotifications'
 import { useVenue } from '../../contexts/VenueContext'
 import { NOTIFICATION_TYPES } from '../../lib/notificationTypes'
 import { reportError } from '../../lib/reportError'
+import Button from '../../components/ui/Button'
 
 function PreferenceToggle({ type, enabled, saving, onToggle }) {
   return (
@@ -18,8 +19,8 @@ function PreferenceToggle({ type, enabled, saving, onToggle }) {
         <span className="block text-sm font-medium text-charcoal dark:text-white">{type.label}</span>
         <span className="block text-xs text-charcoal/40 dark:text-white/35 mt-0.5">{type.description}</span>
       </span>
-      <span className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${enabled ? 'bg-accent' : 'bg-charcoal/20 dark:bg-white/20'}`}>
-        <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white dark:bg-paperDark shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+      <span className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${enabled ? 'bg-accent' : 'bg-charcoal/20 dark:bg-transparent dark:ring-[1.5px] dark:ring-inset dark:ring-white/50'}`}>
+        <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-paper shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-0.5 dark:bg-white/70'}`} />
       </span>
     </button>
   )
@@ -102,16 +103,14 @@ export default function NotificationsPanel({ session, toast, settings }) {
         ) : subscribed ? (
           <div className="flex items-center gap-3">
             <span className="text-xs text-success font-medium">● Notifications enabled</span>
-            <button onClick={unsubscribe}
-              className="text-xs text-charcoal/40 dark:text-white/35 hover:text-danger transition-colors underline underline-offset-2">
+            <Button variant="link" onClick={unsubscribe}>
               Disable
-            </button>
+            </Button>
           </div>
         ) : (
-          <button onClick={subscribe} disabled={subscribing}
-            className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40">
+          <Button loading={subscribing} onClick={subscribe} disabled={subscribing}>
             {subscribing ? 'Enabling…' : 'Enable Notifications →'}
-          </button>
+          </Button>
         )}
       </div>
 
@@ -147,10 +146,9 @@ export default function NotificationsPanel({ session, toast, settings }) {
         {!settings.manager_email ? (
           <p className="text-xs text-charcoal/35 dark:text-white/30 italic">Set your manager email in Venue Details to enable reports.</p>
         ) : (
-          <button onClick={sendWeeklyReport} disabled={sendingReport}
-            className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40">
+          <Button loading={sendingReport} onClick={sendWeeklyReport} disabled={sendingReport}>
             {sendingReport ? 'Sending…' : 'Send Weekly Report →'}
-          </button>
+          </Button>
         )}
       </div>
     </div>

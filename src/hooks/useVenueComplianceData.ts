@@ -17,11 +17,11 @@ async function fetchVenueCompliance(venueId: string): Promise<VenueComplianceDat
   const tomorrow = format(addDays(new Date(), 1), 'yyyy-MM-dd')
 
   const [
-    { data: fridgeLogs },
-    { data: cookingLogs },
-    { data: hotLogs },
-    { data: timeOffRows },
-    { data: clockEvents },
+    { data: fridgeLogs, error: fridgeLogsErr },
+    { data: cookingLogs, error: cookingLogsErr },
+    { data: hotLogs, error: hotLogsErr },
+    { data: timeOffRows, error: timeOffRowsErr },
+    { data: clockEvents, error: clockEventsErr },
   ] = await Promise.all([
     supabase
       .from('fridge_temperature_logs')
@@ -58,6 +58,8 @@ async function fetchVenueCompliance(venueId: string): Promise<VenueComplianceDat
       .lt('occurred_at', tomorrow)
       .order('occurred_at'),
   ])
+  const failed = fridgeLogsErr ?? cookingLogsErr ?? hotLogsErr ?? timeOffRowsErr ?? clockEventsErr
+  if (failed) throw failed
 
   // Derive currently clocked-in staff from today's events
   const sessions: Record<string, { status: string }> = {}

@@ -6,24 +6,17 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
+import { reportError } from '../../lib/reportError'
+import LoadError from '../../components/ui/LoadError'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import OpeningClosingExportModal from './OpeningClosingExportModal'
 import { useViewerDepartments } from '../../hooks/useDepartments'
 import { useAppSettings } from '../../hooks/useSettings'
 import { departmentMatcher } from '../../lib/roleFilter'
 import DepartmentFilter from '../../components/ui/DepartmentFilter'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-/** "John Smith" → "JS" */
-function initials(name = '') {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map(w => w[0].toUpperCase())
-    .join('')
-}
 
 function todayStr() { return format(new Date(), 'yyyy-MM-dd') }
 
@@ -32,20 +25,23 @@ function todayStr() { return format(new Date(), 'yyyy-MM-dd') }
 function useChecks(venueId) {
   const [checks, setChecks]   = useState([])
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed]   = useState(false)
   const load = useCallback(async () => {
     if (!venueId) return
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('opening_closing_checks')
       .select('id, title, type, department_id, sort_order, created_at')
       .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('sort_order')
       .order('created_at')
-    setChecks(data ?? [])
+    if (error) reportError(error, 'OpeningClosingPage:checks')
+    else setChecks(data ?? [])
+    setFailed(!!error)
     setLoading(false)
   }, [venueId])
   useEffect(() => { load() }, [load])
-  return { checks, loading, reload: load }
+  return { checks, loading, failed, reload: load }
 }
 
 function useCompletionsForDate(sessionDate, venueId) {
@@ -58,11 +54,13 @@ function useCompletionsForDate(sessionDate, venueId) {
   const [doneAtLoad, setDoneAtLoad] = useState({ date: null, ids: new Set() })
   const load = useCallback(async () => {
     if (!venueId || !sessionDate) return
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('opening_closing_completions')
       .select('id, check_id, session_date, session_type, completed_at, staff_name, corrective_action')
       .eq('venue_id', venueId)
       .eq('session_date', sessionDate)
+    // An empty list would show done checks as still to do.
+    if (error) { reportError(error, 'OpeningClosingPage:completions'); return }
     const rows = data ?? []
     setCompletions(rows)
     setDoneAtLoad(prev => prev.date === sessionDate ? prev : { date: sessionDate, ids: new Set(rows.map(r => r.check_id)) })
@@ -93,14 +91,14 @@ function IssueModal({ check, onConfirm, onCancel, saving }) {
         style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
       >
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-warning mb-1">Issue Flagged</p>
+          <p className="text-micro tracking-widest uppercase text-warning mb-1">Issue Flagged</p>
           <h3 className="font-semibold text-charcoal dark:text-white text-lg">{check.title}</h3>
           <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1">
             Describe what corrective action was taken. This will appear in the audit log.
           </p>
         </div>
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
+          <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
             Corrective Action Taken <span className="text-danger">*</span>
           </label>
           <textarea
@@ -113,19 +111,21 @@ function IssueModal({ check, onConfirm, onCancel, saving }) {
           />
         </div>
         <div className="flex gap-2">
-          <button
+          <Button
+            variant="warning"
+            loading={saving}
             onClick={() => onConfirm(action.trim())}
             disabled={saving || !action.trim()}
-            className="flex-1 bg-warning text-white py-2.5 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-warning/90 transition-colors"
+            className="flex-1"
           >
             {saving ? 'Saving…' : 'Save Issue →'}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="secondary"
             onClick={onCancel}
-            className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -171,17 +171,17 @@ function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRem
 
       {/* Title + meta */}
       <div className="flex-1 min-w-0">
-        <p className={`text-[15px] font-medium tracking-[-0.01em] leading-snug break-words ${done ? 'text-charcoal/60 dark:text-white/50' : 'text-charcoal dark:text-white'}`}>
+        <p className={`text-body-lg font-medium tracking-[-0.01em] leading-snug break-words ${done ? 'text-charcoal/60 dark:text-white/50' : 'text-charcoal dark:text-white'}`}>
           {check.title}
         </p>
         {done && completion.staff_name && (
-          <p className="text-[11.5px] text-charcoal/35 dark:text-white/30 mt-0.5 break-words">
+          <p className="text-caption text-charcoal/35 dark:text-white/30 mt-0.5 break-words">
             {completion.staff_name} · {format(new Date(completion.completed_at), 'HH:mm')}
             {hasIssue && completion.corrective_action && <span className="text-warning/70 italic"> · "{completion.corrective_action}"</span>}
           </p>
         )}
         {!done && readOnly && (
-          <p className="text-[11.5px] text-charcoal/30 dark:text-white/30 italic mt-0.5">Not recorded</p>
+          <p className="text-caption text-charcoal/30 dark:text-white/30 italic mt-0.5">Not recorded</p>
         )}
       </div>
 
@@ -190,19 +190,13 @@ function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRem
         <button
           onClick={() => onIssue(check)}
           disabled={saving}
-          className="shrink-0 text-[11px] font-bold tracking-wide uppercase text-warning/70 hover:text-warning transition-colors disabled:opacity-50 px-1 mt-1"
+          className="shrink-0 text-micro font-bold tracking-wide uppercase text-warning/70 hover:text-warning transition-colors disabled:opacity-50 px-1 mt-1"
         >
           Issue
         </button>
       )}
       {isManager && !readOnly && (
-        <button
-          onClick={() => onRemove(check.id)}
-          aria-label="Remove check"
-          className="opacity-0 group-hover:opacity-100 shrink-0 w-7 h-7 rounded-lg grid place-items-center text-charcoal/25 dark:text-white/25 hover:text-danger hover:bg-danger/8 transition-colors"
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
-        </button>
+        <CloseButton label="Remove check" className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 shrink-0" onClick={() => onRemove(check.id)} />
       )}
     </div>
   )
@@ -245,9 +239,9 @@ function CheckSection({ type, label, departmentId, departmentName, checks, compl
       <div className="flex items-center justify-between px-5 pt-4 pb-3">
         <div>
           {departmentName && (
-            <p className="text-[10px] font-bold tracking-widest uppercase text-brand dark:text-accent mb-1">{departmentName}</p>
+            <p className="text-micro font-bold tracking-widest uppercase text-brand dark:text-accent mb-1">{departmentName}</p>
           )}
-          <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40">{label}</p>
+          <p className="text-micro font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40">{label}</p>
           <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">
             {doneCount}/{typeChecks.length} recorded
             {issueCount > 0 && (
@@ -257,22 +251,23 @@ function CheckSection({ type, label, departmentId, departmentName, checks, compl
         </div>
         <div className="flex items-center gap-2">
           {allDone && issueCount === 0 && (
-            <span className="text-[11px] font-bold tracking-widest uppercase text-success bg-success/10 px-2.5 py-1 rounded-full">
+            <span className="text-micro font-bold tracking-widest uppercase text-success bg-success/10 px-2.5 py-1 rounded-full">
               <span className="inline-flex items-center gap-1">All Clear <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>
             </span>
           )}
           {allDone && issueCount > 0 && (
-            <span className="text-[11px] font-bold tracking-widest uppercase text-warning bg-warning/10 px-2.5 py-1 rounded-full">
+            <span className="text-micro font-bold tracking-widest uppercase text-warning bg-warning/10 px-2.5 py-1 rounded-full">
               <span className="inline-flex items-center gap-1">Complete <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
             </span>
           )}
           {isManager && !readOnly && (
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setShowAdd(v => !v)}
-              className="text-[11px] font-semibold text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors"
             >
               {showAdd ? 'Cancel' : '+ Add'}
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -296,13 +291,13 @@ function CheckSection({ type, label, departmentId, departmentName, checks, compl
             autoFocus
             className="flex-1 px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
-          <button
+          <Button
+            loading={saving}
             onClick={handleAdd}
             disabled={saving || !newTitle.trim()}
-            className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-charcoal/90 transition-colors whitespace-nowrap"
           >
-            {saving ? '…' : 'Add →'}
-          </button>
+            Add →
+          </Button>
         </div>
       )}
 
@@ -371,7 +366,7 @@ function DateSelector({ value, onChange }) {
             onClick={() => onChange(d)}
             disabled={d > today}
             className={[
-              'flex-1 py-2 px-2 rounded-xl text-[12px] font-semibold transition-colors text-center truncate',
+              'flex-1 py-2 px-2 rounded-xl text-caption font-semibold transition-colors text-center truncate',
               d === value
                 ? 'bg-brand text-white'
                 : d > today
@@ -406,7 +401,7 @@ export default function OpeningClosingPage() {
   const [selectedDate, setSelectedDate] = useState(todayStr())
   const [showExport, setShowExport]     = useState(false)
 
-  const { checks, loading: checksLoading, reload: reloadChecks } = useChecks(venueId)
+  const { checks, loading: checksLoading, failed: checksFailed, reload: reloadChecks } = useChecks(venueId)
   const { completions, doneAtLoad, reload: reloadCompletions } = useCompletionsForDate(selectedDate, venueId)
   // Staff see the departments they're in (none = all of them); managers pick
   // one department or all. Same rule as cleaning and Tasks — lib/roleFilter.
@@ -489,6 +484,9 @@ export default function OpeningClosingPage() {
   if (checksLoading) {
     return <PageSkeleton />
   }
+  if (checksFailed && checks.length === 0) {
+    return <LoadError what="your opening and closing checks" onRetry={reloadChecks} />
+  }
 
   const dateLabel = isToday(parseISO(selectedDate))
     ? format(parseISO(selectedDate), 'EEEE, d MMMM')
@@ -523,17 +521,18 @@ export default function OpeningClosingPage() {
       {/* Page header */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-medium tracking-widest uppercase text-charcoal/40 dark:text-white/35">{dateLabel}</p>
+          <p className="text-micro font-medium tracking-widest uppercase text-charcoal/40 dark:text-white/35">{dateLabel}</p>
           <h1 className="text-2xl font-bold text-charcoal dark:text-white mt-0.5">Opening &amp; Closing</h1>
         </div>
         {isManager && (
-          <button
+          <Button
+            size="sm"
             onClick={() => setShowExport(true)}
-            className="flex items-center gap-1.5 bg-brand text-white text-[11px] font-bold tracking-wide px-3 py-2 rounded-xl hover:bg-brand/90 transition-colors shrink-0"
+            className="shrink-0"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0-3-3m3 3 3-3m2 8H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z" /></svg>
             PDF
-          </button>
+          </Button>
         )}
       </div>
 
@@ -542,7 +541,7 @@ export default function OpeningClosingPage() {
       {/* The clock-out sign-off is set in Compliance settings; say here, where
           the checklist is built, whether it's switched on. */}
       {isManager && (
-        <p className="text-[12px] text-charcoal/50 dark:text-white/40 px-1">
+        <p className="text-caption text-charcoal/50 dark:text-white/40 px-1">
           Closers sign off before clocking out: <span className="font-semibold text-charcoal/70 dark:text-white/60">{enforceClosingChecklist ? 'On' : 'Off'}</span>
           {' · '}
           <Link to={`/v/${venueSlug}/settings/compliance#closing-checklist`} className="underline underline-offset-2 hover:text-charcoal dark:hover:text-white">Change</Link>
@@ -553,7 +552,7 @@ export default function OpeningClosingPage() {
       <div className="flex flex-col gap-2">
         <DateSelector value={selectedDate} onChange={setSelectedDate} />
         {isPast && (
-          <p className="text-[11px] text-charcoal/40 dark:text-white/35 italic px-1">
+          <p className="text-caption text-charcoal/40 dark:text-white/35 italic px-1">
             Retroactive entry — checks will be logged against {format(parseISO(selectedDate), 'd MMM yyyy')}.
           </p>
         )}

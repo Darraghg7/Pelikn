@@ -11,11 +11,12 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import CleaningExportModal from './CleaningExportModal'
 import { useViewerDepartments } from '../../hooks/useDepartments'
 import DepartmentFilter from '../../components/ui/DepartmentFilter'
+import Button from '../../components/ui/Button'
 
 const FREQ_OPTIONS = ['daily', 'weekly', 'fortnightly', 'monthly', 'quarterly']
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
+  return <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
 }
 
 const DUE_TONE = {
@@ -168,24 +169,24 @@ export default function CleaningPage() {
         <h1 className="text-2xl font-bold text-charcoal dark:text-white">Cleaning Schedule</h1>
         <div className="flex items-center gap-3">
           {isManager && (
-            <button
+            <Button
+              variant="label"
               onClick={() => setShowExport(true)}
-              className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
             >
               Export PDF
-            </button>
+            </Button>
           )}
           {isManager && (
-          <button
+          <Button
+            variant="label"
             onClick={() => {
               // A kitchen manager adding a task is almost always adding a kitchen one.
               if (!showAdd) setForm((f) => ({ ...f, department_id: defaultDepartmentId }))
               setShowAdd((v) => !v)
             }}
-            className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
           >
             + Add Task
-          </button>
+          </Button>
           )}
         </div>
       </div>
@@ -205,7 +206,7 @@ export default function CleaningPage() {
             </svg>
           </span>
           <div className="flex-1 min-w-0">
-            {overdueCount > 0 && <p className="text-[13.5px] font-bold text-danger">{overdueCount} task{overdueCount !== 1 ? 's' : ''} overdue</p>}
+            {overdueCount > 0 && <p className="text-body font-bold text-danger">{overdueCount} task{overdueCount !== 1 ? 's' : ''} overdue</p>}
             {dueSoonCount > 0 && <p className={`text-xs ${overdueCount > 0 ? 'text-charcoal/60 dark:text-white/50' : 'text-warning'}`}>{dueSoonCount} task{dueSoonCount !== 1 ? 's' : ''} due soon</p>}
           </div>
         </div>
@@ -223,7 +224,7 @@ export default function CleaningPage() {
           />
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Frequency</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Frequency</label>
               <div className="flex flex-wrap gap-2">
                 {FREQ_OPTIONS.map((f) => (
                   <button
@@ -241,7 +242,7 @@ export default function CleaningPage() {
               </div>
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Department</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Department</label>
               <div className="flex flex-wrap gap-2">
                 {departmentOptions.map((r) => (
                   <button
@@ -260,16 +261,17 @@ export default function CleaningPage() {
             </div>
           </div>
           <div className="flex gap-2 pt-1">
-            <button
+            <Button
+              loading={saving}
               onClick={saveTask}
               disabled={saving || !form.title.trim()}
-              className="flex-1 bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium disabled:opacity-40"
+              className="flex-1"
             >
               {saving ? 'Saving…' : 'Save Task →'}
-            </button>
-            <button onClick={() => setShowAdd(false)} className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40">
+            </Button>
+            <Button variant="secondary" onClick={() => setShowAdd(false)}>
               Cancel
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -283,7 +285,7 @@ export default function CleaningPage() {
             key={s}
             onClick={() => setFilterStatus(s)}
             className={[
-              'px-[14px] py-[7px] rounded-full text-[13px] font-medium border transition-all inline-flex items-center gap-1.5',
+              'px-[14px] py-[7px] rounded-full text-body-sm font-medium border transition-all inline-flex items-center gap-1.5',
               filterStatus === s
                 ? 'bg-charcoal text-cream border-charcoal dark:border-white'
                 : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
@@ -292,7 +294,7 @@ export default function CleaningPage() {
             {s === 'all' ? 'All' : s === 'due_soon' ? 'Due Soon' : capitalize(s)}
             {s === 'overdue' && overdueCount > 0 && (
               <span className={[
-                'font-mono text-[11px] font-bold rounded-full px-1.5',
+                'font-mono text-micro font-bold rounded-full px-1.5',
                 filterStatus === s ? 'bg-white/20 text-cream' : 'bg-danger/15 text-danger',
               ].join(' ')}>{overdueCount}</span>
             )}
@@ -312,25 +314,25 @@ export default function CleaningPage() {
                 <CheckCircle status={t.status} onTap={() => openComplete(t)} />
 
                 <div className="flex-1 min-w-0">
-                  <div className={`text-[15px] font-medium tracking-[-0.01em] whitespace-nowrap overflow-hidden text-ellipsis ${done ? 'text-charcoal/60 dark:text-white/50' : 'text-charcoal dark:text-white'}`}>
+                  <div className={`text-body-lg font-medium tracking-[-0.01em] whitespace-nowrap overflow-hidden text-ellipsis ${done ? 'text-charcoal/60 dark:text-white/50' : 'text-charcoal dark:text-white'}`}>
                     {t.title}
                   </div>
                   <div className="flex items-center gap-1.5 mt-1 min-w-0 whitespace-nowrap overflow-hidden">
                     {urgency && (
-                      <span className={`font-mono text-[10px] font-bold tracking-wide uppercase shrink-0 ${DUE_TONE[urgency.tone]}`}>
+                      <span className={`font-mono text-micro font-bold tracking-wide uppercase shrink-0 ${DUE_TONE[urgency.tone]}`}>
                         {urgency.text}
                       </span>
                     )}
-                    {urgency && <span className="text-charcoal/20 dark:text-white/20 text-[10px] shrink-0">·</span>}
-                    <span className="font-mono text-[10px] font-medium tracking-wide uppercase text-charcoal/40 dark:text-white/35 shrink-0">{capitalize(t.frequency)}</span>
-                    <span className="text-charcoal/20 dark:text-white/20 text-[10px] shrink-0">·</span>
+                    {urgency && <span className="text-charcoal/20 dark:text-white/20 text-micro shrink-0">·</span>}
+                    <span className="font-mono text-micro font-medium tracking-wide uppercase text-charcoal/40 dark:text-white/35 shrink-0">{capitalize(t.frequency)}</span>
+                    <span className="text-charcoal/20 dark:text-white/20 text-micro shrink-0">·</span>
                     {isManager && departments.length > 0 ? (
                       // Managers re-file a task in place — the only way to fix
                       // one that landed in the wrong department (or none). The
                       // select sits invisibly over the label so the row keeps
                       // the label's width, not the longest department name's.
                       <span className="relative shrink-0 group/dept">
-                        <span className="font-mono text-[10px] font-medium tracking-wide uppercase text-charcoal/40 dark:text-white/35 underline decoration-dotted underline-offset-2 group-hover/dept:text-charcoal dark:group-hover/dept:text-white">{deptLabel}</span>
+                        <span className="font-mono text-micro font-medium tracking-wide uppercase text-charcoal/40 dark:text-white/35 underline decoration-dotted underline-offset-2 group-hover/dept:text-charcoal dark:group-hover/dept:text-white">{deptLabel}</span>
                         <select
                           value={t.department_id ?? ''}
                           onChange={(e) => setTaskDepartment(t.id, e.target.value || null)}
@@ -341,10 +343,10 @@ export default function CleaningPage() {
                         </select>
                       </span>
                     ) : (
-                      <span className="font-mono text-[10px] font-medium tracking-wide uppercase text-charcoal/40 dark:text-white/35 shrink-0">{deptLabel}</span>
+                      <span className="font-mono text-micro font-medium tracking-wide uppercase text-charcoal/40 dark:text-white/35 shrink-0">{deptLabel}</span>
                     )}
-                    <span className="text-charcoal/20 dark:text-white/20 text-[10px] shrink-0">·</span>
-                    <span className="text-[11.5px] text-charcoal/35 dark:text-white/30 overflow-hidden text-ellipsis min-w-0">
+                    <span className="text-charcoal/20 dark:text-white/20 text-micro shrink-0">·</span>
+                    <span className="text-caption text-charcoal/35 dark:text-white/30 overflow-hidden text-ellipsis min-w-0">
                       {t.lastCompletion
                         ? done
                           ? `${formatDistanceToNow(new Date(t.lastCompletion.completed_at), { addSuffix: true })} · ${t.lastCompletion.completed_by_name}`
@@ -355,15 +357,17 @@ export default function CleaningPage() {
                 </div>
 
                 {isManager && (
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    iconOnly
                     onClick={() => setRemoveTarget(t)}
                     aria-label="Remove task"
-                    className="shrink-0 w-7 h-7 rounded-lg grid place-items-center text-charcoal/30 dark:text-white/30 hover:text-danger hover:bg-danger/8 transition-colors"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M18 6 6 18M6 6l12 12" />
                     </svg>
-                  </button>
+                  </Button>
                 )}
               </div>
             )
@@ -373,7 +377,7 @@ export default function CleaningPage() {
           {filtered.length === 0 && loadError && (
             <div className="py-6 text-center">
               <p className="text-sm text-danger/80">Couldn't load the cleaning schedule — check your connection.</p>
-              <button onClick={reload} className="mt-2 text-xs underline text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white">Try again</button>
+              <Button variant="link" onClick={reload} className="mt-2">Try again</Button>
             </div>
           )}
           {filtered.length === 0 && !loadError && (
@@ -389,11 +393,11 @@ export default function CleaningPage() {
         <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4 bg-charcoal/40 dark:bg-white/40 backdrop-blur-sm" onClick={() => setCompleteModal(null)}>
           <div className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-md p-6 flex flex-col gap-4 shadow-2xl max-h-[90dvh] overflow-y-auto" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }} onClick={e => e.stopPropagation()}>
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Mark Complete</p>
+              <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Mark Complete</p>
               <h3 className="font-semibold text-charcoal dark:text-white text-lg">{completeModal.title}</h3>
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
                 Notes (optional)
               </label>
               <textarea
@@ -405,19 +409,22 @@ export default function CleaningPage() {
               />
             </div>
             <div className="flex gap-2">
-              <button
+              <Button
+                size="lg"
+                loading={!!completing}
                 onClick={submitComplete}
                 disabled={!!completing}
-                className="min-h-12 flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold disabled:opacity-40"
+                className="flex-1"
               >
                 {completing ? 'Saving…' : 'Confirm Complete →'}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
                 onClick={() => setCompleteModal(null)}
-                className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </div>
         </div>

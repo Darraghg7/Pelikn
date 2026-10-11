@@ -7,6 +7,8 @@ import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton, SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
+import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 // ── Procedure sections definition ─────────────────────────────────────────────
 
@@ -110,7 +112,7 @@ const EMPTY_LOG = {
 function Field({ label, required, children }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">
+      <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">
         {label}{required && <span className="text-danger ml-0.5">*</span>}
       </label>
       {children}
@@ -216,13 +218,14 @@ function LogModal({ open, onClose, onSaved, venueId, editLog }) {
           <Input value={form.resolved_at} onChange={v => set('resolved_at', v)} type="date" />
         </Field>
 
-        <button
+        <Button
+          fullWidth
+          loading={saving}
           onClick={save}
           disabled={saving}
-          className="w-full bg-charcoal text-cream py-2.5 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40"
         >
           {saving ? 'Saving…' : editLog ? 'Save Changes' : 'Log Recall'}
-        </button>
+        </Button>
       </div>
     </Modal>
   )
@@ -240,7 +243,7 @@ function LogCard({ log, onEdit }) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <p className="font-semibold text-charcoal dark:text-white text-sm">{log.product_name}</p>
-              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+              <span className={`text-micro font-semibold px-2 py-0.5 rounded-full ${
                 resolved
                   ? 'bg-success/10 text-success'
                   : 'bg-danger/10 text-danger'
@@ -253,26 +256,28 @@ function LogCard({ log, onEdit }) {
               {log.batch_lot_number && <> · Batch: <span className="font-mono">{log.batch_lot_number}</span></>}
             </p>
           </div>
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => onEdit(log)}
-            className="text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white border border-charcoal/12 dark:border-white/15 hover:border-charcoal/25 dark:hover:border-white/25 px-3 py-1.5 rounded-lg transition-colors shrink-0"
+            className="shrink-0"
           >
             Edit
-          </button>
+          </Button>
         </div>
 
         <div className="mt-3 flex flex-col gap-2">
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-0.5">Reason</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-0.5">Reason</p>
             <p className="text-xs text-charcoal/70 dark:text-white/60">{log.reason}</p>
           </div>
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-0.5">Action taken</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-0.5">Action taken</p>
             <p className="text-xs text-charcoal/70 dark:text-white/60">{log.action_taken}</p>
           </div>
           {log.who_notified && (
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-0.5">Notified</p>
+              <p className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-0.5">Notified</p>
               <p className="text-xs text-charcoal/70 dark:text-white/60">{log.who_notified}</p>
             </div>
           )}
@@ -340,7 +345,7 @@ function ProcedureTab({ venueId }) {
 
       {/* Key contacts */}
       <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Key Contacts</p>
+        <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Key Contacts</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
             { key: 'responsible_person', label: 'Responsible person', placeholder: 'Name of manager responsible for recall decisions' },
@@ -348,7 +353,7 @@ function ProcedureTab({ venueId }) {
             { key: 'eho_contact',        label: 'Local EHO contact',   placeholder: 'Name and phone number of your local EHO' },
           ].map(f => (
             <div key={f.key} className="flex flex-col gap-1">
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">{f.label}</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30">{f.label}</label>
               <input
                 value={meta[f.key]}
                 onChange={e => setMeta(m => ({ ...m, [f.key]: e.target.value }))}
@@ -363,7 +368,7 @@ function ProcedureTab({ venueId }) {
       {/* Procedure sections */}
       {PROC_SECTIONS.map(section => (
         <div key={section.key} className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">{section.title}</p>
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">{section.title}</p>
           <p className="text-xs text-charcoal/40 dark:text-white/35 mb-3">{section.desc}</p>
           <textarea
             value={sections[section.key] || ''}
@@ -375,19 +380,20 @@ function ProcedureTab({ venueId }) {
       ))}
 
       <div className="flex gap-3">
-        <button
+        <Button
+          loading={saving}
           onClick={save}
           disabled={saving}
-          className="flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40"
+          className="flex-1"
         >
           {saving ? 'Saving…' : 'Save Procedure'}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="secondary"
           onClick={() => window.print()}
-          className="px-5 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/60 dark:text-white/50 hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white transition-colors"
         >
           Print
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -396,7 +402,7 @@ function ProcedureTab({ venueId }) {
 // ── Log tab ───────────────────────────────────────────────────────────────────
 
 function LogTab({ venueId }) {
-  const { logs, loading, reload } = useRecallLogs()
+  const { logs, loading, isError, reload } = useRecallLogs()
   const [showModal, setShowModal] = useState(false)
   const [editLog, setEditLog]     = useState(null)
   const [filter, setFilter]       = useState('all') // all | open | resolved
@@ -459,18 +465,17 @@ function LogTab({ venueId }) {
               </button>
             ))}
           </div>
-          <button
+          <Button
             onClick={handleNew}
-            className="px-4 py-2 bg-charcoal text-cream rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors"
           >
             + Log Recall
-          </button>
+          </Button>
         </div>
 
         {/* List */}
         {loading ? (
           <SkeletonList rows={4} />
-        ) : filtered.length === 0 ? (
+        ) : isError ? (<LoadError what="recall logs" onRetry={reload} />) : filtered.length === 0 ? (
           <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 px-6 py-10 text-center">
             <p className="text-sm text-charcoal/35 dark:text-white/30 font-medium">
               {logs.length === 0

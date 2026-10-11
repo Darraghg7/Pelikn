@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { slugify } from '../../lib/utils'
+import Button from '../../components/ui/Button'
 
 export default function StepExtraVenues({ count, onBack, onSubmit, loading, error }) {
   const [venues, setVenues] = useState(() =>
@@ -23,12 +24,12 @@ export default function StepExtraVenues({ count, onBack, onSubmit, loading, erro
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-xl mx-auto">
-      <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors group w-fit">
+      <Button variant="ghost" size="sm" onClick={onBack} className="self-start -ml-3 group">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-0.5 transition-transform">
           <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
         </svg>
         Back
-      </button>
+      </Button>
 
       <div>
         <h2 className="text-xl font-bold sm:text-3xl text-brand mb-1">Name your venues</h2>
@@ -40,7 +41,7 @@ export default function StepExtraVenues({ count, onBack, onSubmit, loading, erro
           <div key={i} className="p-4 rounded-2xl bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 flex flex-col gap-3">
             <p className="text-xs font-semibold text-charcoal/60 dark:text-white/50 tracking-widest uppercase">Venue {i + 2}</p>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Venue Name *</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Venue Name *</label>
               <input
                 value={v.name}
                 onChange={e => updateVenue(i, 'name', e.target.value)}
@@ -49,7 +50,7 @@ export default function StepExtraVenues({ count, onBack, onSubmit, loading, erro
               />
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">URL Slug *</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">URL Slug *</label>
               <div className="flex items-center rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark overflow-hidden focus-within:ring-2 focus-within:ring-brand/20">
                 <span className="pl-3 text-xs text-charcoal/30 dark:text-white/30 whitespace-nowrap font-mono">/v/</span>
                 <input
@@ -70,10 +71,12 @@ export default function StepExtraVenues({ count, onBack, onSubmit, loading, erro
         </div>
       )}
 
-      <button
+      <Button
+        variant="accent"
+        size="lg"
+        fullWidth
         onClick={() => onSubmit(venues)}
         disabled={loading || !allFilled}
-        className="w-full bg-accent text-cream py-3.5 rounded-xl text-sm font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {loading ? (
           <>
@@ -83,7 +86,7 @@ export default function StepExtraVenues({ count, onBack, onSubmit, loading, erro
         ) : (
           <>Create All Venues →</>
         )}
-      </button>
+      </Button>
     </div>
   )
 }

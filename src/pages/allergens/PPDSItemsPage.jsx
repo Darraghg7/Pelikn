@@ -5,25 +5,31 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
+import { reportError } from '../../lib/reportError'
+import LoadError from '../../components/ui/LoadError'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 function usePPDSItems(venueId) {
   const [items, setItems]   = useState([])
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed]   = useState(false)
 
   const load = useCallback(async () => {
     if (!venueId) return
     setLoading(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('ppds_items')
       .select('id, name, description, ingredients, may_contain_allergens, is_active')
       .eq('venue_id', venueId)
       .order('name')
-    setItems(data ?? [])
+    if (error) reportError(error, 'PPDSItemsPage:load')
+    else setItems(data ?? [])
+    setFailed(!!error)
     setLoading(false)
   }, [venueId])
 
   useEffect(() => { load() }, [load])
-  return { items, loading, reload: load }
+  return { items, loading, failed, reload: load }
 }
 
 function AllergenSummary({ ingredients, mayContain }) {
@@ -46,7 +52,7 @@ function AllergenSummary({ ingredients, mayContain }) {
 export default function PPDSItemsPage() {
   const { venueId, venueSlug } = useVenue()
   const toast = useToast()
-  const { items, loading, reload } = usePPDSItems(venueId)
+  const { items, loading, failed, reload } = usePPDSItems(venueId)
   const [deleting, setDeleting] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
 
@@ -114,6 +120,8 @@ export default function PPDSItemsPage() {
       <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
         {loading ? (
           <SkeletonList rows={4} />
+        ) : failed && items.length === 0 ? (
+          <LoadError what="PPDS items" onRetry={reload} />
         ) : items.length === 0 ? (
           <div className="px-6 py-10 text-center">
             <p className="text-sm text-charcoal/35 dark:text-white/30 font-medium">No PPDS items yet</p>
@@ -154,25 +162,25 @@ export default function PPDSItemsPage() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
-                  <Link
+                  <Button
                     to={`/v/${venueSlug}/allergens/ppds/${item.id}/label`}
-                    className="text-xs text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white border border-charcoal/15 dark:border-white/15 px-3 py-1.5 rounded-md hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
+                    variant="secondary"
+                    size="sm"
                   >
                     Label
-                  </Link>
-                  <Link
+                  </Button>
+                  <Button
                     to={`/v/${venueSlug}/allergens/ppds/${item.id}/edit`}
-                    className="text-xs text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white border border-charcoal/15 dark:border-white/15 px-3 py-1.5 rounded-md hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
+                    variant="secondary"
+                    size="sm"
                   >
                     Edit
-                  </Link>
-                  <button
+                  </Button>
+                  <CloseButton
+                    label={`Delete ${item.name}`}
                     onClick={() => setDeleteTarget(item)}
-                    disabled={deleting === item.id}
-                    className="text-xs text-charcoal/30 dark:text-white/30 hover:text-danger border border-charcoal/12 dark:border-white/15 px-2.5 py-1.5 rounded-md hover:border-danger/30 transition-colors"
-                  >
-                    ×
-                  </button>
+                    loading={deleting === item.id}
+                  />
                 </div>
               </div>
             ))}

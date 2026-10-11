@@ -9,6 +9,7 @@ import { EXTRA_FEATURES, checkTileEnabled } from '../../lib/features'
 import NavOrderSection from './NavOrderSection'
 import VenueTypeIndicator from './VenueTypeIndicator'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
+import { black } from '../../lib/tokens'
 
 const CHECK_TILES = [
   { id: 'fitness',   label: 'Fitness to Work',  sub: 'Daily staff declarations' },
@@ -35,18 +36,21 @@ const TEAM_TILES = [
   { id: 'staff',     label: 'Staff',        sub: 'Add and manage people' },
 ]
 
+const TRACK_ON    = 'bg-good'
+const TRACK_OFF   = 'bg-line dark:bg-white/20'
+const KNOB_SHADOW = `0 1px 3px ${black(0.2)}`
+
 function Toggle({ on, onClick = undefined, disabled = false }) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
       aria-pressed={on}
-      className="relative w-10 h-6 rounded-full border-0 cursor-pointer disabled:cursor-default shrink-0 transition-colors duration-[180ms] p-0"
-      style={{ background: on ? '#1a7a4c' : '#e4e6e2' }}
+      className={`relative w-10 h-6 rounded-full border-0 cursor-pointer disabled:cursor-default shrink-0 transition-colors duration-[180ms] p-0 ${on ? TRACK_ON : TRACK_OFF}`}
     >
       <span
         className="absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-paperDark transition-all duration-[180ms]"
-        style={{ left: on ? 18 : 2, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
+        style={{ left: on ? 18 : 2, boxShadow: KNOB_SHADOW }}
       />
     </button>
   )
@@ -58,9 +62,9 @@ function Row({ label, sub, on, onToggle, last, locked = false }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
           <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">{label}</div>
-          {locked && <span className="font-mono text-[11px] font-bold text-[#d97706] bg-[#fffbeb] px-[5px] py-0.5 rounded uppercase tracking-[0.04em]">Pro</span>}
+          {locked && <span className="font-mono text-micro font-bold text-warn bg-warnBg px-[5px] py-0.5 rounded uppercase tracking-[0.04em]">Pro</span>}
         </div>
-        {sub && <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">{sub}</div>}
+        {sub && <div className="text-caption text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">{sub}</div>}
       </div>
       {locked
         ? <Toggle on={false} disabled />
@@ -73,13 +77,13 @@ function Group({ label, children, foot }) {
   return (
     <div>
       {label && (
-        <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">{label}</div>
+        <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">{label}</div>
       )}
       <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
         {children}
       </div>
       {foot && (
-        <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 px-1 pt-2 leading-[1.45]">{foot}</div>
+        <div className="text-caption text-charcoal/50 dark:text-white/40 px-1 pt-2 leading-[1.45]">{foot}</div>
       )}
     </div>
   )
@@ -167,7 +171,7 @@ export default function HubTilesPage() {
         </Group>
 
         <div>
-          <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">Modules</div>
+          <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">Modules</div>
           <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden py-1">
             <div className="px-[14px] py-2">
               <VenueTypeIndicator venueId={venueId} venueSlug={venueSlug} />
@@ -189,8 +193,8 @@ export default function HubTilesPage() {
                       <div key={group.id} className="border border-charcoal/10 dark:border-white/10 rounded-xl overflow-hidden">
                         <div className="flex items-center justify-between px-3 py-[9px] bg-charcoal/6 dark:bg-white/8 border-b border-charcoal/10 dark:border-white/10">
                           <div>
-                            <div className="text-[13px] font-semibold text-charcoal dark:text-white">{group.label}</div>
-                            <div className="text-[11px] text-charcoal/50 dark:text-white/40 mt-px">{group.description}</div>
+                            <div className="text-body-sm font-semibold text-charcoal dark:text-white">{group.label}</div>
+                            <div className="text-micro text-charcoal/50 dark:text-white/40 mt-px">{group.description}</div>
                           </div>
                           <button
                             onClick={() => {
@@ -200,11 +204,10 @@ export default function HubTilesPage() {
                                 : [...new Set([...(featuresConfig.enabled ?? []), ...groupIds])]
                               saveFeatures({ enabled: next })
                             }}
-                            className="relative w-10 h-6 rounded-full border-0 cursor-pointer shrink-0 p-0 transition-colors duration-[180ms]"
-                            style={{ background: allOn ? '#1a7a4c' : '#e4e6e2' }}
+                            className={`relative w-10 h-6 rounded-full border-0 cursor-pointer shrink-0 p-0 transition-colors duration-[180ms] ${allOn ? TRACK_ON : TRACK_OFF}`}
                             aria-pressed={allOn}
                           >
-                            <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-paperDark transition-all duration-[180ms]" style={{ left: allOn ? 18 : 2, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                            <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-paperDark transition-all duration-[180ms]" style={{ left: allOn ? 18 : 2, boxShadow: KNOB_SHADOW }} />
                           </button>
                         </div>
                         {group.features.map((feature, fi) => {
@@ -215,10 +218,10 @@ export default function HubTilesPage() {
                             <div key={feature.id} className={`flex items-center gap-2.5 px-3 py-[9px] ${fi === 0 ? '' : 'border-t border-charcoal/6 dark:border-white/8'} ${locked ? 'opacity-50' : ''}`}>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1.5">
-                                  <div className={`text-[13px] font-medium ${on ? 'text-charcoal dark:text-white' : 'text-charcoal/50 dark:text-white/40'}`}>{feature.label}</div>
-                                  {locked && <span className="font-mono text-[11px] font-bold text-[#d97706] bg-[#fffbeb] px-[5px] py-0.5 rounded uppercase tracking-[0.04em]">Pro</span>}
+                                  <div className={`text-body-sm font-medium ${on ? 'text-charcoal dark:text-white' : 'text-charcoal/50 dark:text-white/40'}`}>{feature.label}</div>
+                                  {locked && <span className="font-mono text-micro font-bold text-warn bg-warnBg px-[5px] py-0.5 rounded uppercase tracking-[0.04em]">Pro</span>}
                                 </div>
-                                <div className="text-[11px] text-charcoal/50 dark:text-white/40 mt-px">{feature.description}</div>
+                                <div className="text-micro text-charcoal/50 dark:text-white/40 mt-px">{feature.description}</div>
                               </div>
                               <button
                                 onClick={locked ? undefined : () => {
@@ -227,11 +230,11 @@ export default function HubTilesPage() {
                                   saveFeatures({ enabled: next })
                                 }}
                                 disabled={locked}
-                                className="relative w-10 h-6 rounded-full border-0 shrink-0 p-0 transition-colors duration-[180ms]"
-                                style={{ background: on ? '#1a7a4c' : '#e4e6e2', cursor: locked ? 'default' : 'pointer' }}
+                                className={`relative w-10 h-6 rounded-full border-0 shrink-0 p-0 transition-colors duration-[180ms] ${on ? TRACK_ON : TRACK_OFF}`}
+                                style={{ cursor: locked ? 'default' : 'pointer' }}
                                 aria-pressed={on}
                               >
-                                <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-paperDark transition-all duration-[180ms]" style={{ left: on ? 18 : 2, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                                <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-paperDark transition-all duration-[180ms]" style={{ left: on ? 18 : 2, boxShadow: KNOB_SHADOW }} />
                               </button>
                             </div>
                           )
@@ -251,7 +254,7 @@ export default function HubTilesPage() {
         </div>
 
         <div>
-          <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">Navigation order</div>
+          <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">Navigation order</div>
           <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden py-1">
             <NavOrderSection
               isEnabled={isEnabled}

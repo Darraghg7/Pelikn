@@ -16,6 +16,9 @@ import Rail from './RailNav'
 import NavPanel from './NavPanel'
 import NavTopbar from './NavTopbar'
 import { routeToNav, buildManagerCats, buildStaffCats, IcoOverview, PanelIcons } from './navConfig'
+import { initials } from '../../lib/names'
+import Button from '../ui/Button'
+import { colors, alpha, white } from '../../lib/tokens'
 
 // Per-venue cache — busted automatically after TTL or on app restart
 const CACHE_TTL = 60_000 // 1 minute
@@ -211,7 +214,7 @@ function SideItem({ to, icon: Ico, label, badge, alert, isActive }) {
       onPointerEnter={() => preloadRoute(to)}
       onFocus={() => preloadRoute(to)}
       className={[
-        'relative flex items-center gap-3 px-3.5 py-2 mx-2 rounded-lg text-[13.5px] font-medium',
+        'relative flex items-center gap-3 px-3.5 py-2 mx-2 rounded-lg text-body font-medium',
         isActive
           ? 'bg-white/[0.14] text-white font-semibold'
           : alert
@@ -229,7 +232,7 @@ function SideItem({ to, icon: Ico, label, badge, alert, isActive }) {
       )}
       <span className="flex-1 truncate tracking-wide">{label}</span>
       {badge > 0 && (
-        <span className={`min-w-[18px] h-[18px] text-white text-[11px] font-bold rounded-full flex items-center justify-center px-1 shrink-0 ${alert ? 'bg-warning' : 'bg-accent'}`}>
+        <span className={`min-w-[18px] h-[18px] text-white text-micro font-bold rounded-full flex items-center justify-center px-1 shrink-0 ${alert ? 'bg-warning' : 'bg-accent'}`}>
           {badge}
         </span>
       )}
@@ -246,7 +249,7 @@ function SubItem({ to, icon: Ico, label, badge, alert, isActive }) {
       onPointerEnter={() => preloadRoute(to)}
       onFocus={() => preloadRoute(to)}
       className={[
-        'relative flex items-center gap-2.5 pl-5 pr-4 py-[7px] mx-2 rounded-lg text-[13px]',
+        'relative flex items-center gap-2.5 pl-5 pr-4 py-[7px] mx-2 rounded-lg text-body-sm',
         isActive
           ? 'text-white font-semibold bg-white/[0.1]'
           : alert
@@ -266,7 +269,7 @@ function SubItem({ to, icon: Ico, label, badge, alert, isActive }) {
       )}
       <span className="flex-1 truncate">{label}</span>
       {badge > 0 && (
-        <span className={`min-w-[16px] h-4 text-white text-[11px] font-bold rounded-full flex items-center justify-center px-1 shrink-0 ${alert ? 'bg-warning' : 'bg-accent'}`}>
+        <span className={`min-w-[16px] h-4 text-white text-micro font-bold rounded-full flex items-center justify-center px-1 shrink-0 ${alert ? 'bg-warning' : 'bg-accent'}`}>
           {badge}
         </span>
       )}
@@ -277,10 +280,10 @@ function SubItem({ to, icon: Ico, label, badge, alert, isActive }) {
 /* ── Pro-locked nav item (shown to starter users as an upsell hint) ─────────── */
 function LockedSubItem({ label }) {
   return (
-    <div className="flex items-center gap-2.5 pl-5 pr-4 py-[7px] mx-2 rounded-lg text-[13px] text-white/25 cursor-default select-none">
+    <div className="flex items-center gap-2.5 pl-5 pr-4 py-[7px] mx-2 rounded-lg text-body-sm text-white/25 cursor-default select-none">
       <span className="w-1 h-1 rounded-full shrink-0 bg-white/15" />
       <span className="flex-1 truncate">{label}</span>
-      <span className="text-[11px] tracking-widest uppercase font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0">Pro</span>
+      <span className="text-micro tracking-widest uppercase font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0">Pro</span>
     </div>
   )
 }
@@ -293,11 +296,11 @@ function CollapsibleSection({ label, badge, isOpen, onToggle, children }) {
         onClick={onToggle}
         className="w-full flex items-center gap-2 px-5 pt-3 pb-1.5 group"
       >
-        <span className="text-[11px] font-semibold tracking-[0.12em] uppercase text-white/25 group-hover:text-white/40 transition-colors flex-1 text-left select-none">
+        <span className="text-micro font-semibold tracking-[0.12em] uppercase text-white/25 group-hover:text-white/40 transition-colors flex-1 text-left select-none">
           {label}
         </span>
         {badge > 0 && (
-          <span className="min-w-[18px] h-[18px] text-[11px] font-bold rounded-full flex items-center justify-center px-1 shrink-0 bg-warning/15 text-warning">
+          <span className="min-w-[18px] h-[18px] text-micro font-bold rounded-full flex items-center justify-center px-1 shrink-0 bg-warning/15 text-warning">
             {badge}
           </span>
         )}
@@ -330,25 +333,27 @@ function VenueSwitcher({ venues, currentSlug, onSelect }) {
 
   return (
     <div className="relative" ref={ref}>
-      <button
+      <Button
+        variant="inverse-secondary"
+        size="sm"
+        iconOnly
         onClick={() => setOpen(v => !v)}
-        className="w-7 h-7 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center text-white/40 hover:text-white/70 hover:bg-white/10 hover:border-white/20 transition-all"
         aria-label="Switch venue"
         title="Switch venue"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M8 9l4-4 4 4M16 15l-4 4-4-4"/>
         </svg>
-      </button>
+      </Button>
       {open && (
         <div className="absolute top-full left-0 mt-2 w-52 bg-brand-800 rounded-xl shadow-dropdown border border-white/10 overflow-hidden z-50 animate-fade-in">
-          <p className="px-3 pt-2.5 pb-1.5 text-[11px] tracking-[0.12em] uppercase text-white/30 font-semibold">Your venues</p>
+          <p className="px-3 pt-2.5 pb-1.5 text-micro tracking-[0.12em] uppercase text-white/30 font-semibold">Your venues</p>
           {venues.map(v => (
             <button
               key={v.id}
               onClick={() => { setOpen(false); onSelect(v.slug) }}
               className={[
-                'w-full text-left px-3 py-2.5 text-[13px] flex items-center justify-between',
+                'w-full text-left px-3 py-2.5 text-body-sm flex items-center justify-between',
                 v.slug === currentSlug
                   ? 'text-white bg-white/12'
                   : 'text-white/60 hover:text-white hover:bg-white/8',
@@ -432,7 +437,7 @@ export default function AppShell({ children }) {
   const { isEnabled, isPlanLocked } = useVenueFeatures()
 
   const name = session?.staffName ?? ''
-  const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+  const nameInitials = name ? initials(name) : ''
 
   const vp = (p) => `/v/${venueSlug}${p}`
 
@@ -532,7 +537,7 @@ export default function AppShell({ children }) {
   const browseCatObj   = allCats.find(c => c.id === browseCat) || allCats[0]
   const panelActiveItem = browseCat === mainCat ? mainItem : null
 
-  const bgClass = 'bg-surface dark:bg-[#111111]'
+  const bgClass = 'bg-surface dark:bg-bgDark'
   const maxW    = isManager ? 'max-w-[1280px]' : 'max-w-[860px]'
 
   return (
@@ -555,7 +560,7 @@ export default function AppShell({ children }) {
           onClickBrand={() => navigate(vp('/'))}
           onOpenSettings={() => navigate(vp('/settings/hub'))}
           venueName={venueName}
-          initials={initials}
+          initials={nameInitials}
           onSignOut={handleSignOut}
           isSettingsRoute={isSettingsRoute}
           notificationBell={<NotificationBell variant="light" />}
@@ -582,14 +587,14 @@ export default function AppShell({ children }) {
             style={{
               position: 'fixed', left: 80, top: '50%', transform: 'translateY(-50%)',
               width: 18, height: 56, borderRadius: '0 6px 6px 0',
-              background: '#243a34', color: 'rgba(239,234,222,0.50)',
-              border: 'none', borderLeft: '1px solid rgba(255,255,255,0.07)',
+              background: colors.sidebar.panel, color: alpha(colors.cream, 0.50),
+              border: 'none', borderLeft: `1px solid ${white(0.07)}`,
               cursor: 'pointer', zIndex: 39,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'color .12s, width .12s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#f3ede0'; e.currentTarget.style.width = '22px' }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(239,234,222,0.50)'; e.currentTarget.style.width = '18px' }}
+            onMouseEnter={e => { e.currentTarget.style.color = colors.cream; e.currentTarget.style.width = '22px' }}
+            onMouseLeave={e => { e.currentTarget.style.color = alpha(colors.cream, 0.50); e.currentTarget.style.width = '18px' }}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 6 15 12 9 18"/>
@@ -614,7 +619,7 @@ export default function AppShell({ children }) {
         >
           <div className="px-4 h-14 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0 flex-1">
-              <span className="font-bold text-white text-[15px] tracking-wider uppercase truncate max-w-[160px]">{venueName || 'Pelikn'}</span>
+              <span className="font-bold text-white text-body-lg tracking-wider uppercase truncate max-w-[160px]">{venueName || 'Pelikn'}</span>
               <NotificationBell />
               {allSwitchableVenues.length > 1 && (
                 <VenueSwitcher
@@ -625,12 +630,13 @@ export default function AppShell({ children }) {
               )}
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <button
+              <Button
+                variant="inverse-secondary"
+                size="sm"
                 onClick={handleSignOut}
-                className="text-[11px] font-semibold tracking-wider uppercase text-white border border-white/30 rounded-lg px-3 py-1.5 hover:bg-white/10 whitespace-nowrap transition-colors"
               >
                 Sign out
-              </button>
+              </Button>
             </div>
           </div>
         </header>

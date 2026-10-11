@@ -32,20 +32,28 @@ export function useWidgetPreferences(staffId: string | null, venueId: string | n
     setWidgetIds(readCachedLayout(staffId, venueId))
 
     // First load comes from the startup bundle when it's available (126).
-    const load = async (): Promise<{ data: { widget_id: string }[] | null }> => {
+    const load = async (): Promise<{ data: { widget_id: string }[] | null, error?: unknown }> => {
       const boot = await takeBootstrap(venueId, 'widgetLayout', staffId)
       if (boot) return { data: boot.widget_layout }
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('dashboard_widgets')
         .select('widget_id, position')
         .eq('venue_id', venueId)
         .eq('staff_id', staffId)
         .order('position')
-      return { data }
+      return { data, error }
     }
     load()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
         if (cancelled) return
+        // A failed read isn't "no saved layout": keep the cached layout on
+        // screen rather than resetting it (and the cache) to the defaults.
+        if (error) {
+          reportError(error, 'useWidgetPreferences:load')
+          setWidgetIds(ids => ids ?? DEFAULT_WIDGETS)
+          setLoading(false)
+          return
+        }
         const ids = data && data.length > 0 ? data.map(d => (d as { widget_id: string }).widget_id) : DEFAULT_WIDGETS
         try { localStorage.setItem(layoutKey(staffId, venueId), JSON.stringify(ids)) } catch { /* best-effort */ }
         setWidgetIds(ids)

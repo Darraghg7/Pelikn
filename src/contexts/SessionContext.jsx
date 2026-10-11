@@ -17,7 +17,11 @@
  *    reconstructed fully offline.
  */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { supabase, supabaseUrl, supabaseAnonKey, setSessionJwt, clearSessionJwt, registerJwtRefresher } from '../lib/supabase'
+import {
+  supabase, supabaseUrl, supabaseAnonKey, setSessionJwt, clearSessionJwt,
+  registerJwtRefresher, registerSessionEndedHandler,
+} from '../lib/supabase'
+import { issueVenueJwt, refreshVenueJwt } from '../lib/venueJwt'
 import {
   SESSION_TOKEN_KEY,
   SESSION_JWT_KEY,
@@ -83,40 +87,6 @@ const fireAndForgetRpc = (fn, args) => {
   )
 }
 
-/**
- * Re-issue a venue-scoped JWT from the currently-stored staff session token.
- * Registered with the Supabase client as the JWT refresher, so an expiring or
- * rejected venue JWT is renewed automatically without forcing a re-login.
- * Reads token/venue from localStorage each call, so it always reflects the
- * active session (including after a venue switch). Returns null on any failure
- * — the caller then falls back to the anon key.
- *
- * signIn passes the token and venue explicitly, because it needs a JWT for a
- * session that isn't in localStorage yet.
- */
-async function issueVenueJwt(
-  token   = localStorage.getItem(SESSION_TOKEN_KEY),
-  venueId = localStorage.getItem(SESSION_VENUE_ID_KEY),
-) {
-  if (!token || !venueId) return null
-  try {
-    const res = await fetch(`${supabaseUrl}/functions/v1/pin-login`, {
-      method:  'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'Authorization': `Bearer ${supabaseAnonKey}`,
-        'apikey':        supabaseAnonKey,
-      },
-      body: JSON.stringify({ action: 'issue_jwt', session_token: token, venue_id: venueId }),
-    })
-    if (!res.ok) return null
-    const { jwt } = await res.json()
-    if (jwt) localStorage.setItem(SESSION_JWT_KEY, jwt)
-    return jwt ?? null
-  } catch {
-    return null
-  }
-}
 
 /** Build a session object from localStorage keys. */
 function sessionFromStorage(token, verified = false) {
@@ -186,11 +156,13 @@ async function fetchLivePermissions(staffId, venueId, staffRole) {
   if (staffRole !== 'staff' || !staffId || !venueId) return null
   if (activeJwtVenueId() !== venueId) return null
 
-  const { data: staffRow } = await supabase
+  const { data: staffRow, error: staffErr } = await supabase
     .from('staff')
     .select('permission_title_id')
     .eq('id', staffId)
     .single()
+  // Can't tell whether a title applies, so the answer below can't be trusted.
+  if (staffErr) { reportError(staffErr, 'SessionContext:live-permissions'); return null }
 
   if (staffRow?.permission_title_id) {
     const { data: title, error: titleErr } = await supabase
@@ -271,9 +243,11 @@ async function fetchTitlePermissions(staffId) {
     if (data.permission_titles) return data.permission_titles.permissions ?? []
   }
 
-  const { data: titleRow } = await supabase.from('staff').select('permission_title_id').eq('id', staffId).single()
+  const { data: titleRow, error: rowErr } = await supabase.from('staff').select('permission_title_id').eq('id', staffId).single()
+  if (rowErr) { reportError(rowErr, 'SessionContext:title-permissions'); return null }
   if (!titleRow?.permission_title_id) return null
-  const { data: title } = await supabase.from('permission_titles').select('permissions').eq('id', titleRow.permission_title_id).single()
+  const { data: title, error: titleErr } = await supabase.from('permission_titles').select('permissions').eq('id', titleRow.permission_title_id).single()
+  if (titleErr) { reportError(titleErr, 'SessionContext:title-permissions'); return null }
   return title ? title.permissions ?? [] : null
 }
 
@@ -312,7 +286,27 @@ export function SessionProvider({ children }) {
   })
 
   // Let the Supabase client renew an expiring/rejected venue JWT on its own.
-  useEffect(() => { registerJwtRefresher(issueVenueJwt) }, [])
+  useEffect(() => { registerJwtRefresher(refreshVenueJwt) }, [])
+
+  // The session behind the venue JWT is gone (a manager revoked this device,
+  // it was signed out elsewhere, it expired, or the person was deactivated):
+  // since 146 the database refuses the JWT, and pin-login won't re-issue it.
+  // Go back to the PIN screen rather than leave every screen erroring.
+  useEffect(() => {
+    registerSessionEndedHandler((endedToken) => {
+      const current = localStorage.getItem(SESSION_TOKEN_KEY)
+      // A late answer about a session that has since been replaced (signed in
+      // again, switched venue) must not sign the new one out.
+      if (endedToken && current !== endedToken) return
+      const staffId = localStorage.getItem(SESSION_ID_KEY)
+      clearStorage()
+      // The offline sign-in cache holds the dead token; offline PIN entry
+      // would only bring it back. The next online sign-in rebuilds it.
+      if (staffId) localStorage.removeItem(sessDataKey(staffId))
+      setSession(null)
+    })
+    return () => registerSessionEndedHandler(null)
+  }, [])
 
   // ── Pick up permission/restriction/role changes made while this device stayed logged in ───
   const refreshPermissions = useCallback(async (sess) => {
@@ -407,6 +401,7 @@ export function SessionProvider({ children }) {
           // isValid === false — server explicitly says the token is invalid.
           // Clear it so the user is prompted to re-enter their PIN.
           clearStorage()
+          clearSessionJwt()
           setSession(null)
         }
         if (!restored) setLoading(false)
@@ -424,7 +419,7 @@ export function SessionProvider({ children }) {
         } else clearStorage()
         if (!restored) setLoading(false)
       })
-  }, [])
+  }, [refreshPermissions])
 
   // ── Periodic session refresh (every 12 h while app is open) ─────────────
   // Keeps 30-day sessions alive on active devices without requiring re-login.
@@ -606,6 +601,10 @@ export function SessionProvider({ children }) {
         localStorage.removeItem(SESSION_JWT_KEY)
         return { error: staffRes.error }
       }
+
+      // Sign-in still goes ahead on these two; report so a broken read shows up.
+      if (permsRes.error) reportError(permsRes.error, 'SessionContext:sign-in-permissions')
+      if (linksRes.error) reportError(linksRes.error, 'SessionContext:sign-in-venue-links')
 
       row = staffRes.data
       // Managers/owners bypass granular permissions entirely.
