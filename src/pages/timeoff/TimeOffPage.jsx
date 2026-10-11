@@ -100,7 +100,9 @@ export default function TimeOffPage() {
   const ownBalance = useMemo(() => {
     if (!ownProfile) return null
     const isZeroHours = ownProfile.employment_type === 'zero_hours'
-    const entitlement = calculateEntitlementDays(ownProfile.employment_type, ownProfile.working_days)
+    // Self-employed (holiday pay off) have no statutory allowance — same rule as the team view
+    const eligible = ownProfile.holiday_pay_eligible !== false
+    const entitlement = eligible ? calculateEntitlementDays(ownProfile.employment_type, ownProfile.working_days) : null
     // This holiday year's leave only — this used to count every approved
     // request the person had ever made, so last year's holiday came off this
     // year's balance.
