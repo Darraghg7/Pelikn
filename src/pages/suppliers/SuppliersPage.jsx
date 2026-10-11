@@ -47,7 +47,7 @@ const APPROVAL_LABELS = {
 function CategoryBadge({ category }) {
   const cls = CATEGORY_STYLES[category] ?? CATEGORY_STYLES.other
   return (
-    <span className={`text-micro tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cls}`}>
+    <span className={`text-micro tracking-widest uppercase font-semibold px-2 py-0.5 rounded-tag border ${cls}`}>
       {CATEGORY_LABELS[category] ?? category}
     </span>
   )
@@ -57,7 +57,7 @@ function ApprovalBadge({ status }) {
   const s = status ?? 'pending'
   const cls = APPROVAL_STYLES[s] ?? APPROVAL_STYLES.pending
   return (
-    <span className={`text-micro tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cls}`}>
+    <span className={`text-micro tracking-widest uppercase font-semibold px-2 py-0.5 rounded-tag border ${cls}`}>
       {APPROVAL_LABELS[s] ?? s}
     </span>
   )
@@ -144,7 +144,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4 bg-charcoal/40 dark:bg-white/40 backdrop-blur-sm" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-md flex flex-col shadow-2xl" style={{ maxHeight: '90dvh', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+      <div onClick={(e) => e.stopPropagation()} className="bg-white dark:bg-paperDark rounded-card w-full max-w-md flex flex-col shadow-2xl" style={{ maxHeight: '90dvh', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
         <div className="px-6 py-5 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between">
           <h2 className="font-semibold text-charcoal dark:text-white">{supplier ? 'Edit Supplier' : 'Add Supplier'}</h2>
           <CloseButton onClick={onClose} />
@@ -157,7 +157,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
               value={form.name}
               onChange={(e) => set('name', e.target.value)}
               placeholder="e.g. Fresh Fields Ltd"
-              className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
@@ -192,7 +192,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
                   type="button"
                   onClick={() => set('approval_status', s)}
                   className={[
-                    'flex-1 py-2 rounded-lg text-xs font-semibold border transition-all capitalize',
+                    'flex-1 py-2 rounded-control text-xs font-semibold border transition-all capitalize',
                     form.approval_status === s
                       ? s === 'approved'  ? 'bg-success/10 text-success border-success/30'
                         : s === 'suspended' ? 'bg-danger/10 text-danger border-danger/30'
@@ -213,7 +213,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
               value={form.contact_name}
               onChange={(e) => set('contact_name', e.target.value)}
               placeholder="e.g. James Brown"
-              className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
@@ -225,7 +225,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
                 value={form.phone}
                 onChange={(e) => set('phone', e.target.value)}
                 placeholder="07700 900000"
-                className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -235,13 +235,13 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
                 value={form.email}
                 onChange={(e) => set('email', e.target.value)}
                 placeholder="orders@supplier.co.uk"
-                className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
           </div>
 
           {/* Food safety certificate */}
-          <div className="flex flex-col gap-2 p-4 bg-charcoal/3 dark:bg-white/5 rounded-xl border border-charcoal/8 dark:border-white/8">
+          <div className="flex flex-col gap-2 p-4 bg-charcoal/3 dark:bg-white/5 rounded-control border border-charcoal/8 dark:border-white/8">
             <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Food Safety Certificate</label>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1">
@@ -250,7 +250,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
                   type="date"
                   value={form.food_safety_cert_expiry}
                   onChange={(e) => set('food_safety_cert_expiry', e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                  className="w-full px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                 />
               </div>
               <div className="flex flex-col gap-1">
@@ -259,7 +259,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
                   type="file"
                   accept="image/*,.pdf,.doc,.docx"
                   onChange={(e) => { setCertFile(e.target.files[0] ?? null); setHasExistingCert(false) }}
-                  className="w-full text-xs text-charcoal/50 dark:text-white/40 file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border file:border-charcoal/15 dark:file:border-white/15 file:text-xs file:bg-white dark:file:bg-paperDark file:text-charcoal/50 dark:file:text-white/40 hover:file:bg-charcoal/5 dark:hover:file:bg-white/5"
+                  className="w-full text-xs text-charcoal/50 dark:text-white/40 file:mr-2 file:py-1.5 file:px-2 file:rounded-control file:border file:border-charcoal/15 dark:file:border-white/15 file:text-xs file:bg-white dark:file:bg-paperDark file:text-charcoal/50 dark:file:text-white/40 hover:file:bg-charcoal/5 dark:hover:file:bg-white/5"
                 />
               </div>
             </div>
@@ -277,7 +277,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
               onChange={(e) => set('notes', e.target.value)}
               placeholder="Delivery days, minimum order, etc."
               rows={3}
-              className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
@@ -301,7 +301,7 @@ function SupplierCard({ supplier, onEdit, onArchive }) {
   const cs = certStatus(supplier.food_safety_cert_expiry)
 
   return (
-    <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-3">
+    <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-3">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="font-semibold text-charcoal dark:text-white">{supplier.name}</h3>
@@ -366,7 +366,7 @@ function SupplierCard({ supplier, onEdit, onArchive }) {
 
       {/* Food safety cert */}
       {(hasSupplierCert(supplier) || supplier.food_safety_cert_expiry) && (
-        <div className={`flex items-center gap-2 flex-wrap rounded-lg px-3 py-2 ${
+        <div className={`flex items-center gap-2 flex-wrap rounded-control px-3 py-2 ${
           cs === 'expired'  ? 'bg-danger/6 border border-danger/15'  :
           cs === 'expiring' ? 'bg-warning/6 border border-warning/15' :
           'bg-charcoal/4 dark:bg-white/5 border border-charcoal/8 dark:border-white/8'
@@ -429,7 +429,7 @@ export default function SuppliersPage() {
 
       {/* Pending / suspended alert */}
       {(pendingCount > 0 || suspendedCount > 0) && (
-        <div className="bg-warning/8 border border-warning/20 rounded-xl px-5 py-3 flex items-center gap-3">
+        <div className="bg-warning/8 border border-warning/20 rounded-control px-5 py-3 flex items-center gap-3">
           <svg className="w-4 h-4 text-warning shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           <p className="text-sm text-warning">
             {[

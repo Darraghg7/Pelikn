@@ -137,7 +137,7 @@ function CoolingBatchCard({ batch, now, canDiscard, onChanged, onDiscard }) {
       />
 
       {needsNote && (
-        <div className="rounded-xl border border-bad/25 bg-badBg/60 dark:bg-bad/15 p-2.5 flex flex-col gap-2">
+        <div className="rounded-control border border-bad/25 bg-badBg/60 dark:bg-bad/15 p-2.5 flex flex-col gap-2">
           <p className="text-body-sm font-semibold text-bad dark:text-badDark">
             {tooSlow
               ? `Took longer than ${COOLING_TARGET_MINUTES} minutes. What did you do?`
@@ -148,7 +148,7 @@ function CoolingBatchCard({ batch, now, canDiscard, onChanged, onDiscard }) {
             onChange={e => setNote(e.target.value)}
             rows={2}
             placeholder="e.g. Moved to blast chiller, 4.8°C by 16:25"
-            className="w-full px-3 py-2 rounded-lg border border-bad/25 bg-white dark:bg-paperDark text-body-sm text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-bad/20 resize-none"
+            className="w-full px-3 py-2 rounded-control border border-bad/25 bg-white dark:bg-paperDark text-body-sm text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-bad/20 resize-none"
           />
         </div>
       )}
@@ -243,7 +243,7 @@ function StartBatchForm({ session, venueId, onStarted }) {
               aria-pressed={method === m.value}
               onClick={() => setMethod(m.value)}
               className={[
-                'h-9 rounded-xl border text-body-sm font-semibold transition-colors',
+                'h-9 rounded-control border text-body-sm font-semibold transition-colors',
                 method === m.value
                   ? 'bg-brand border-brand text-white'
                   : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
@@ -262,7 +262,7 @@ function StartBatchForm({ session, venueId, onStarted }) {
           rows={2}
           autoFocus
           placeholder="Anything worth noting, e.g. split into shallow trays"
-          className="w-full px-3.5 py-2.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-brand/15 resize-none"
+          className="w-full px-3.5 py-2.5 rounded-control border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-brand/15 resize-none"
         />
       )}
 
@@ -312,7 +312,7 @@ function FinishedBatchRow({ log, compact = false }) {
             <span className="font-mono text-body-sm text-ink2 dark:text-white/70 whitespace-nowrap">
               {temp(log.start_temp)} → {temp(log.end_temp)}
             </span>
-            <span className={`h-7 px-2.5 rounded-lg inline-flex items-center font-mono text-body-sm font-semibold whitespace-nowrap ${fail ? TONE.bad : TONE.ok}`}>
+            <span className={`h-7 px-2.5 rounded-control inline-flex items-center font-mono text-body-sm font-semibold whitespace-nowrap ${fail ? TONE.bad : TONE.ok}`}>
               {minutes === null ? verdict : formatCoolingMinutes(minutes)}
             </span>
           </div>
@@ -328,7 +328,7 @@ function FinishedBatchRow({ log, compact = false }) {
         )}
       </div>
       {fail && log.notes && (
-        <p className="mt-2.5 px-3 py-2 rounded-lg bg-badBg dark:bg-bad/20 text-body-sm text-ink2 dark:text-white/75">
+        <p className="mt-2.5 px-3 py-2 rounded-control bg-badBg dark:bg-bad/20 text-body-sm text-ink2 dark:text-white/75">
           {compact && <><span className="font-semibold text-bad dark:text-badDark">Corrective action</span> · </>}
           {log.notes}
         </p>

@@ -115,14 +115,14 @@ export default function PPDSItemFormPage() {
       </div>
 
       {/* Basic info */}
-      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
+      <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Product name <span className="text-danger">*</span></label>
           <input
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder="e.g. Chicken Caesar Wrap"
-            className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+            className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -131,13 +131,13 @@ export default function PPDSItemFormPage() {
             value={description}
             onChange={e => setDesc(e.target.value)}
             placeholder="e.g. Available daily — freshly prepared on premises"
-            className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+            className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>
       </div>
 
       {/* Ingredient builder */}
-      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
+      <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Ingredients</p>
@@ -175,14 +175,14 @@ export default function PPDSItemFormPage() {
                 value={row.name}
                 onChange={e => setIngr(idx, 'name', e.target.value)}
                 placeholder={`Ingredient ${idx + 1}`}
-                className="flex-1 px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                className="flex-1 px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
 
               {/* Allergen selector */}
               <select
                 value={row.allergen ?? ''}
                 onChange={e => setIngr(idx, 'allergen', e.target.value || null)}
-                className={`px-2 py-2 rounded-lg border text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 ${
+                className={`px-2 py-2 rounded-control border text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 ${
                   row.allergen
                     ? 'border-amber-300 bg-amber-50 text-amber-800 font-medium'
                     : 'border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal/40 dark:text-white/35'
@@ -210,7 +210,7 @@ export default function PPDSItemFormPage() {
 
         {/* Live preview */}
         {ingredients.some(r => r.name.trim()) && (
-          <div className="bg-charcoal/3 dark:bg-white/5 rounded-lg px-4 py-3 border border-charcoal/8 dark:border-white/8">
+          <div className="bg-charcoal/3 dark:bg-white/5 rounded-control px-4 py-3 border border-charcoal/8 dark:border-white/8">
             <p className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-1">Label preview</p>
             <p className="text-xs text-charcoal/70 dark:text-white/60 leading-relaxed font-sans">
               <span className="font-bold">INGREDIENTS: </span>
@@ -232,7 +232,7 @@ export default function PPDSItemFormPage() {
       </div>
 
       {/* May Contain */}
-      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-3">
+      <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-3">
         <div>
           <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">May Contain</p>
           <p className="text-xs text-charcoal/35 dark:text-white/30 mt-0.5">Cross-contamination risks — select any that apply to your kitchen environment.</p>
@@ -262,7 +262,7 @@ export default function PPDSItemFormPage() {
       <div className="flex gap-3">
         <Link
           to={`/v/${venueSlug}/allergens/ppds`}
-          className="px-5 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white transition-colors"
+          className="px-5 py-3 rounded-control border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white transition-colors"
         >
           Cancel
         </Link>

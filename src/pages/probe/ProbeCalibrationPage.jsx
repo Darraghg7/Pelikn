@@ -112,24 +112,24 @@ export default function ProbeCalibrationPage() {
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-3 sm:p-4 text-center">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-3 sm:p-4 text-center">
           <p className="text-micro tracking-wide uppercase text-charcoal/40 dark:text-white/35 truncate">Last Cal.</p>
           <p className="text-sm font-semibold text-charcoal dark:text-white mt-1">
             {lastCalibration ? format(new Date(lastCalibration.calibrated_at), 'd MMM') : '--'}
           </p>
         </div>
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-3 sm:p-4 text-center">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-3 sm:p-4 text-center">
           <p className="text-micro tracking-wide uppercase text-charcoal/40 dark:text-white/35">Passed</p>
           <p className="text-2xl font-bold text-success">{passCount}</p>
         </div>
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-3 sm:p-4 text-center">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-3 sm:p-4 text-center">
           <p className="text-micro tracking-wide uppercase text-charcoal/40 dark:text-white/35">Failed</p>
           <p className="text-2xl font-bold text-danger">{failCount}</p>
         </div>
       </div>
 
       {/* Info banner */}
-      <div className="rounded-xl bg-charcoal/4 dark:bg-white/5 px-4 py-3 flex items-start gap-2">
+      <div className="rounded-control bg-charcoal/4 dark:bg-white/5 px-4 py-3 flex items-start gap-2">
         <span className="text-sm mt-0.5">*</span>
         <p className="text-xs text-charcoal/50 dark:text-white/40">
           UK food safety law requires thermometer probes to be calibrated regularly.
@@ -144,13 +144,13 @@ export default function ProbeCalibrationPage() {
       ) : failed && records.length === 0 ? (
         <LoadError what="calibration records" onRetry={reload} />
       ) : records.length === 0 ? (
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-10 text-center">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-10 text-center">
           <p className="text-charcoal/30 dark:text-white/30 text-sm">No calibration records yet.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
           {records.map(r => (
-            <div key={r.id} className={`bg-white dark:bg-paperDark rounded-2xl p-4 ${r.pass ? 'border-charcoal/10 dark:border-white/10' : 'border-danger/25 bg-danger/3'}`}>
+            <div key={r.id} className={`bg-white dark:bg-paperDark rounded-card p-4 ${r.pass ? 'border-charcoal/10 dark:border-white/10' : 'border-danger/25 bg-danger/3'}`}>
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2">
@@ -188,7 +188,7 @@ export default function ProbeCalibrationPage() {
               value={form.probe_name}
               onChange={e => setForm(f => ({ ...f, probe_name: e.target.value }))}
               placeholder="e.g. Probe 1, Kitchen probe"
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
@@ -200,7 +200,7 @@ export default function ProbeCalibrationPage() {
                   key={m.value}
                   type="button"
                   onClick={() => setForm(f => ({ ...f, method: m.value }))}
-                  className={`py-3 px-3 rounded-xl border text-sm font-medium transition-all text-center ${
+                  className={`py-3 px-3 rounded-control border text-sm font-medium transition-all text-center ${
                     form.method === m.value
                       ? 'bg-charcoal text-cream border-charcoal dark:border-white'
                       : 'bg-white dark:bg-paperDark text-charcoal/60 dark:text-white/50 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30'
@@ -225,7 +225,7 @@ export default function ProbeCalibrationPage() {
               value={form.actual_reading}
               onChange={e => setForm(f => ({ ...f, actual_reading: e.target.value }))}
               placeholder={`Expected: ${expectedTemp}C`}
-              className="w-full px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-lg font-mono text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="w-full px-4 py-3 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-lg font-mono text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
@@ -236,13 +236,13 @@ export default function ProbeCalibrationPage() {
               step="0.1"
               value={form.tolerance}
               onChange={e => setForm(f => ({ ...f, tolerance: e.target.value }))}
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm font-mono focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm font-mono focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
           {/* Live result preview */}
           {hasReading && (
-            <div className={`rounded-xl px-4 py-3 text-center ${
+            <div className={`rounded-control px-4 py-3 text-center ${
               wouldPass ? 'bg-success/10' : 'bg-danger/10'
             }`}>
               <p className={`text-sm font-semibold ${wouldPass ? 'text-success' : 'text-danger'}`}>
@@ -258,7 +258,7 @@ export default function ProbeCalibrationPage() {
               value={form.calibrated_at}
               max={nowDatetimeLocal()}
               onChange={e => setForm(f => ({ ...f, calibrated_at: e.target.value }))}
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
@@ -269,7 +269,7 @@ export default function ProbeCalibrationPage() {
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               rows={2}
               placeholder="Optional notes..."
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 

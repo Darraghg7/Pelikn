@@ -82,13 +82,13 @@ export default function FridgeHistoryPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-wrap gap-4 items-end">
+      <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5 flex flex-wrap gap-4 items-end">
         <div>
           <SectionLabel>Fridge</SectionLabel>
           <select
             value={fridgeId}
             onChange={(e) => setFridgeId(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+            className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           >
             <option value="">All fridges</option>
             {fridges.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
@@ -105,7 +105,7 @@ export default function FridgeHistoryPage() {
       </div>
 
       {/* Results */}
-      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+      <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 overflow-hidden">
         <div className="px-5 pt-5 flex items-center justify-between">
           <SectionLabel>Readings</SectionLabel>
           {isManager && (
@@ -207,7 +207,7 @@ export default function FridgeHistoryPage() {
                                     disabled={isSaving}
                                     onClick={() => saveReason(log.id, r.id)}
                                     className={[
-                                      'flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all',
+                                      'flex items-center gap-1.5 px-3 py-1.5 rounded-control border text-xs font-medium transition-all',
                                       log.exceedance_reason === r.id
                                         ? 'bg-charcoal text-cream border-charcoal dark:border-white'
                                         : r.explained

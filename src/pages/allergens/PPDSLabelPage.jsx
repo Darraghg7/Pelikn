@@ -7,7 +7,7 @@ import { PageSkeleton } from '../../components/ui/Skeleton'
 import { reportError } from '../../lib/reportError'
 import LoadError from '../../components/ui/LoadError'
 import Button from '../../components/ui/Button'
-import { colors } from '../../lib/tokens'
+import { colors, radius } from '../../lib/tokens'
 
 export default function PPDSLabelPage() {
   const { id }              = useParams()
@@ -79,7 +79,7 @@ export default function PPDSLabelPage() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
+          <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
             <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Label dates</p>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1">
@@ -88,7 +88,7 @@ export default function PPDSLabelPage() {
                   type="date"
                   value={madeOn}
                   onChange={e => setMadeOn(e.target.value)}
-                  className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                  className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                 />
               </div>
               <div className="flex flex-col gap-1">
@@ -97,14 +97,14 @@ export default function PPDSLabelPage() {
                   type="date"
                   value={useBy}
                   onChange={e => setUseBy(e.target.value)}
-                  className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                  className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                 />
               </div>
             </div>
           </div>
 
           {/* Label preview */}
-          <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
+          <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5">
             <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-4">Label preview</p>
             <LabelContent
               item={item}
@@ -118,7 +118,7 @@ export default function PPDSLabelPage() {
             />
           </div>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <div className="bg-amber-50 border border-amber-200 rounded-control px-4 py-3">
             <p className="text-xs text-amber-800 leading-relaxed">
               <strong>Natasha's Law:</strong> This label complies with PPDS regulations (Food Information (Amendment) (England) Regulations 2021). Allergens are shown in <strong>bold and underlined</strong>. The label must be affixed to the packaging before the item is offered for sale.
             </p>
@@ -219,7 +219,7 @@ function LabelContent({ item, venueName, madeOn, useBy, formatIngredients, forma
       style={{
         fontFamily: 'Arial, Helvetica, sans-serif',
         border: `2px solid ${colors.charcoal}`,
-        borderRadius: '4px',
+        borderRadius: radius.tag,
         padding: '12px',
         fontSize: '11px',
         lineHeight: '1.6',

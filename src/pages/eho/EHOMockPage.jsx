@@ -221,7 +221,7 @@ export default function EHOMockPage() {
         </div>
 
         {/* Official rating, for comparison against the mock score below */}
-        <div className="no-print rounded-2xl border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark p-5 flex items-center justify-between gap-3">
+        <div className="no-print rounded-card border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark p-5 flex items-center justify-between gap-3">
           <div>
             <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Official FHRS Rating</p>
             <p className="text-sm text-charcoal dark:text-white mt-1">
@@ -240,7 +240,7 @@ export default function EHOMockPage() {
         </div>
 
         {/* Live score bar */}
-        <div className={`rounded-2xl border p-5 ${readOnly ? scoreBg(pct) : 'bg-white dark:bg-paperDark border-charcoal/10 dark:border-white/10'}`}>
+        <div className={`rounded-card border p-5 ${readOnly ? scoreBg(pct) : 'bg-white dark:bg-paperDark border-charcoal/10 dark:border-white/10'}`}>
           <div className="flex items-center justify-between mb-2">
             <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">
               {readOnly
@@ -265,7 +265,7 @@ export default function EHOMockPage() {
 
         {/* Sections */}
         {SECTIONS.map((section) => (
-          <div key={section.id} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+          <div key={section.id} className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 overflow-hidden">
             <div className="px-5 py-4 border-b border-charcoal/8 dark:border-white/8 bg-charcoal/2 dark:bg-white/3">
               <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">{section.label}</p>
             </div>
@@ -282,7 +282,7 @@ export default function EHOMockPage() {
                           onClick={() => !readOnly && setAnswer(q.id, opt.value)}
                           disabled={readOnly}
                           className={[
-                            'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
+                            'px-3 py-1.5 rounded-control text-xs font-medium border transition-all',
                             current === opt.value
                               ? `${opt.style} ring-2 ring-offset-1`
                               : 'bg-white dark:bg-paperDark text-charcoal/40 dark:text-white/35 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30 disabled:cursor-default',
@@ -314,7 +314,7 @@ export default function EHOMockPage() {
         ) : (
           <div className="flex flex-col gap-4">
             {/* Final result card */}
-            <div className={`rounded-xl border p-6 text-center ${scoreBg(pct)}`}>
+            <div className={`rounded-control border p-6 text-center ${scoreBg(pct)}`}>
               <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Your Mock Inspection Score</p>
               <p className={`text-4xl font-bold font-semibold ${scoreColor}`}>{pct}<span className="text-2xl">/100</span></p>
               <p className={`text-base font-semibold mt-2 ${scoreColor}`}>{scoreLabel_}</p>
@@ -327,7 +327,7 @@ export default function EHOMockPage() {
 
             {/* Areas to improve */}
             {failedQuestions.length > 0 && (
-              <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+              <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 overflow-hidden">
                 <div className="px-5 py-4 border-b border-charcoal/8 dark:border-white/8">
                   <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Areas to Improve</p>
                 </div>
@@ -351,7 +351,7 @@ export default function EHOMockPage() {
             )}
 
             {failedQuestions.length === 0 && (
-              <div className="rounded-xl border border-success/30 bg-success/5 p-5 text-center">
+              <div className="rounded-control border border-success/30 bg-success/5 p-5 text-center">
                 <p className="text-success font-semibold">No failed or partial answers</p>
                 <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1">Excellent — you answered Yes to every question.</p>
               </div>
@@ -375,7 +375,7 @@ export default function EHOMockPage() {
         )}
 
         {/* History */}
-        <div className="no-print bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 overflow-hidden">
+        <div className="no-print bg-white dark:bg-paperDark rounded-card border border-charcoal/10 dark:border-white/10 overflow-hidden">
           <div className="px-5 py-4 border-b border-charcoal/8 dark:border-white/8">
             <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Previous inspections</p>
           </div>

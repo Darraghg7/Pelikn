@@ -98,7 +98,7 @@ export default function FoodItemDetailPage() {
       )}
 
       {/* Contains */}
-      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
+      <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5">
         <SectionLabel>Contains</SectionLabel>
         {allergens.length === 0 ? (
           <p className="text-sm text-charcoal/35 dark:text-white/30 italic">No allergens declared.</p>
@@ -118,7 +118,7 @@ export default function FoodItemDetailPage() {
 
       {/* May Contain */}
       {mayContain.length > 0 && (
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5">
           <SectionLabel>May Contain — cross-contamination risk</SectionLabel>
           <div className="flex flex-wrap gap-2">
             {mayContain.map((a) => (
@@ -134,7 +134,7 @@ export default function FoodItemDetailPage() {
       )}
 
       {/* Does not contain */}
-      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
+      <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5">
         <SectionLabel>Does not contain</SectionLabel>
         <div className="flex flex-wrap gap-2">
           {absent.map((a) => (

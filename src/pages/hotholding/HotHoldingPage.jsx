@@ -69,12 +69,12 @@ function PeriodCard({ period, selected, done, total, currentPeriod, onSelect }) 
       onClick={onSelect}
       aria-pressed={selected}
       className={[
-        'text-left rounded-2xl bg-white dark:bg-paperDark px-3.5 min-[420px]:px-3.5 py-2 transition-colors',
+        'text-left rounded-card bg-white dark:bg-paperDark px-3.5 min-[420px]:px-3.5 py-2 transition-colors',
         selected ? 'border-2 border-brand dark:border-white/70' : 'border-2 border-line dark:border-white/10 hover:border-ink4/60',
       ].join(' ')}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className={`px-2 py-1 rounded-md font-mono text-xs font-bold ${selected ? 'bg-brand text-white' : 'bg-line2 text-ink2 dark:bg-white/10 dark:text-white/70'}`}>
+        <span className={`px-2 py-1 rounded-tag font-mono text-xs font-bold ${selected ? 'bg-brand text-white' : 'bg-line2 text-ink2 dark:bg-white/10 dark:text-white/70'}`}>
           {period.toUpperCase()}
         </span>
         <span className={`px-2.5 py-1 rounded-full text-xs sm:text-caption font-semibold whitespace-nowrap ${pill.cls}`}>{pill.label}</span>
@@ -151,7 +151,7 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
       />
 
       {!showForm ? (
-        <div className={`flex items-center gap-2.5 rounded-xl px-3.5 sm:px-3.5 py-2 ${logFail ? TONE.bad : TONE.ok}`}>
+        <div className={`flex items-center gap-2.5 rounded-control px-3.5 sm:px-3.5 py-2 ${logFail ? TONE.bad : TONE.ok}`}>
           <span className="font-mono text-title-sm leading-none font-semibold">{Number(log.temperature).toFixed(1)}°C</span>
           <span className="flex-1 min-w-0 text-body-sm font-semibold truncate">
             {logFail ? failLabel(log.temperature, item) : 'Safe'} · {format(new Date(log.logged_at), 'HH:mm')}
@@ -180,7 +180,7 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
             ariaLabel={`${item.name} ${period.toUpperCase()} reading in °C`}
           />
           {fail && (
-            <div className="rounded-xl border border-bad/25 bg-badBg/60 dark:bg-bad/15 p-2.5 flex flex-col gap-2">
+            <div className="rounded-control border border-bad/25 bg-badBg/60 dark:bg-bad/15 p-2.5 flex flex-col gap-2">
               <p className="text-body-sm font-semibold text-bad dark:text-badDark">
                 {failLabel(temp, item)} — outside the safe {rangeLabel(item)} range. What did you do?
               </p>
@@ -190,7 +190,7 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
                 onBlur={save}
                 rows={2}
                 placeholder="e.g. Reheated to 75°C and returned to hot hold"
-                className="w-full px-3 py-2 rounded-lg border border-bad/25 bg-white dark:bg-paperDark text-body-sm text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-bad/20 resize-none"
+                className="w-full px-3 py-2 rounded-control border border-bad/25 bg-white dark:bg-paperDark text-body-sm text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-bad/20 resize-none"
               />
             </div>
           )}
@@ -418,7 +418,7 @@ export default function HotHoldingPage() {
               onKeyDown={e => e.key === 'Enter' && handleAddItem()}
               placeholder="Add item, e.g. Soup, Gravy"
               aria-label="New hot holding item"
-              className="flex-1 min-w-0 h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
+              className="flex-1 min-w-0 h-9 px-3.5 rounded-control border border-line dark:border-white/10 bg-white dark:bg-paperDark text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
             />
             <Button
               size="sm"

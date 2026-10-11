@@ -177,7 +177,7 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
 
       {/* Follow-up reminder */}
       {followUp && (
-        <div className="rounded-xl border border-warning/35 bg-warning/8 px-3 py-2 flex items-start gap-2">
+        <div className="rounded-control border border-warning/35 bg-warning/8 px-3 py-2 flex items-start gap-2">
           <span className="shrink-0 mt-0.5 text-warning">
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           </span>
@@ -218,7 +218,7 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
 
           {/* Out-of-range: reason picker */}
           {outOfRange && (
-            <div className="rounded-xl border border-warning/30 bg-warning/5 p-2.5 flex flex-col gap-2.5">
+            <div className="rounded-control border border-warning/30 bg-warning/5 p-2.5 flex flex-col gap-2.5">
               <div className="flex items-center gap-1.5">
                 <span className="text-warning">
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -233,7 +233,7 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
                     type="button"
                     onClick={() => { setReason(r.id); setComment(''); setTimeout(() => commentRef.current?.focus(), 50) }}
                     className={[
-                      'flex items-center gap-2 px-3 py-2 rounded-lg border text-left text-xs font-medium transition-all',
+                      'flex items-center gap-2 px-3 py-2 rounded-control border text-left text-xs font-medium transition-all',
                       reason === r.id
                         ? r.explained
                           ? 'bg-warning/15 border-warning/40 text-charcoal dark:text-white'
@@ -252,7 +252,7 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
 
               {/* Explained: green confirmation */}
               {reason && isExplained && (
-                <div className="rounded-lg bg-success/8 border border-success/20 px-3 py-2 flex items-start gap-2">
+                <div className="rounded-control bg-success/8 border border-success/20 px-3 py-2 flex items-start gap-2">
                   <span className="text-success shrink-0 mt-0.5">
                     <svg className="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
                   </span>
@@ -276,7 +276,7 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
                     onBlur={save}
                     placeholder="Describe the corrective action taken…"
                     rows={2}
-                    className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark focus:outline-none focus:ring-2 focus:ring-danger/20 text-body-sm resize-none"
+                    className="w-full px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark focus:outline-none focus:ring-2 focus:ring-danger/20 text-body-sm resize-none"
                   />
                   <p className="text-caption text-charcoal/35 dark:text-white/30">
                     {comment.trim().length < 5 ? `${5 - comment.trim().length} more characters needed` : 'Saves when you tap away'}
@@ -409,7 +409,7 @@ export default function FridgeDashboardPage() {
             {totalToday > 0 && (
               <div className={`${CARD} px-3.5 sm:px-3.5 py-2`}>
                 <div className="flex items-center gap-2.5">
-                  <span className="shrink-0 px-2 py-1 rounded-md bg-brand text-white font-mono text-xs font-bold">{currentPeriod.toUpperCase()}</span>
+                  <span className="shrink-0 px-2 py-1 rounded-tag bg-brand text-white font-mono text-xs font-bold">{currentPeriod.toUpperCase()}</span>
                   <p className="flex-1 min-w-0 text-body-sm font-semibold text-ink dark:text-white truncate">
                     Today's checks · {format(now, 'EEE d MMM')}
                   </p>

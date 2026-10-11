@@ -128,7 +128,7 @@ export default function FridgeLogFormPage() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
         {/* Fridge selector */}
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5">
           <SectionLabel>Select Fridge / Zone</SectionLabel>
           <div className="flex flex-wrap gap-2">
             {fridges.map((f) => (
@@ -137,7 +137,7 @@ export default function FridgeLogFormPage() {
                 type="button"
                 onClick={() => { setFridgeId(f.id); setReason(null); setComment('') }}
                 className={[
-                  'px-4 py-2 rounded-lg border text-sm font-medium transition-all',
+                  'px-4 py-2 rounded-control border text-sm font-medium transition-all',
                   fridgeId === f.id
                     ? 'bg-charcoal text-cream border-charcoal dark:border-white'
                     : 'bg-white dark:bg-paperDark text-charcoal/60 dark:text-white/50 border-charcoal/15 dark:border-white/15 hover:border-charcoal/35 dark:hover:border-white/35',
@@ -150,14 +150,14 @@ export default function FridgeLogFormPage() {
         </div>
 
         {/* Date / time — all users, defaults to now */}
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5">
           <SectionLabel>Date &amp; Time</SectionLabel>
           <input
             type="datetime-local"
             value={loggedAt}
             max={nowDatetimeLocal()}
             onChange={(e) => loggedTime.setByUser(e.target.value)}
-            className="px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+            className="px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
           {isPastEntry && (
             <p className="text-xs text-charcoal/40 dark:text-white/35 mt-2">
@@ -170,13 +170,13 @@ export default function FridgeLogFormPage() {
         </div>
 
         {/* Temperature + reason */}
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
           <div className="flex flex-col gap-3">
             <SectionLabel>Temperature (°C)</SectionLabel>
 
             {/* Big display */}
             <div className={[
-              'w-full rounded-2xl border py-5 flex items-center justify-center gap-1 transition-colors',
+              'w-full rounded-card border py-5 flex items-center justify-center gap-1 transition-colors',
               !fridgeId          ? 'opacity-40 bg-charcoal/4 dark:bg-white/5 border-charcoal/10 dark:border-white/10' :
               outOfRange         ? 'border-warning/40 bg-warning/5' :
                                    'border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark',
@@ -201,7 +201,7 @@ export default function FridgeLogFormPage() {
 
           {/* OOR: reason picker */}
           {outOfRange && (
-            <div className="rounded-lg border border-warning/30 bg-warning/5 p-4 flex flex-col gap-3">
+            <div className="rounded-control border border-warning/30 bg-warning/5 p-4 flex flex-col gap-3">
               <div className="flex items-center gap-1.5">
                 <span className="text-warning"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
                 <p className="text-sm font-semibold text-charcoal dark:text-white">
@@ -216,7 +216,7 @@ export default function FridgeLogFormPage() {
                     type="button"
                     onClick={() => { setReason(r.id); setComment('') }}
                     className={[
-                      'flex items-center gap-2.5 px-3 py-2 rounded-lg border text-left text-xs font-medium transition-all',
+                      'flex items-center gap-2.5 px-3 py-2 rounded-control border text-left text-xs font-medium transition-all',
                       reason === r.id
                         ? r.explained ? 'bg-warning/15 border-warning/40 text-charcoal dark:text-white' : 'bg-danger/8 border-danger/25 text-charcoal'
                         : 'bg-white dark:bg-paperDark border-charcoal/12 dark:border-white/15 text-charcoal/60 dark:text-white/50 hover:border-charcoal/25 dark:hover:border-white/25 hover:text-charcoal dark:hover:text-white',
@@ -230,7 +230,7 @@ export default function FridgeLogFormPage() {
               </div>
 
               {reason && isExplained && (
-                <div className="rounded-lg bg-success/8 border border-success/20 px-3 py-2.5 flex items-start gap-2">
+                <div className="rounded-control bg-success/8 border border-success/20 px-3 py-2.5 flex items-start gap-2">
                   <span className="text-success shrink-0 mt-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>
                   <p className="text-xs text-charcoal dark:text-white">
                     <span className="font-medium">Explained exceedance — no compliance penalty.</span>
@@ -250,7 +250,7 @@ export default function FridgeLogFormPage() {
                     onChange={(e) => setComment(e.target.value)}
                     placeholder="Describe the corrective action taken…"
                     rows={3}
-                    className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 text-sm resize-none"
+                    className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 text-sm resize-none"
                   />
                   {comment.trim().length > 0 && comment.trim().length < 5 && (
                     <p className="text-xs text-danger/70">Please provide more detail</p>
@@ -269,7 +269,7 @@ export default function FridgeLogFormPage() {
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Any observations…"
                 rows={2}
-                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal dark:text-white placeholder-charcoal/20 dark:placeholder-white/15 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 resize-none"
+                className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal dark:text-white placeholder-charcoal/20 dark:placeholder-white/15 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 resize-none"
               />
             </div>
           )}

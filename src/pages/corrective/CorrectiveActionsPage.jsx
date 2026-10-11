@@ -125,15 +125,15 @@ export default function CorrectiveActionsPage() {
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-4 text-center">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-4 text-center">
           <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Open</p>
           <p className={`text-2xl font-bold ${openCount > 0 ? 'text-warning' : 'text-charcoal dark:text-white'}`}>{openCount}</p>
         </div>
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-4 text-center">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-4 text-center">
           <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Critical</p>
           <p className={`text-2xl font-bold ${criticalOpen > 0 ? 'text-danger' : 'text-charcoal dark:text-white'}`}>{criticalOpen}</p>
         </div>
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-4 text-center">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-4 text-center">
           <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Total</p>
           <p className="text-2xl font-bold text-charcoal dark:text-white">{records.length}</p>
         </div>
@@ -145,7 +145,7 @@ export default function CorrectiveActionsPage() {
           <button
             key={s}
             onClick={() => setFilterStatus(s)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+            className={`px-3 py-1.5 rounded-control text-xs font-medium border transition-all ${
               filterStatus === s
                 ? 'bg-charcoal text-cream border-charcoal dark:border-white'
                 : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30'
@@ -157,7 +157,7 @@ export default function CorrectiveActionsPage() {
         <select
           value={filterCat}
           onChange={e => setFilterCat(e.target.value)}
-          className="px-3 py-1.5 rounded-lg text-xs border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal/60 dark:text-white/50 focus:outline-none"
+          className="px-3 py-1.5 rounded-control text-xs border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal/60 dark:text-white/50 focus:outline-none"
         >
           <option value="all">All categories</option>
           {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
@@ -178,7 +178,7 @@ export default function CorrectiveActionsPage() {
           {filtered.map(r => {
             const sev = sevConfig(r.severity)
             return (
-              <div key={r.id} className={`bg-white dark:bg-paperDark rounded-2xl p-4 ${
+              <div key={r.id} className={`bg-white dark:bg-paperDark rounded-card p-4 ${
                 r.status === 'open' ? 'border-warning/25' : 'border-charcoal/10 dark:border-white/10'
               }`}>
                 <div className="flex items-start justify-between gap-3">
@@ -195,7 +195,7 @@ export default function CorrectiveActionsPage() {
                       </span>
                     </div>
                     {r.description && <p className="text-sm text-charcoal/60 dark:text-white/50 mt-1">{r.description}</p>}
-                    <div className="mt-2 rounded-lg bg-charcoal/4 dark:bg-white/5 px-3 py-2">
+                    <div className="mt-2 rounded-control bg-charcoal/4 dark:bg-white/5 px-3 py-2">
                       <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">Action taken</p>
                       <p className="text-sm text-charcoal/70 dark:text-white/60">{r.action_taken}</p>
                     </div>
@@ -257,7 +257,7 @@ export default function CorrectiveActionsPage() {
                   key={s.value}
                   type="button"
                   onClick={() => setForm(f => ({ ...f, severity: s.value }))}
-                  className={`py-2 rounded-xl border text-xs font-medium transition-all text-center ${
+                  className={`py-2 rounded-control border text-xs font-medium transition-all text-center ${
                     form.severity === s.value
                       ? `${s.color} border-current`
                       : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30'
@@ -278,7 +278,7 @@ export default function CorrectiveActionsPage() {
               value={form.title}
               onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               placeholder="e.g. Fridge 2 above 8C"
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
@@ -289,7 +289,7 @@ export default function CorrectiveActionsPage() {
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
               rows={2}
               placeholder="Any additional context..."
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
@@ -302,7 +302,7 @@ export default function CorrectiveActionsPage() {
               onChange={e => setForm(f => ({ ...f, action_taken: e.target.value }))}
               rows={3}
               placeholder="e.g. Moved food to Fridge 1, called engineer, disposed of affected items"
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
