@@ -11,6 +11,10 @@ const TEXT_FIELD  = 'w-full h-12 px-4 rounded-control border border-line dark:bo
 
 const h = (n) => `${Math.round(n * 10) / 10} h`
 
+// Quick shares of the suggested hours; any other amount is typed in.
+const SHARES = [100, 75, 50, 25]
+const shareHours = (suggested, pct) => Math.round(suggested * pct) / 100
+
 function dates(r) {
   const s = parseISO(r.start_date), e = parseISO(r.end_date)
   if (r.start_date === r.end_date) return format(s, 'EEE d MMM')
@@ -33,6 +37,7 @@ export default function HolidayPayModal({
   const [hours, setHours]   = useState(initial)
   const [saving, setSaving] = useState(false)
 
+  const suggested = breakdown?.hours ?? 0
   const value   = hours.trim() === '' ? null : Number(hours)
   const invalid = value != null && !(value >= 0 && value <= 999)
   const spills  = request.start_date < periodFrom || request.end_date > periodTo
@@ -90,6 +95,29 @@ export default function HolidayPayModal({
           </p>
         )}
 
+        {suggested > 0 && (
+          <div>
+            <span className={FIELD_LABEL}>How much of it</span>
+            <div className="flex flex-wrap gap-2">
+              {SHARES.map(pct => {
+                const on = value != null && value === shareHours(suggested, pct)
+                return (
+                  <Button
+                    key={pct}
+                    size="sm"
+                    variant={on ? 'primary' : 'secondary'}
+                    aria-pressed={on}
+                    disabled={locked}
+                    onClick={() => setHours(String(shareHours(suggested, pct)))}
+                  >
+                    {pct}%
+                  </Button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         <label>
           <span className={FIELD_LABEL}>Hours to pay</span>
           <input
@@ -105,6 +133,9 @@ export default function HolidayPayModal({
         </label>
 
         <div className="text-body-sm text-ink3 dark:text-white/45 -mt-2 flex flex-col gap-0.5">
+          {suggested > 0 && value != null && !invalid && (
+            <p>{Math.round((value / suggested) * 100)}% of the suggested {h(suggested)}</p>
+          )}
           {value != null && !invalid && hourlyRate > 0 && (
             <p>
               Holiday pay <span className="font-mono font-semibold text-ink dark:text-white">£{(value * hourlyRate).toFixed(2)}</span> at £{Number(hourlyRate).toFixed(2)}/hr

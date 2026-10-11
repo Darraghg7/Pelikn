@@ -187,6 +187,29 @@ export function removeCarryOver(id) {
   return supabase.from('holiday_carry_over').delete().eq('id', id)
 }
 
+/**
+ * Holiday paid out through a timesheet (migration 154's on_timesheet flag) on
+ * dates between `from` and `to` ("yyyy-MM-dd", inclusive). Before 154 there is
+ * no flag, which reads as none — older paid-out rows are payroll already paid
+ * elsewhere and must never be added to pay.
+ */
+export async function fetchTimesheetPayouts(venueId, from, to) {
+  try {
+    return await fetchAllPages(() => supabase
+      .from('holiday_paid_out')
+      .select('id, staff_id, leave_year, hours, paid_on, note')
+      .eq('venue_id', venueId)
+      .eq('on_timesheet', true)
+      .gte('paid_on', from)
+      .lte('paid_on', to)
+      .order('paid_on', { ascending: true })
+      .order('id', { ascending: true }))
+  } catch (e) {
+    if (isMissingTable(e) || isMissingColumn(e)) return []
+    throw e
+  }
+}
+
 export function addPaidOut(row) {
   return supabase.from('holiday_paid_out').insert(row)
 }
