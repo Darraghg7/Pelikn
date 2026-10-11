@@ -7,7 +7,7 @@ import Button from '../../components/ui/Button'
 import { leaveHoursBreakdown, estimateLeaveHours } from '../../lib/holiday'
 
 const FIELD_LABEL = 'block text-body-sm font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
-const TEXT_FIELD  = 'w-full h-12 px-4 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-lg text-ink dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40'
+const TEXT_FIELD  = 'w-full h-12 px-4 rounded-control border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-lg text-ink dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40'
 
 const h = (n) => `${Math.round(n * 10) / 10} h`
 
@@ -71,7 +71,7 @@ export default function HolidayPayModal({
         </div>
 
         {breakdown ? (
-          <div className="rounded-xl bg-cream dark:bg-white/5 px-3.5 py-2.5 text-body-sm text-ink2 dark:text-white/70 flex flex-col gap-1">
+          <div className="rounded-control bg-cream dark:bg-white/5 px-3.5 py-2.5 text-body-sm text-ink2 dark:text-white/70 flex flex-col gap-1">
             <p className="font-semibold text-ink dark:text-white">Suggested: {h(breakdown.hours)}</p>
             {breakdown.rotaDays > 0 && (
               <p>{h(breakdown.rotaHours)} from the rota — {breakdown.rotaDays === 1 ? 'the shift' : `${breakdown.rotaDays} shifts`} they were booked on</p>

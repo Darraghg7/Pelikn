@@ -193,7 +193,7 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
 
       {/* Week strip */}
       <div className="flex items-center gap-1.5">
-        <button onClick={prevWeek} className="w-8 h-[60px] flex items-center justify-center rounded-[9px] bg-white dark:bg-paperDark border border-charcoal/15 dark:border-white/15 text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors shrink-0">
+        <button onClick={prevWeek} className="w-8 h-[60px] flex items-center justify-center rounded-control bg-white dark:bg-paperDark border border-charcoal/15 dark:border-white/15 text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors shrink-0">
           <svg width="10" height="14" viewBox="0 0 10 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 1L1 7l6 6"/></svg>
         </button>
         <div className="flex-1 grid grid-cols-7 gap-1">
@@ -205,7 +205,7 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
             const isT = dateStr === today
             return (
               <button key={dateStr} onClick={() => setSelectedDate(day)}
-                className={`h-[60px] rounded-[9px] flex flex-col items-center justify-center gap-0.5 relative transition-colors ${isSel ? 'bg-charcoal border border-charcoal dark:border-white text-white' : 'bg-white dark:bg-paperDark border border-charcoal/15 dark:border-white/15 text-charcoal dark:text-white hover:border-charcoal/30 dark:hover:border-white/30'}`}>
+                className={`h-[60px] rounded-control flex flex-col items-center justify-center gap-0.5 relative transition-colors ${isSel ? 'bg-charcoal border border-charcoal dark:border-white text-white' : 'bg-white dark:bg-paperDark border border-charcoal/15 dark:border-white/15 text-charcoal dark:text-white hover:border-charcoal/30 dark:hover:border-white/30'}`}>
                 <span className={`font-mono text-micro font-semibold tracking-[0.06em] ${isSel ? 'text-white/70' : 'text-charcoal/50 dark:text-white/40'}`}>
                   {format(day, 'EEE').toUpperCase()}
                 </span>
@@ -220,7 +220,7 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
             )
           })}
         </div>
-        <button onClick={nextWeek} className="w-8 h-[60px] flex items-center justify-center rounded-[9px] bg-white dark:bg-paperDark border border-charcoal/15 dark:border-white/15 text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors shrink-0">
+        <button onClick={nextWeek} className="w-8 h-[60px] flex items-center justify-center rounded-control bg-white dark:bg-paperDark border border-charcoal/15 dark:border-white/15 text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors shrink-0">
           <svg width="10" height="14" viewBox="0 0 10 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 1l6 6-6 6"/></svg>
         </button>
       </div>
@@ -256,7 +256,7 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
               req={reqs[selectedDaySession.session.clockInId]}
             />
           ) : selectedShift ? (
-            <div className="rounded-2xl p-4 text-white bg-brand">
+            <div className="rounded-card p-4 text-white bg-brand">
               <div className="flex items-center justify-between">
                 <span className="font-mono text-micro text-white/55 tracking-[0.1em] uppercase">Your shift</span>
               </div>
@@ -276,7 +276,7 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
               </div>
             </div>
           ) : (
-            <div className="rounded-2xl bg-charcoal/4 dark:bg-white/5 border border-dashed border-charcoal/20 dark:border-white/20 px-5 py-5 text-center">
+            <div className="rounded-card bg-charcoal/4 dark:bg-white/5 border border-dashed border-charcoal/20 dark:border-white/20 px-5 py-5 text-center">
               <p className="text-sm text-charcoal/40 dark:text-white/35">No shift scheduled on this day</p>
             </div>
           )}
@@ -297,10 +297,10 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
                 <span className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase font-semibold">Your upcoming shifts</span>
                 <span className="font-mono text-micro text-charcoal/50 dark:text-white/40">{upcomingShifts.length} · next 2 wks</span>
               </div>
-              <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-2xl overflow-hidden">
+              <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card overflow-hidden">
                 {upcomingShifts.map((shift, i) => (
                   <div key={shift.id} className={`flex items-center gap-3 px-4 py-3 ${i > 0 ? 'border-t border-charcoal/8 dark:border-white/8' : ''}`}>
-                    <div className="w-11 h-12 rounded-[9px] bg-charcoal/4 dark:bg-white/5 border border-charcoal/10 dark:border-white/10 shrink-0 flex flex-col items-center justify-center gap-0.5">
+                    <div className="w-11 h-12 rounded-control bg-charcoal/4 dark:bg-white/5 border border-charcoal/10 dark:border-white/10 shrink-0 flex flex-col items-center justify-center gap-0.5">
                       <span className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.06em] font-semibold">{format(parseISO(shift.shift_date), 'EEE').toUpperCase()}</span>
                       <span className="font-mono text-title-sm font-semibold text-charcoal dark:text-white leading-none">{format(parseISO(shift.shift_date), 'd')}</span>
                     </div>
@@ -353,14 +353,14 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
               </div>
             </div>
           ) : (
-            <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-2xl px-5 py-6 text-center">
+            <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card px-5 py-6 text-center">
               <p className="text-sm text-charcoal/40 dark:text-white/35">No upcoming shifts in the next 2 weeks</p>
             </div>
           )}
 
           {/* My swap requests */}
           {mySwaps.length > 0 && (
-            <div className={`rounded-2xl border px-5 py-4 ${myPending.length > 0 ? 'bg-warning/5 border-warning/20' : 'bg-charcoal/4 dark:bg-white/5 border-charcoal/10 dark:border-white/10'}`}>
+            <div className={`rounded-card border px-5 py-4 ${myPending.length > 0 ? 'bg-warning/5 border-warning/20' : 'bg-charcoal/4 dark:bg-white/5 border-charcoal/10 dark:border-white/10'}`}>
               <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">My Swap Requests</p>
               <div className="flex flex-col gap-2">
                 {mySwaps.slice(0, 3).map((swap) => (

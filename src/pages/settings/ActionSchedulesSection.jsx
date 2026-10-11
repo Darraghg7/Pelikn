@@ -55,7 +55,7 @@ export default function ActionSchedulesSection({ schedules, onSave }) {
                       type="button"
                       onClick={() => toggleDay(key, i)}
                       className={[
-                        'px-2.5 py-1 rounded-md text-xs font-medium border transition-all',
+                        'px-2.5 py-1 rounded-tag text-xs font-medium border transition-all',
                         active
                           ? 'bg-accent/10 text-accent border-accent/25'
                           : 'bg-charcoal/5 dark:bg-white/5 text-charcoal/35 dark:text-white/30 border-charcoal/10 dark:border-white/10',

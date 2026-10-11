@@ -105,7 +105,7 @@ function ManagerView({ venueId }) {
   return (
     <div className="flex flex-col gap-6">
       {/* Manager's own clock */}
-      <div className="bg-white dark:bg-paperDark rounded-2xl p-5">
+      <div className="bg-white dark:bg-paperDark rounded-card p-5">
         <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">My Clock</p>
         <ManagerOwnClock venueId={venueId} />
       </div>
@@ -116,7 +116,7 @@ function ManagerView({ venueId }) {
       )}
 
       {/* Team status */}
-      <div className="bg-white dark:bg-paperDark rounded-2xl p-5">
+      <div className="bg-white dark:bg-paperDark rounded-card p-5">
         <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Team Status</p>
         {loading ? (
           <SkeletonList rows={3} />
@@ -138,7 +138,7 @@ function ManagerView({ venueId }) {
 function StaffView({ staffId, staffName }) {
   return (
     <div className="flex flex-col gap-6">
-      <div className="bg-white dark:bg-paperDark rounded-2xl p-6">
+      <div className="bg-white dark:bg-paperDark rounded-card p-6">
         {staffName && (
           <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">
             Hi, {staffName}

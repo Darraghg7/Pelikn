@@ -76,7 +76,7 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
   }
 
   return (
-    <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 overflow-hidden max-w-lg w-full mx-auto">
+    <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/10 dark:border-white/10 overflow-hidden max-w-lg w-full mx-auto">
       {/* Header */}
       <div className="px-6 pt-6 pb-4 border-b border-charcoal/8 dark:border-white/8">
         <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">SC7 — Shift Start</p>
@@ -95,7 +95,7 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
               <button
                 key={v}
                 onClick={() => setShiftType(v)}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${shiftType === v ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30'}`}
+                className={`flex-1 py-2 rounded-control text-sm font-medium border transition-all ${shiftType === v ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30'}`}
               >
                 {l}
               </button>
@@ -112,13 +112,13 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
             <div className="flex gap-3">
               <button
                 onClick={() => handleFitnessAnswer(true)}
-                className="flex-1 py-4 rounded-xl bg-success/10 border-2 border-success/20 hover:bg-success/15 transition-all text-success font-semibold text-lg"
+                className="flex-1 py-4 rounded-control bg-success/10 border-2 border-success/20 hover:bg-success/15 transition-all text-success font-semibold text-lg"
               >
                 <span className="inline-flex items-center gap-1.5"><svg className="w-4 h-4" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Yes</span>
               </button>
               <button
                 onClick={() => handleFitnessAnswer(false)}
-                className="flex-1 py-4 rounded-xl bg-danger/8 border-2 border-danger/15 hover:bg-danger/12 transition-all text-danger font-semibold text-lg"
+                className="flex-1 py-4 rounded-control bg-danger/8 border-2 border-danger/15 hover:bg-danger/12 transition-all text-danger font-semibold text-lg"
               >
                 <span className="inline-flex items-center gap-1.5"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> No</span>
               </button>
@@ -129,7 +129,7 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
         {/* Step: illness details */}
         {step === 'illness' && (
           <div className="flex flex-col gap-4">
-            <div className="bg-danger/8 border border-danger/15 rounded-xl p-4">
+            <div className="bg-danger/8 border border-danger/15 rounded-control p-4">
               <p className="text-sm font-semibold text-danger mb-1">You have indicated you are not fit to work.</p>
               <p className="text-xs text-danger/70">
                 Please inform your manager immediately. Do not handle food until cleared by a medical professional if you have D&amp;V symptoms.
@@ -142,7 +142,7 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
               [hasSkin, setHasSkin, 'Skin infection on hands/arms', 'Cuts, sores, rashes or infected wounds'],
               [hasOther, setHasOther, 'Other illness', 'High temperature, jaundice, or other communicable illness'],
             ].map(([val, setter, label, desc]) => (
-              <label key={label} className="flex items-start gap-3 cursor-pointer p-3 rounded-xl border border-charcoal/10 dark:border-white/10 hover:bg-charcoal/4 dark:hover:bg-white/5 transition-colors">
+              <label key={label} className="flex items-start gap-3 cursor-pointer p-3 rounded-control border border-charcoal/10 dark:border-white/10 hover:bg-charcoal/4 dark:hover:bg-white/5 transition-colors">
                 <input
                   type="checkbox"
                   checked={val}
@@ -165,7 +165,7 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
                 onChange={e => setIllness(e.target.value)}
                 placeholder="Describe symptoms or any other relevant information"
                 rows={3}
-                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
 
@@ -199,7 +199,7 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
               [uniform, setUniform, 'I am wearing a clean uniform / apron', 'Clean, appropriate food-safe clothing'],
               [noJewellery, setNoJewellery, 'I have removed jewellery (except plain wedding band)', 'Including watches, rings, earrings, and bracelets'],
             ].map(([val, setter, label, desc]) => (
-              <label key={label} className="flex items-start gap-3 cursor-pointer p-3 rounded-xl border border-charcoal/10 dark:border-white/10 hover:bg-charcoal/4 dark:hover:bg-white/5 transition-colors">
+              <label key={label} className="flex items-start gap-3 cursor-pointer p-3 rounded-control border border-charcoal/10 dark:border-white/10 hover:bg-charcoal/4 dark:hover:bg-white/5 transition-colors">
                 <input
                   type="checkbox"
                   checked={val}
@@ -242,7 +242,7 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
 function DeclarationSummary({ declaration }) {
   const isFit = declaration.is_fit
   return (
-    <div className={`rounded-2xl border-2 p-6 max-w-lg w-full mx-auto ${isFit ? 'bg-success/5 border-success/20' : 'bg-danger/5 border-danger/20'}`}>
+    <div className={`rounded-card border-2 p-6 max-w-lg w-full mx-auto ${isFit ? 'bg-success/5 border-success/20' : 'bg-danger/5 border-danger/20'}`}>
       <div className="flex items-center gap-3 mb-3">
         <span className={isFit ? 'text-success' : 'text-warning'}>
           {isFit
@@ -307,7 +307,7 @@ function ManagerDeclarationsView({ venueId }) {
           <button
             key={d.value}
             onClick={() => setViewDate(d.value)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${viewDate === d.value ? 'bg-charcoal text-cream' : 'bg-charcoal/8 text-charcoal/60 dark:text-white/50 hover:bg-charcoal/12'}`}
+            className={`px-3 py-1.5 rounded-control text-xs font-medium transition-colors ${viewDate === d.value ? 'bg-charcoal text-cream' : 'bg-charcoal/8 text-charcoal/60 dark:text-white/50 hover:bg-charcoal/12'}`}
           >
             {d.label}
           </button>
@@ -317,28 +317,28 @@ function ManagerDeclarationsView({ venueId }) {
           value={viewDate}
           max={format(new Date(), 'yyyy-MM-dd')}
           onChange={e => e.target.value && setViewDate(e.target.value)}
-          className="px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-xs text-charcoal/60 dark:text-white/50 bg-white dark:bg-paperDark focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+          className="px-3 py-1.5 rounded-control border border-charcoal/15 dark:border-white/15 text-xs text-charcoal/60 dark:text-white/50 bg-white dark:bg-paperDark focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
         />
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-4 text-center">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-4 text-center">
           <p className="text-xl font-bold text-charcoal dark:text-white">{declarations.length}</p>
           <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">Declared</p>
         </div>
-        <div className="bg-success/5 rounded-xl border border-success/15 p-4 text-center">
+        <div className="bg-success/5 rounded-control border border-success/15 p-4 text-center">
           <p className="text-xl font-bold text-success">{fitCount}</p>
           <p className="text-caption text-success/60 mt-0.5">Fit to work</p>
         </div>
-        <div className={`rounded-xl border p-4 text-center ${unfitCount > 0 ? 'bg-danger/8 border-danger/20' : 'bg-charcoal/4 dark:bg-white/5 border-charcoal/10 dark:border-white/10'}`}>
+        <div className={`rounded-control border p-4 text-center ${unfitCount > 0 ? 'bg-danger/8 border-danger/20' : 'bg-charcoal/4 dark:bg-white/5 border-charcoal/10 dark:border-white/10'}`}>
           <p className={`text-xl font-bold ${unfitCount > 0 ? 'text-danger' : 'text-charcoal/30 dark:text-white/30'}`}>{unfitCount}</p>
           <p className={`text-caption mt-0.5 ${unfitCount > 0 ? 'text-danger/60' : 'text-charcoal/30 dark:text-white/30'}`}>Unfit</p>
         </div>
       </div>
 
       {/* Declaration list */}
-      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+      <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 overflow-hidden">
         {loading ? (
           <SkeletonList rows={4} />
         ) : isError ? (<LoadError what="declarations" onRetry={reload} />) : declarations.length === 0 ? (
@@ -431,7 +431,7 @@ function IllnessPolicyTab({ venueId }) {
   return (
     <div className="flex flex-col gap-5">
 
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 flex gap-3">
+      <div className="bg-amber-50 border border-amber-200 rounded-card px-5 py-4 flex gap-3">
         <span className="text-amber-500 mt-0.5 shrink-0">⚠</span>
         <p className="text-xs text-amber-700 leading-relaxed">
           EHOs will ask to see your illness exclusion policy. This document must specify the 48-hour rule for D&V and list which illnesses require EHO notification.
@@ -439,7 +439,7 @@ function IllnessPolicyTab({ venueId }) {
       </div>
 
       {/* Contacts */}
-      <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
+      <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/10 dark:border-white/10 p-5">
         <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Policy Contacts</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
@@ -453,7 +453,7 @@ function IllnessPolicyTab({ venueId }) {
                 value={meta[f.key]}
                 onChange={e => setMeta(m => ({ ...m, [f.key]: e.target.value }))}
                 placeholder={f.placeholder}
-                className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
           ))}
@@ -493,7 +493,7 @@ function IllnessPolicyTab({ venueId }) {
             'All illness absences are logged in the Pelikn Fitness to Work daily declarations. Managers must retain these records for a minimum of 3 years. Any outbreak-level illness affecting 2 or more staff members in a 48-hour period must be reported to the local EHO immediately.',
         },
       ].map((section, i) => (
-        <div key={i} className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
+        <div key={i} className="bg-white dark:bg-paperDark rounded-card border border-charcoal/10 dark:border-white/10 p-5">
           <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">{section.title}</p>
           <p className="text-sm text-charcoal/70 dark:text-white/60 leading-relaxed whitespace-pre-line">{section.body}</p>
         </div>
@@ -558,12 +558,12 @@ export default function FitnessPage() {
           </p>
           <h1 className="text-2xl font-bold text-charcoal dark:text-white">Fitness to Work</h1>
         </div>
-        <span className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30 border border-charcoal/15 dark:border-white/15 rounded px-2 py-1">SC7</span>
+        <span className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30 border border-charcoal/15 dark:border-white/15 rounded-tag px-2 py-1">SC7</span>
       </div>
 
       {/* Tabs — policy tab for managers only */}
       {isManager && (
-        <div className="flex gap-1 bg-charcoal/5 dark:bg-white/5 rounded-xl p-1 w-fit">
+        <div className="flex gap-1 bg-charcoal/5 dark:bg-white/5 rounded-control p-1 w-fit">
           {[
             { id: 'declarations', label: 'Daily Declarations' },
             { id: 'policy',       label: 'Illness Policy' },
@@ -571,7 +571,7 @@ export default function FitnessPage() {
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded-control text-sm font-medium transition-all ${
                 tab === t.id ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm' : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white'
               }`}
             >

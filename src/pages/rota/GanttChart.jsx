@@ -13,7 +13,7 @@ export default function GanttChart({ shifts, staff, currentStaffId, nowMins, sho
     return a.start_time.localeCompare(b.start_time)
   })
   return (
-    <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-2xl overflow-hidden">
+    <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card overflow-hidden">
       <div className="flex items-baseline gap-2.5 px-3.5 pt-3 pb-2">
         <div className="w-16 shrink-0" />
         <div className="flex-1 relative h-3.5">
@@ -43,10 +43,10 @@ export default function GanttChart({ shifts, staff, currentStaffId, nowMins, sho
           let eMin = timeToMin(shift.end_time); if (eMin < sMin) eMin += 24 * 60
           const left = pct(sMin), right = pct(eMin), width = Math.max(right - left, 4)
           return (
-            <div key={shift.id} className={`flex items-center gap-2.5 h-[38px] rounded-lg -mx-1.5 px-1.5 ${isMe ? 'bg-brand/8' : ''}`}>
+            <div key={shift.id} className={`flex items-center gap-2.5 h-[38px] rounded-control -mx-1.5 px-1.5 ${isMe ? 'bg-brand/8' : ''}`}>
               <div className={`w-16 shrink-0 text-body-sm font-semibold truncate flex items-center gap-1 ${isMe ? 'text-brand' : 'text-charcoal/70 dark:text-white/60'}`}>
                 <span className="truncate">{firstName(staffMember?.name) || 'Staff'}</span>
-                {isMe && <span className="font-mono text-[8px] text-accent font-bold tracking-[0.08em] bg-danger/8 px-1 py-0.5 rounded shrink-0">YOU</span>}
+                {isMe && <span className="font-mono text-[8px] text-accent font-bold tracking-[0.08em] bg-danger/8 px-1 py-0.5 rounded-tag shrink-0">YOU</span>}
               </div>
               <div className="flex-1 relative h-[22px]">
                 {ticks.map((h, ti) => {

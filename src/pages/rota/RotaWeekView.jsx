@@ -21,7 +21,7 @@ function MobileShiftCell({ shift, accent, onClick }) {
   return (
     <div
       onClick={canClick ? onClick : undefined}
-      className={`rounded-[10px] px-2 pt-[7px] pb-[6px] mb-1 last:mb-0${canClick ? ' cursor-pointer active:scale-[0.97] transition-transform' : ''}`}
+      className={`rounded-control px-2 pt-[7px] pb-[6px] mb-1 last:mb-0${canClick ? ' cursor-pointer active:scale-[0.97] transition-transform' : ''}`}
       style={{ background: accent + '1C' }}
     >
       <div className="font-semibold text-body-sm leading-none tabular-nums" style={{ color: accent }}>
@@ -53,7 +53,7 @@ function MobileWeekGrid({ days, shifts, shiftIndex, staff, onCellClick, currentS
   })
 
   return (
-    <div className="mx-0 rounded-2xl border border-charcoal/8 dark:border-white/8 overflow-hidden bg-white dark:bg-paperDark">
+    <div className="mx-0 rounded-card border border-charcoal/8 dark:border-white/8 overflow-hidden bg-white dark:bg-paperDark">
     <div className="overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
       <div style={{ minWidth: NAME_W + COL_W * 7 + 1 }}>
 
@@ -126,7 +126,7 @@ function MobileWeekGrid({ days, shifts, shiftIndex, staff, onCellClick, currentS
                       </div>
                     ) : isTimeOff && dayShifts.length === 0 ? (
                       <div className="h-full flex items-center justify-center">
-                        <div className="rounded-[8px] px-2 py-1 bg-charcoal/6 dark:bg-white/8">
+                        <div className="rounded-control px-2 py-1 bg-charcoal/6 dark:bg-white/8">
                           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-charcoal/40 dark:text-white/35">Leave</span>
                         </div>
                       </div>
@@ -303,13 +303,13 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                       {dayShifts.length === 0 ? (
                         crossShift ? (
                           <div
-                            className="h-10 flex flex-col items-center justify-center rounded border border-indigo-200/60 px-1 bg-[repeating-linear-gradient(-45deg,transparent,transparent_3px,theme(colors.indigo.500/8%)_3px,theme(colors.indigo.500/8%)_6px)]"
+                            className="h-10 flex flex-col items-center justify-center rounded-tag border border-indigo-200/60 px-1 bg-[repeating-linear-gradient(-45deg,transparent,transparent_3px,theme(colors.indigo.500/8%)_3px,theme(colors.indigo.500/8%)_6px)]"
                           >
                             <span className="text-[8px] tracking-widest uppercase text-indigo-400 font-semibold leading-tight">Busy</span>
                             <span className="text-[8px] text-indigo-300 truncate max-w-full px-1">{crossShift.venue_name}</span>
                           </div>
                         ) : isTimeOff ? (
-                          <div className="h-10 flex items-center justify-center rounded bg-danger/10 border border-danger/20">
+                          <div className="h-10 flex items-center justify-center rounded-tag bg-danger/10 border border-danger/20">
                             <span className="text-[9px] tracking-widest uppercase text-danger/70 font-semibold">Time Off</span>
                           </div>
                         ) : isBreakCover ? (
@@ -318,14 +318,14 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                           <div className="flex flex-col gap-1">
                             <button
                               onClick={(e) => { e.stopPropagation(); onToggleAvailability?.(s.id, d) }}
-                              className="h-7 flex items-center justify-center rounded bg-charcoal/8 dark:bg-white/8 border border-charcoal/15 dark:border-white/15 hover:bg-charcoal/12 dark:hover:bg-white/15 transition-colors cursor-pointer"
+                              className="h-7 flex items-center justify-center rounded-tag bg-charcoal/8 dark:bg-white/8 border border-charcoal/15 dark:border-white/15 hover:bg-charcoal/12 dark:hover:bg-white/15 transition-colors cursor-pointer"
                             >
                               <span className="text-[8px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">Unavail</span>
                             </button>
                             {isManager && (
                               <button
                                 onClick={() => onCellClick(s, d, dayShifts)}
-                                className="h-6 flex items-center justify-center text-micro rounded border border-dashed border-charcoal/12 dark:border-white/15 hover:border-charcoal/25 dark:hover:border-white/25 text-charcoal/20 dark:text-white/20 hover:text-charcoal/40 dark:hover:text-white/35 transition-colors cursor-pointer"
+                                className="h-6 flex items-center justify-center text-micro rounded-tag border border-dashed border-charcoal/12 dark:border-white/15 hover:border-charcoal/25 dark:hover:border-white/25 text-charcoal/20 dark:text-white/20 hover:text-charcoal/40 dark:hover:text-white/35 transition-colors cursor-pointer"
                               >+</button>
                             )}
                           </div>
@@ -333,17 +333,17 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                           <div className="flex flex-col gap-1">
                             <button
                               onClick={() => onCellClick(s, d, dayShifts)}
-                              className="h-7 flex items-center justify-center text-xs rounded border border-dashed border-charcoal/12 dark:border-white/15 hover:border-charcoal/25 dark:hover:border-white/25 text-charcoal/20 dark:text-white/20 hover:text-charcoal/40 dark:hover:text-white/35 transition-colors cursor-pointer"
+                              className="h-7 flex items-center justify-center text-xs rounded-tag border border-dashed border-charcoal/12 dark:border-white/15 hover:border-charcoal/25 dark:hover:border-white/25 text-charcoal/20 dark:text-white/20 hover:text-charcoal/40 dark:hover:text-white/35 transition-colors cursor-pointer"
                             >+</button>
                             <button
                               onClick={(e) => { e.stopPropagation(); onToggleAvailability?.(s.id, d) }}
-                              className="h-5 flex items-center justify-center text-[8px] tracking-wider uppercase rounded text-charcoal/20 dark:text-white/20 hover:text-charcoal/40 dark:hover:text-white/35 hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                              className="h-5 flex items-center justify-center text-[8px] tracking-wider uppercase rounded-tag text-charcoal/20 dark:text-white/20 hover:text-charcoal/40 dark:hover:text-white/35 hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                             >
                               avail
                             </button>
                           </div>
                         ) : isOwnStaff ? (
-                          <div className="h-10 flex items-center justify-center text-charcoal/15 dark:text-white/15 text-xs rounded border border-dashed border-charcoal/8 dark:border-white/8">
+                          <div className="h-10 flex items-center justify-center text-charcoal/15 dark:text-white/15 text-xs rounded-tag border border-dashed border-charcoal/8 dark:border-white/8">
                             —
                           </div>
                         ) : (
@@ -356,7 +356,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                               key={sh.id}
                               onClick={canClick ? () => onCellClick(s, d, dayShifts) : undefined}
                               className={[
-                                'rounded px-2 py-1.5 text-xs relative text-white',
+                                'rounded-tag px-2 py-1.5 text-xs relative text-white',
                                 canClick ? 'cursor-pointer' : '',
                                 isOwnStaff && !isManager ? 'ring-2 ring-accent ring-offset-1' : '',
                                 unavail ? 'ring-2 ring-warning ring-offset-1' : '',
@@ -376,7 +376,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                           {isManager && !isTimeOff && (
                             <button
                               onClick={(e) => { e.stopPropagation(); onToggleAvailability?.(s.id, d) }}
-                              className="h-4 flex items-center justify-center text-[7px] tracking-wider uppercase rounded text-charcoal/15 dark:text-white/15 hover:text-charcoal/40 dark:hover:text-white/35 hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                              className="h-4 flex items-center justify-center text-[7px] tracking-wider uppercase rounded-tag text-charcoal/15 dark:text-white/15 hover:text-charcoal/40 dark:hover:text-white/35 hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                             >
                               {isManualOff ? 'unavail' : ''}
                             </button>

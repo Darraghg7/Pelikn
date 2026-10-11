@@ -75,7 +75,7 @@ function CalToggle({ on, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`shrink-0 relative border-none cursor-pointer transition-colors duration-200 rounded-[14px] ${on ? 'bg-brand dark:bg-brand-400' : 'bg-line dark:bg-transparent dark:ring-[1.5px] dark:ring-inset dark:ring-white/50'}`}
+      className={`shrink-0 relative border-none cursor-pointer transition-colors duration-200 rounded-card ${on ? 'bg-brand dark:bg-brand-400' : 'bg-line dark:bg-transparent dark:ring-[1.5px] dark:ring-inset dark:ring-white/50'}`}
       style={{ width: 48, height: 28, padding: 3 }}
     >
       <span
@@ -99,7 +99,7 @@ function ColourPicker({ value, onChange }) {
           key={c.id}
           onClick={() => onChange(c.id)}
           title={c.label}
-          className={`flex-1 h-[34px] rounded-[9px] cursor-pointer transition-[border] duration-[120ms] border-[3px] ${value === c.id ? 'border-ink dark:border-white' : 'border-transparent'}`}
+          className={`flex-1 h-[34px] rounded-control cursor-pointer transition-[border] duration-[120ms] border-[3px] ${value === c.id ? 'border-ink dark:border-white' : 'border-transparent'}`}
           style={{ background: c.bg }}
         />
       ))}
@@ -121,12 +121,12 @@ function DatePicker({ value, onChange, min }) {
     <div className="flex items-center gap-2">
       <button
         onClick={() => shift(-1)}
-        className="w-[34px] h-[34px] rounded-[9px] border border-charcoal/10 dark:border-white/10 bg-surface cursor-pointer flex items-center justify-center font-mono text-title-sm text-charcoal/75 dark:text-white/60 shrink-0"
+        className="w-[34px] h-[34px] rounded-control border border-charcoal/10 dark:border-white/10 bg-surface cursor-pointer flex items-center justify-center font-mono text-title-sm text-charcoal/75 dark:text-white/60 shrink-0"
       >‹</button>
       <span className="text-body-sm font-medium text-charcoal dark:text-white min-w-[112px] text-center">{label}</span>
       <button
         onClick={() => shift(1)}
-        className="w-[34px] h-[34px] rounded-[9px] border border-charcoal/10 dark:border-white/10 bg-surface cursor-pointer flex items-center justify-center font-mono text-title-sm text-charcoal/75 dark:text-white/60 shrink-0"
+        className="w-[34px] h-[34px] rounded-control border border-charcoal/10 dark:border-white/10 bg-surface cursor-pointer flex items-center justify-center font-mono text-title-sm text-charcoal/75 dark:text-white/60 shrink-0"
       >›</button>
     </div>
   )
@@ -143,12 +143,12 @@ function TimePicker({ value, onChange }) {
     <div className="flex items-center gap-1.5">
       <button
         onClick={() => shiftMin(-15)}
-        className="w-[30px] h-[30px] rounded-lg border border-charcoal/10 dark:border-white/10 bg-surface cursor-pointer flex items-center justify-center font-mono text-title-sm text-charcoal/50 dark:text-white/40"
+        className="w-[30px] h-[30px] rounded-control border border-charcoal/10 dark:border-white/10 bg-surface cursor-pointer flex items-center justify-center font-mono text-title-sm text-charcoal/50 dark:text-white/40"
       >‹</button>
       <span className="font-mono text-body-sm font-semibold text-charcoal/75 dark:text-white/60 min-w-[40px] text-center tabular-nums">{value}</span>
       <button
         onClick={() => shiftMin(15)}
-        className="w-[30px] h-[30px] rounded-lg border border-charcoal/10 dark:border-white/10 bg-surface cursor-pointer flex items-center justify-center font-mono text-title-sm text-charcoal/50 dark:text-white/40"
+        className="w-[30px] h-[30px] rounded-control border border-charcoal/10 dark:border-white/10 bg-surface cursor-pointer flex items-center justify-center font-mono text-title-sm text-charcoal/50 dark:text-white/40"
       >›</button>
     </div>
   )
@@ -209,14 +209,14 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
       </div>
 
       {/* Colour accent */}
-      <div className="h-[5px] rounded-[3px] mb-[22px]" style={{ background: colObj.bg }} />
+      <div className="h-[5px] rounded-tag mb-[22px]" style={{ background: colObj.bg }} />
 
       <div className="flex flex-col gap-[22px]">
         {/* Title */}
         <input
           value={title} onChange={e => setTitle(e.target.value)}
           placeholder="Event name…"
-          className="w-full px-[14px] h-[54px] rounded-[11px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-title-sm font-semibold text-charcoal dark:text-white tracking-[-0.01em] outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border"
+          className="w-full px-[14px] h-[54px] rounded-control border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-title-sm font-semibold text-charcoal dark:text-white tracking-[-0.01em] outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border"
         />
 
         {/* Type */}
@@ -244,7 +244,7 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
         </div>
 
         {/* Dates */}
-        <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
+        <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card overflow-hidden">
           {/* All day row */}
           <button
             onClick={() => setAllDay(!allDay)}
@@ -276,16 +276,16 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
         </div>
 
         {/* Reminder */}
-        <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
+        <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card overflow-hidden">
           <div className="px-4 py-[15px] border-b border-charcoal/6 dark:border-white/8">
             <div className="flex items-center gap-2.5 mb-[14px]">
-              <span className="w-8 h-8 rounded-[9px] bg-brand/8 flex items-center justify-center shrink-0">
+              <span className="w-8 h-8 rounded-control bg-brand/8 flex items-center justify-center shrink-0">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-brand dark:text-white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
               </span>
               <span className="text-body-lg font-semibold text-charcoal dark:text-white">Set reminder</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="flex items-center bg-surface rounded-[11px] overflow-hidden border border-charcoal/10 dark:border-white/10">
+              <div className="flex items-center bg-surface rounded-control overflow-hidden border border-charcoal/10 dark:border-white/10">
                 <button
                   onClick={() => setReminderDays(Math.max(1, reminderDays - 1))}
                   className="w-11 h-11 border-none bg-transparent cursor-pointer font-mono text-title text-charcoal/75 dark:text-white/60 flex items-center justify-center"
@@ -316,7 +316,7 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
         <textarea
           value={notes} onChange={e => setNotes(e.target.value)}
           placeholder="Notes (optional)…" rows={3}
-          className="w-full px-[14px] py-3 rounded-[11px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border resize-none leading-[1.55]"
+          className="w-full px-[14px] py-3 rounded-control border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border resize-none leading-[1.55]"
         />
 
         {/* Delete */}
@@ -330,7 +330,7 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
           </Button>
         )}
         {isEdit && showDelete && (
-          <div className="bg-danger/10 border border-danger/20 rounded-[14px] px-4 py-[15px]">
+          <div className="bg-danger/10 border border-danger/20 rounded-card px-4 py-[15px]">
             <div className="text-sm font-semibold text-danger mb-3">Delete this event?</div>
             <div className="flex gap-2">
               <Button
@@ -395,9 +395,9 @@ function CalendarDayView({ dateStr, dayMapItems, onBack, onAdd, onEdit }) {
         if (ev._readonly) return (
           <div
             key={ev.id}
-            className={`w-full px-[15px] py-[14px] rounded-[14px] flex items-center gap-3 ${col.soft}`}
+            className={`w-full px-[15px] py-[14px] rounded-card flex items-center gap-3 ${col.soft}`}
           >
-            <span className="w-[14px] h-[14px] rounded-[4px] shrink-0" style={{ background: col.bg }} />
+            <span className="w-[14px] h-[14px] rounded-tag shrink-0" style={{ background: col.bg }} />
             <div className="flex-1 min-w-0">
               <div className="text-body-lg font-semibold text-charcoal dark:text-white">{ev.title}</div>
               <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 mt-[3px] uppercase tracking-[0.04em]">
@@ -410,9 +410,9 @@ function CalendarDayView({ dateStr, dayMapItems, onBack, onAdd, onEdit }) {
           <button
             key={ev.id}
             onClick={() => onEdit(ev)}
-            className={`w-full text-left px-[15px] py-[14px] rounded-[14px] border-none cursor-pointer flex items-center gap-3 ${col.soft}`}
+            className={`w-full text-left px-[15px] py-[14px] rounded-card border-none cursor-pointer flex items-center gap-3 ${col.soft}`}
           >
-            <span className="w-[14px] h-[14px] rounded-[4px] shrink-0" style={{ background: col.bg }} />
+            <span className="w-[14px] h-[14px] rounded-tag shrink-0" style={{ background: col.bg }} />
             <div className="flex-1 min-w-0">
               <div className="text-body-lg font-semibold text-charcoal dark:text-white">{ev.title}</div>
               <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 mt-[3px] uppercase tracking-[0.04em]">
@@ -429,8 +429,8 @@ function CalendarDayView({ dateStr, dayMapItems, onBack, onAdd, onEdit }) {
         <div>
           <div className="font-mono text-micro text-charcoal/30 dark:text-white/30 uppercase tracking-[0.07em] font-semibold px-0.5 pb-2">Staff leave</div>
           {staffItems.map(sl => (
-            <div key={sl.id} className="flex items-center gap-2.5 px-[14px] py-[11px] rounded-xl bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 mb-1.5">
-              <span className="w-3 h-3 rounded-[3px] bg-charcoal/10 dark:bg-white/10 shrink-0" />
+            <div key={sl.id} className="flex items-center gap-2.5 px-[14px] py-[11px] rounded-control bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 mb-1.5">
+              <span className="w-3 h-3 rounded-tag bg-charcoal/10 dark:bg-white/10 shrink-0" />
               <span className="text-sm font-medium text-charcoal/75 dark:text-white/60">{sl.title}</span>
             </div>
           ))}
@@ -450,7 +450,7 @@ function CellPips({ items, isSelected }) {
         return (
           <span
             key={i}
-            className="h-1 rounded-[2px]"
+            className="h-1 rounded-tag"
             style={{
               width: show.length === 1 ? 16 : 7,
               background: isSelected ? white(0.7) : col.bg,
@@ -494,7 +494,7 @@ function MonthGrid({ year, month, dayMap, selectedDate, onSelectDate }) {
             <button
               key={i}
               onClick={() => onSelectDate(dateStr)}
-              className={`flex flex-col items-center py-[4px] rounded-[11px] border-none cursor-pointer transition-colors duration-[120ms] ${isSelected ? 'bg-brand dark:bg-brand-400' : isToday ? 'bg-brand-tint dark:bg-white/10' : 'bg-transparent'}`}
+              className={`flex flex-col items-center py-[4px] rounded-control border-none cursor-pointer transition-colors duration-[120ms] ${isSelected ? 'bg-brand dark:bg-brand-400' : isToday ? 'bg-brand-tint dark:bg-white/10' : 'bg-transparent'}`}
             >
               <span
                 className={`font-mono text-sm tabular-nums leading-none ${isSelected ? 'text-white' : isToday ? 'text-brand dark:text-white' : isWknd(i) ? 'text-ink3 dark:text-white/45' : ''}`}
@@ -594,7 +594,7 @@ function StaffLeaveSection({ staffLeave }) {
   return (
     <div>
       <div className="font-mono text-micro text-charcoal/30 dark:text-white/30 uppercase tracking-[0.08em] font-semibold mb-[9px]">Staff days off</div>
-      <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4">
+      <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card px-4">
         {groups.map(g => (
           <StaffLeaveMemberGroup key={g.person.staffId || g.name} person={g.person} name={g.name} entries={g.entries} />
         ))}
@@ -624,10 +624,10 @@ function EventStrip({ year, month, dayMap, onSelectDate }) {
           <button
             key={dateStr}
             onClick={() => onSelectDate(dateStr)}
-            className="w-full text-left bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-xl px-[13px] py-2.5 cursor-pointer flex items-start gap-3 overflow-hidden relative"
+            className="w-full text-left bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-control px-[13px] py-2.5 cursor-pointer flex items-start gap-3 overflow-hidden relative"
           >
             <span
-              className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl"
+              className="absolute left-0 top-0 bottom-0 w-1 rounded-l-control"
               style={{ background: firstCol.bg }}
             />
             <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 w-[42px] shrink-0 pt-0.5 ml-2">{dayLabel}</div>
@@ -636,7 +636,7 @@ function EventStrip({ year, month, dayMap, onSelectDate }) {
                 const col = colourById(ev.colour)
                 return (
                   <div key={ev.id} className="flex items-center gap-[7px]">
-                    <span className="w-2.5 h-2.5 rounded-[3px] shrink-0" style={{ background: col.bg }} />
+                    <span className="w-2.5 h-2.5 rounded-tag shrink-0" style={{ background: col.bg }} />
                     <span className="text-body-sm font-medium text-charcoal dark:text-white flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{ev.title}</span>
                     {!ev.all_day && ev.start_time && <span className="font-mono text-micro text-charcoal/50 dark:text-white/40">{ev.start_time}</span>}
                   </div>
@@ -729,7 +729,7 @@ export default function CalendarPage() {
         </div>
 
         {/* Month navigator */}
-        <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-3 pt-3 pb-3">
+        <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card px-3 pt-3 pb-3">
           <div className="flex items-center justify-between mb-3">
             <Button
               variant="secondary"

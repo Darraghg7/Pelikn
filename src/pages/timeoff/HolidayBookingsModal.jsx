@@ -116,7 +116,7 @@ export default function HolidayBookingsModal({ staff, holiday, requests, holiday
         {bookings.length === 0 ? (
           <p className="text-body text-ink3 dark:text-white/45 py-4 text-center">No annual leave booked this holiday year.</p>
         ) : (
-          <div className="rounded-xl border border-line dark:border-white/10 divide-y divide-line dark:divide-white/10 overflow-hidden">
+          <div className="rounded-control border border-line dark:border-white/10 divide-y divide-line dark:divide-white/10 overflow-hidden">
             {bookings.map(r => {
               const isChanged = changed.has(r.id)
               const c = cost(r)

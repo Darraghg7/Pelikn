@@ -47,7 +47,7 @@ const DrillDownPanel = memo(function DrillDownPanel({
 
   if (activeDays.length === 0) {
     return (
-      <div className="mx-4 mb-2 p-3 rounded-xl bg-charcoal/3 dark:bg-white/5 text-xs text-charcoal/35 dark:text-white/30 italic flex items-center justify-between">
+      <div className="mx-4 mb-2 p-3 rounded-control bg-charcoal/3 dark:bg-white/5 text-xs text-charcoal/35 dark:text-white/30 italic flex items-center justify-between">
         <span>No clock events or scheduled shifts this week.</span>
         {adminMode && (
           <Button
@@ -63,7 +63,7 @@ const DrillDownPanel = memo(function DrillDownPanel({
   }
 
   return (
-    <div className="mx-4 mb-2 rounded-2xl border border-charcoal/8 dark:border-white/8 bg-white dark:bg-paperDark overflow-hidden">
+    <div className="mx-4 mb-2 rounded-card border border-charcoal/8 dark:border-white/8 bg-white dark:bg-paperDark overflow-hidden">
       {activeDays.map((d, i) => {
         const dateStr   = format(d, 'yyyy-MM-dd')
         const dayData   = person.days[dateStr]
@@ -137,14 +137,14 @@ const DrillDownPanel = memo(function DrillDownPanel({
                     <>
                       <button
                         onClick={() => onEditSession(s)}
-                        className="ml-1 text-charcoal/45 dark:text-white/40 hover:text-charcoal dark:hover:text-white text-micro border border-charcoal/15 dark:border-white/15 hover:border-charcoal/35 dark:hover:border-white/35 rounded px-1.5 py-0.5 transition-colors leading-none shrink-0"
+                        className="ml-1 text-charcoal/45 dark:text-white/40 hover:text-charcoal dark:hover:text-white text-micro border border-charcoal/15 dark:border-white/15 hover:border-charcoal/35 dark:hover:border-white/35 rounded-tag px-1.5 py-0.5 transition-colors leading-none shrink-0"
                         title="Edit this session"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => onDeleteSession(eventIds)}
-                        className="ml-1 text-danger/50 hover:text-danger text-micro border border-danger/20 hover:border-danger/50 rounded px-1.5 py-0.5 transition-colors leading-none shrink-0"
+                        className="ml-1 text-danger/50 hover:text-danger text-micro border border-danger/20 hover:border-danger/50 rounded-tag px-1.5 py-0.5 transition-colors leading-none shrink-0"
                         title="Remove this session"
                       >
                         Remove

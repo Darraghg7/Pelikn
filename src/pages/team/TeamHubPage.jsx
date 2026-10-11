@@ -55,13 +55,13 @@ function AttendanceHero({ onShift, lateCount, loading, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="w-full text-left cursor-pointer bg-brand text-white border-none rounded-[14px] px-4 py-3.5 flex items-center gap-3.5"
+      className="w-full text-left cursor-pointer bg-brand text-white border-none rounded-card px-4 py-3.5 flex items-center gap-3.5"
     >
       <div className="flex-1 min-w-0">
         <div className="font-mono text-micro tracking-[0.1em] uppercase text-white/55 font-semibold">On shift now</div>
         <div className="text-base font-semibold tracking-[-0.015em] mt-[3px] min-h-[19px]">
           {loading
-            ? <span className="inline-block h-[15px] w-32 rounded bg-white/20 animate-pulse align-middle" />
+            ? <span className="inline-block h-[15px] w-32 rounded-tag bg-white/20 animate-pulse align-middle" />
             : onShift.length === 0
               ? 'No staff clocked in yet'
               : `${onShift.length} clocked in`}
@@ -90,10 +90,10 @@ function TeamCard({ label, icon: Icon, status, statusText, count, onClick, editM
   return (
     <button
       onClick={editMode ? onToggle : onClick}
-      className={`text-left cursor-pointer w-full bg-white dark:bg-paperDark border rounded-xl p-3 flex flex-col gap-2 min-h-[84px] transition-opacity ${editMode && isHidden ? 'opacity-40' : 'opacity-100'} ${!editMode && status === 'overdue' ? 'border-danger/30' : 'border-charcoal/10 dark:border-white/10'}`}
+      className={`text-left cursor-pointer w-full bg-white dark:bg-paperDark border rounded-control p-3 flex flex-col gap-2 min-h-[84px] transition-opacity ${editMode && isHidden ? 'opacity-40' : 'opacity-100'} ${!editMode && status === 'overdue' ? 'border-danger/30' : 'border-charcoal/10 dark:border-white/10'}`}
     >
       <div className="flex items-start justify-between">
-        <span className={`w-[30px] h-[30px] rounded-[9px] flex items-center justify-center ${statusBg} ${statusTextClass}`}>
+        <span className={`w-[30px] h-[30px] rounded-control flex items-center justify-center ${statusBg} ${statusTextClass}`}>
           <span className="w-[15px] h-[15px] inline-flex"><Icon /></span>
         </span>
 
@@ -106,7 +106,7 @@ function TeamCard({ label, icon: Icon, status, statusText, count, onClick, editM
             )}
           </span>
         ) : status === 'locked' ? (
-          <span className="h-5 px-1.5 rounded-md inline-flex items-center font-mono text-micro font-semibold tracking-[0.04em] uppercase bg-brand/10 text-brand dark:bg-white/10 dark:text-white/70">
+          <span className="h-5 px-1.5 rounded-tag inline-flex items-center font-mono text-micro font-semibold tracking-[0.04em] uppercase bg-brand/10 text-brand dark:bg-white/10 dark:text-white/70">
             Pro
           </span>
         ) : count && status !== 'done' && status !== 'na' ? (
@@ -264,7 +264,7 @@ export default function TeamHubPage() {
       {loading && !editMode ? (
         <div className="grid grid-cols-2 gap-2">
           {[0,1,2,3,4].map(i => (
-            <div key={i} className="h-[104px] rounded-[14px] bg-charcoal/6 dark:bg-white/8 border border-charcoal/10 dark:border-white/10 animate-pulse" />
+            <div key={i} className="h-[104px] rounded-card bg-charcoal/6 dark:bg-white/8 border border-charcoal/10 dark:border-white/10 animate-pulse" />
           ))}
         </div>
       ) : (

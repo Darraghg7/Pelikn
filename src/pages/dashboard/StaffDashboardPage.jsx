@@ -77,7 +77,7 @@ function StatePill({ clockStatus, todayShift }) {
 
   return (
     <span className={`inline-flex items-center gap-[5px] px-[9px] py-[3px] rounded-full font-mono text-micro font-bold tracking-[0.06em] ${pillClass}`}>
-      <span className="w-[5px] h-[5px] rounded-[3px] bg-current" />
+      <span className="w-[5px] h-[5px] rounded-tag bg-current" />
       {label}
     </span>
   )
@@ -133,7 +133,7 @@ function ShiftHeroCard({ todayShift, hourlyRate, staffId }) {
   const estPay    = durationH && hourlyRate > 0 ? (parseFloat(durationH) * hourlyRate).toFixed(2) : null
 
   return (
-    <div className="bg-brand text-white rounded-[14px] overflow-hidden">
+    <div className="bg-brand text-white rounded-card overflow-hidden">
       <div className="p-[18px_18px_0]">
         <div className="flex justify-between items-center">
           <span className="font-mono text-micro text-white/45 tracking-[0.1em] uppercase font-semibold">
@@ -186,7 +186,7 @@ function AlertStrip({ fridgesUnchecked, cleaningDue, venueSlug }) {
 
   if (!hasIssues) {
     return (
-      <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-success/8 border border-success/20 text-success text-sm font-medium">
+      <div className="flex items-center gap-2.5 px-4 py-3 rounded-control bg-success/8 border border-success/20 text-success text-sm font-medium">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
           <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
         </svg>
@@ -207,7 +207,7 @@ function AlertStrip({ fridgesUnchecked, cleaningDue, venueSlug }) {
   ].filter(Boolean)
 
   return (
-    <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-warning/8 border border-warning/25 text-warning">
+    <div className="flex items-start gap-3 px-4 py-3 rounded-control bg-warning/8 border border-warning/25 text-warning">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
         <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
       </svg>
@@ -263,9 +263,9 @@ function QuickLogRow({ venueSlug, isEnabled, hasPermission }) {
           <Link
             key={b.label}
             to={b.link}
-            className="flex flex-col items-center gap-2 p-3 rounded-xl bg-white dark:bg-paperDark border border-charcoal/8 dark:border-white/8 hover:border-charcoal/20 dark:hover:border-white/20 transition-colors text-center"
+            className="flex flex-col items-center gap-2 p-3 rounded-control bg-white dark:bg-paperDark border border-charcoal/8 dark:border-white/8 hover:border-charcoal/20 dark:hover:border-white/20 transition-colors text-center"
           >
-            <span className="w-8 h-8 rounded-lg bg-brand/8 text-brand flex items-center justify-center">
+            <span className="w-8 h-8 rounded-control bg-brand/8 text-brand flex items-center justify-center">
               {b.icon}
             </span>
             <span className="text-caption text-charcoal/70 dark:text-white/60 font-medium leading-tight">{b.label}</span>
@@ -299,7 +299,7 @@ function DutyItemRow({ item, assignmentId, toggleItem }) {
       className="min-h-11 flex items-center gap-3 w-full text-left py-2.5 px-4 group disabled:opacity-70 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors border-t border-charcoal/5 dark:border-white/5 first:border-t-0"
     >
       <span className={[
-        'w-[22px] h-[22px] rounded-md border-[1.5px] shrink-0 flex items-center justify-center transition-all',
+        'w-[22px] h-[22px] rounded-tag border-[1.5px] shrink-0 flex items-center justify-center transition-all',
         item.completed
           ? 'bg-success border-success'
           : 'border-charcoal/25 dark:border-white/25 group-hover:border-charcoal/45 dark:group-hover:border-white/45',
@@ -329,7 +329,7 @@ function DutyCard({ duty, toggleItem }) {
   const allDone = done === total && total > 0
 
   return (
-    <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
+    <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-3.5 pb-3 border-b border-charcoal/6 dark:border-white/8">
         <div className="flex items-center gap-2 min-w-0">
@@ -388,7 +388,7 @@ function PendingTrainingCard({ staffId, staffName, isManager }) {
 
   return (
     <>
-      <div className="bg-white dark:bg-paperDark rounded-2xl border border-accent/20 overflow-hidden">
+      <div className="bg-white dark:bg-paperDark rounded-card border border-accent/20 overflow-hidden">
         <div className="px-4 py-3 bg-accent/5 flex items-center gap-2.5">
           <svg className="w-4 h-4 text-accent shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
@@ -452,7 +452,7 @@ function NotificationsCard({ staffId, venueId }) {
     usePushNotifications(staffId, venueId)
 
   return (
-    <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 p-4 flex items-center gap-3">
+    <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 p-4 flex items-center gap-3">
       <span className="shrink-0 w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
@@ -546,7 +546,7 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
   // Hiding the card on a failed read would look like "no checks today".
   if (checksFailed && !allChecks.length) {
     return (
-      <div className="bg-white dark:bg-paperDark rounded-2xl">
+      <div className="bg-white dark:bg-paperDark rounded-card">
         <LoadError what={`today’s ${sessionType} checks`} onRetry={retryChecks} />
       </div>
     )
@@ -616,7 +616,7 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
 
       {/* All done — compact confirmation row */}
       {allDone && (
-        <div className="bg-success/8 rounded-[14px] px-4 py-3 flex items-center gap-2">
+        <div className="bg-success/8 rounded-card px-4 py-3 flex items-center gap-2">
           <span className="text-success text-body-sm font-semibold">All checks completed</span>
           <a
             href={`/v/${venueSlug}/opening-closing`}
@@ -629,7 +629,7 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
 
       {/* Expandable pending check list */}
       {!allDone && open && (
-        <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
+        <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 overflow-hidden">
           {pendingChecks.map((check, i) => (
             <div key={check.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5 dark:border-white/5' : ''}`}>
               <p className={`text-body flex-1 font-medium ${tickedThisVisit.has(check.id) ? 'text-charcoal/40 dark:text-white/35 line-through' : 'text-charcoal dark:text-white'}`}>{check.title}</p>
@@ -842,7 +842,7 @@ export default function StaffDashboardPage() {
 
       {/* If clock-in is locked, show shift info in a simpler card */}
       {isPlanLocked('clock-in') && todayShift && (
-        <div className="bg-brand text-white rounded-[14px] p-5">
+        <div className="bg-brand text-white rounded-card p-5">
           <span className="font-mono text-micro text-white/45 tracking-[0.1em] uppercase font-semibold">
             Your shift today
           </span>

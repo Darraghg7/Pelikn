@@ -23,7 +23,7 @@ function Group({ label, children, foot }) {
       {label && (
         <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pt-[18px] pb-1.5">{label}</div>
       )}
-      <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
+      <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card overflow-hidden">
         {children}
       </div>
       {foot && <div className="text-caption text-charcoal/50 dark:text-white/40 px-1 pt-2 leading-[1.45]">{foot}</div>}
@@ -43,7 +43,7 @@ function Row({ label, sub, children, last }) {
   )
 }
 
-const fieldClass = 'w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 bg-transparent text-sm text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border'
+const fieldClass = 'w-full px-3 py-2.5 rounded-control border border-charcoal/10 dark:border-white/10 bg-transparent text-sm text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border'
 
 function fmtRange(c) {
   const start = format(parseISO(c.start_date), 'd MMM yyyy')
@@ -239,7 +239,7 @@ export default function VenueSettingsPage() {
                 value={form.venue_name}
                 onChange={e => setForm(f => ({ ...f, venue_name: e.target.value }))}
                 placeholder="e.g. The Crown Bar & Kitchen"
-                className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-sm text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border"
+                className="w-full px-3 py-2.5 rounded-control border border-charcoal/10 dark:border-white/10 text-sm text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border"
               />
             </div>
             <div>
@@ -249,7 +249,7 @@ export default function VenueSettingsPage() {
                 value={form.manager_email}
                 onChange={e => setForm(f => ({ ...f, manager_email: e.target.value }))}
                 placeholder="manager@venue.com"
-                className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-sm text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border"
+                className="w-full px-3 py-2.5 rounded-control border border-charcoal/10 dark:border-white/10 text-sm text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border"
               />
             </div>
             <Button
@@ -275,7 +275,7 @@ export default function VenueSettingsPage() {
                     key={n}
                     type="button"
                     onClick={() => setFhrs((f) => ({ ...f, rating: f.rating === n ? null : n }))}
-                    className={`w-9 h-9 rounded-[9px] text-sm font-semibold border transition-colors ${fhrs.rating === n ? 'bg-brand text-white border-brand' : 'bg-transparent text-charcoal/60 dark:text-white/50 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30'}`}
+                    className={`w-9 h-9 rounded-control text-sm font-semibold border transition-colors ${fhrs.rating === n ? 'bg-brand text-white border-brand' : 'bg-transparent text-charcoal/60 dark:text-white/50 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30'}`}
                   >
                     {n}
                   </button>
@@ -288,7 +288,7 @@ export default function VenueSettingsPage() {
                 type="date"
                 value={fhrs.rated_at}
                 onChange={(e) => setFhrs((f) => ({ ...f, rated_at: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-sm text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border"
+                className="w-full px-3 py-2.5 rounded-control border border-charcoal/10 dark:border-white/10 text-sm text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border"
               />
             </div>
             <Button
@@ -326,7 +326,7 @@ export default function VenueSettingsPage() {
                 )}
                 <button
                   onClick={() => toggleClosedDay(i)}
-                  className={`shrink-0 h-7 px-2.5 rounded-[7px] text-caption font-semibold cursor-pointer border-0 transition-all duration-150 ${isClosed ? 'bg-brand text-white' : 'bg-charcoal/6 dark:bg-white/8 text-charcoal/50 dark:text-white/40'}`}
+                  className={`shrink-0 h-7 px-2.5 rounded-tag text-caption font-semibold cursor-pointer border-0 transition-all duration-150 ${isClosed ? 'bg-brand text-white' : 'bg-charcoal/6 dark:bg-white/8 text-charcoal/50 dark:text-white/40'}`}
                 >{isClosed ? 'Open' : 'Close'}</button>
               </div>
             )
@@ -340,7 +340,7 @@ export default function VenueSettingsPage() {
             <div className="font-mono text-micro font-semibold tracking-[0.06em] uppercase text-charcoal/50 dark:text-white/40 mb-0.5">Venue logo</div>
             <div className="flex items-center gap-3 flex-wrap">
               {settings.logo_url && (
-                <img src={settings.logo_url} alt="Venue logo" className="h-11 w-11 rounded-[10px] object-contain border border-charcoal/10 dark:border-white/10 bg-charcoal/6 dark:bg-white/8 p-1" />
+                <img src={settings.logo_url} alt="Venue logo" className="h-11 w-11 rounded-control object-contain border border-charcoal/10 dark:border-white/10 bg-charcoal/6 dark:bg-white/8 p-1" />
               )}
               <input
                 type="file" accept="image/*"
@@ -370,7 +370,7 @@ export default function VenueSettingsPage() {
                 {themeMode === 'system' ? 'Following device settings' : dark ? 'Dark mode active' : 'Light mode active'}
               </div>
             </div>
-            <div className="flex bg-charcoal/6 dark:bg-white/8 rounded-[9px] p-[3px] gap-0.5">
+            <div className="flex bg-charcoal/6 dark:bg-white/8 rounded-control p-[3px] gap-0.5">
               {[
                 { id: 'light', label: '☀️' },
                 { id: 'dark',  label: '🌙' },
@@ -379,7 +379,7 @@ export default function VenueSettingsPage() {
                 <button
                   key={opt.id}
                   onClick={() => setThemeMode(opt.id)}
-                  className={`w-[34px] h-7 rounded-[7px] border-0 cursor-pointer text-sm transition-all duration-150 ${themeMode === opt.id ? 'bg-white dark:bg-paperDark shadow-sm' : 'bg-transparent'}`}
+                  className={`w-[34px] h-7 rounded-tag border-0 cursor-pointer text-sm transition-all duration-150 ${themeMode === opt.id ? 'bg-white dark:bg-paperDark shadow-sm' : 'bg-transparent'}`}
                 >{opt.label}</button>
               ))}
             </div>
@@ -390,7 +390,7 @@ export default function VenueSettingsPage() {
 
         <div>
           <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">My venues</div>
-          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden py-1">
+          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card overflow-hidden py-1">
             <VenuesSection />
           </div>
         </div>

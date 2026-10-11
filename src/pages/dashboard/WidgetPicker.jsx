@@ -86,7 +86,7 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
               const item = TODAY_ITEM_REGISTRY[id]
               if (!item) return null
               return (
-                <div key={id} className="flex items-center gap-2 bg-charcoal/4 dark:bg-white/5 rounded-xl px-3 py-2.5">
+                <div key={id} className="flex items-center gap-2 bg-charcoal/4 dark:bg-white/5 rounded-control px-3 py-2.5">
                   <div className="flex flex-col gap-0.5">
                     <button
                       onClick={() => moveTodayUp(id)}
@@ -126,7 +126,7 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
                   <button
                     key={id}
                     onClick={() => toggleToday(id)}
-                    className="flex items-center gap-3 rounded-xl border border-dashed border-charcoal/15 dark:border-white/15 px-3 py-2.5 hover:border-charcoal/30 dark:hover:border-white/30 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-all text-left"
+                    className="flex items-center gap-3 rounded-control border border-dashed border-charcoal/15 dark:border-white/15 px-3 py-2.5 hover:border-charcoal/30 dark:hover:border-white/30 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-all text-left"
                   >
                     <span className="text-charcoal/20 dark:text-white/20 text-lg shrink-0">+</span>
                     <div className="flex-1 min-w-0">
@@ -149,7 +149,7 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
                 const w = WIDGET_REGISTRY[id]
                 if (!w) return null
                 return (
-                  <div key={id} className="flex items-center gap-2 bg-charcoal/4 dark:bg-white/5 rounded-xl px-3 py-2.5">
+                  <div key={id} className="flex items-center gap-2 bg-charcoal/4 dark:bg-white/5 rounded-control px-3 py-2.5">
                     <div className="flex flex-col gap-0.5">
                       <button
                         onClick={() => moveUp(id)}
@@ -198,7 +198,7 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
                     <button
                       key={id}
                       onClick={() => toggleWidget(id)}
-                      className="flex items-center gap-3 rounded-xl border border-dashed border-charcoal/15 dark:border-white/15 px-3 py-2.5 hover:border-charcoal/30 dark:hover:border-white/30 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-all text-left"
+                      className="flex items-center gap-3 rounded-control border border-dashed border-charcoal/15 dark:border-white/15 px-3 py-2.5 hover:border-charcoal/30 dark:hover:border-white/30 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-all text-left"
                     >
                       <span className="text-charcoal/20 dark:text-white/20 text-lg shrink-0">+</span>
                       <div className="flex-1 min-w-0">

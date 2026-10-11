@@ -114,7 +114,7 @@ export default function GettingStartedCard({ venueId, venueSlug }) {
   }
 
   return (
-    <div className="bg-white dark:bg-paperDark rounded-2xl p-5">
+    <div className="bg-white dark:bg-paperDark rounded-card p-5">
       <div className="flex items-center justify-between mb-3">
         <div>
           <p className="text-sm font-bold text-charcoal dark:text-white">Getting Started</p>
@@ -130,7 +130,7 @@ export default function GettingStartedCard({ venueId, venueSlug }) {
           <Link
             key={item.id}
             to={item.link}
-            className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${item.done ? 'bg-success/5' : 'hover:bg-charcoal/3 dark:hover:bg-white/5'}`}
+            className={`flex items-center gap-3 px-3 py-2 rounded-control transition-colors ${item.done ? 'bg-success/5' : 'hover:bg-charcoal/3 dark:hover:bg-white/5'}`}
           >
             <span className={item.done ? 'text-success' : 'text-charcoal/20 dark:text-white/20'}>
               {item.done ? <CheckIcon /> : <CircleIcon />}

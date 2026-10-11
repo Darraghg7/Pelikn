@@ -56,7 +56,7 @@ function DepartmentsSection() {
       />
 
       {departments.length > 0 && (
-        <div className="bg-white dark:bg-paperDark rounded-xl border border-charcoal/8 dark:border-white/8 overflow-hidden divide-y divide-charcoal/5 dark:divide-white/5">
+        <div className="bg-white dark:bg-paperDark rounded-control border border-charcoal/8 dark:border-white/8 overflow-hidden divide-y divide-charcoal/5 dark:divide-white/5">
           {departments.map(dept => (
             <div key={dept.id} className="grid items-center gap-3 py-2 px-3 grid-cols-[1fr_auto] hover:bg-charcoal/[0.025] transition-colors group">
               {editingId === dept.id ? (
@@ -66,7 +66,7 @@ function DepartmentsSection() {
                     value={editName}
                     onChange={e => setEditName(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleRename(dept.id)}
-                    className="px-2 py-1 rounded-md border border-charcoal/20 dark:border-white/20 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                    className="px-2 py-1 rounded-tag border border-charcoal/20 dark:border-white/20 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                     autoFocus
                   />
                   <div className="flex gap-1">
@@ -101,7 +101,7 @@ function DepartmentsSection() {
           onChange={e => setNewName(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleAdd()}
           placeholder="Department name (e.g. Kitchen)"
-          className="flex-1 px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+          className="flex-1 px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
         />
         <Button
           loading={saving}
@@ -175,7 +175,7 @@ export default function RolesSection() {
 
       {/* Existing roles */}
       {roles.length > 0 && (
-        <div className="bg-white dark:bg-paperDark rounded-xl border border-charcoal/8 dark:border-white/8 overflow-hidden divide-y divide-charcoal/5 dark:divide-white/5">
+        <div className="bg-white dark:bg-paperDark rounded-control border border-charcoal/8 dark:border-white/8 overflow-hidden divide-y divide-charcoal/5 dark:divide-white/5">
           {roles.map(role => {
             return (
             <div key={role.id} className="grid items-center gap-3 py-2 px-3 grid-cols-[1fr_auto] hover:bg-charcoal/[0.025] transition-colors group">
@@ -186,7 +186,7 @@ export default function RolesSection() {
                     value={editName}
                     onChange={e => setEditName(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleRename(role.id)}
-                    className="px-2 py-1 rounded-md border border-charcoal/20 dark:border-white/20 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                    className="px-2 py-1 rounded-tag border border-charcoal/20 dark:border-white/20 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                     autoFocus
                   />
                   <div className="flex gap-1">
@@ -226,7 +226,7 @@ export default function RolesSection() {
           onChange={e => setNewName(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleAdd()}
           placeholder="Job title (e.g. Barista)"
-          className="flex-1 px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+          className="flex-1 px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
         />
         <Button
           loading={saving}

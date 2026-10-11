@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 export default function SettingsSection({ title, subtitle, children, defaultOpen = false, locked = false }) {
   const [open, setOpen] = useState(defaultOpen && !locked)
   return (
-    <div className="bg-white dark:bg-white/5 rounded-2xl overflow-hidden">
+    <div className="bg-white dark:bg-white/5 rounded-card overflow-hidden">
       <button
         type="button"
         onClick={() => !locked && setOpen(o => !o)}

@@ -10,7 +10,7 @@ import { markStaffLeaving, finishStaffLeaving, updateLeavingChecklist, cancelSta
 import { LEAVING_REASONS, LEAVING_CHECKLIST } from '../../lib/leaving'
 import { londonToday } from '../../lib/time'
 
-const INPUT = 'w-full h-12 px-4 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-base text-ink dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40'
+const INPUT = 'w-full h-12 px-4 rounded-control border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-base text-ink dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40'
 
 const longDate = (d) => format(parseISO(d), 'EEEE d MMMM yyyy')
 const shortDate = (d) => format(parseISO(d), 'EEE d MMM')
@@ -172,7 +172,7 @@ function LeavingSummary({ staff, leaving, onEdit, reload, onChanged }) {
               type="checkbox"
               checked={!!checklist[item.key]}
               onChange={() => tick(item.key)}
-              className="w-5 h-5 rounded accent-brand shrink-0"
+              className="w-5 h-5 rounded-tag accent-brand shrink-0"
             />
             <span className={`text-body ${checklist[item.key] ? 'text-ink3 dark:text-white/45 line-through' : 'text-ink dark:text-white'}`}>{item.label}</span>
           </label>

@@ -71,7 +71,7 @@ function VenueCard({ result, isHome, dimmed, onOpen }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={() => !dimmed && onOpen(venue.slug)}
-      className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 dark:border-white/8 overflow-hidden flex flex-col"
+      className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 overflow-hidden flex flex-col"
       style={{
         cursor: dimmed ? 'default' : 'pointer',
         opacity: dimmed ? 0.20 : 1,
@@ -81,7 +81,7 @@ function VenueCard({ result, isHome, dimmed, onOpen }) {
         transition: 'transform 150ms, box-shadow 150ms, opacity 150ms',
       }}
     >
-      <div className={`h-[3px] rounded-t-2xl ${st.topBarClass}`} />
+      <div className={`h-[3px] rounded-t-card ${st.topBarClass}`} />
 
       <div className="p-[14px_16px_10px]">
         <div className="text-sm font-bold text-charcoal dark:text-white overflow-hidden text-ellipsis whitespace-nowrap">
@@ -91,7 +91,7 @@ function VenueCard({ result, isHome, dimmed, onOpen }) {
           {loading ? 'Loading…' : st.label}
         </div>
         {isHome && (
-          <span className="inline-block mt-1 text-micro font-bold uppercase tracking-[0.08em] text-brand bg-brand/9 px-1.5 py-[2px] rounded">
+          <span className="inline-block mt-1 text-micro font-bold uppercase tracking-[0.08em] text-brand bg-brand/9 px-1.5 py-[2px] rounded-tag">
             Home
           </span>
         )}
@@ -167,11 +167,11 @@ function StripCell({ cell, value, isActive, onClick, loading, isLast }) {
       ].join(' ')}
     >
       {isActive && (
-        <span className={`absolute bottom-0 left-0 right-0 h-[2.5px] rounded-t-sm ${cell.barClass}`} />
+        <span className={`absolute bottom-0 left-0 right-0 h-[2.5px] rounded-t-tag ${cell.barClass}`} />
       )}
       <div className={`text-display font-bold tracking-[-0.04em] tabular-nums leading-none ${cell.numClass}`}>
         {loading ? (
-          <span className="inline-block w-10 h-7 rounded-md bg-charcoal/6 dark:bg-white/8" />
+          <span className="inline-block w-10 h-7 rounded-tag bg-charcoal/6 dark:bg-white/8" />
         ) : value}
       </div>
       <div className="text-micro font-semibold text-charcoal/40 dark:text-white/35 mt-[3px] uppercase tracking-[0.04em]">
@@ -251,7 +251,7 @@ export default function OverviewPage() {
         </p>
       </div>
 
-      <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 dark:border-white/8 flex overflow-hidden mb-4">
+      <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 flex overflow-hidden mb-4">
         {STRIP_CELLS.map((cell, i) => (
           <StripCell
             key={cell.key}
@@ -266,7 +266,7 @@ export default function OverviewPage() {
       </div>
 
       {activeFilter && activeCell && (
-        <div className="bg-white dark:bg-paperDark rounded-xl border border-charcoal/8 dark:border-white/8 px-3.5 py-[9px] flex items-center gap-2.5 mb-4 animate-[fadeSlideIn_150ms_ease]">
+        <div className="bg-white dark:bg-paperDark rounded-control border border-charcoal/8 dark:border-white/8 px-3.5 py-[9px] flex items-center gap-2.5 mb-4 animate-[fadeSlideIn_150ms_ease]">
           <span className={`w-[7px] h-[7px] rounded-full shrink-0 ${activeCell.barClass}`} />
           <span className="text-xs font-semibold text-charcoal dark:text-white flex-1">
             {filterLabels[activeFilter]}
@@ -292,7 +292,7 @@ export default function OverviewPage() {
           />
         ))}
         {loading && results.length === 0 && allVenues.map(v => (
-          <div key={v.id} className="h-[220px] bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 dark:border-white/8 animate-pulse" />
+          <div key={v.id} className="h-[220px] bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 animate-pulse" />
         ))}
       </div>
 

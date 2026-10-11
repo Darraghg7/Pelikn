@@ -89,7 +89,7 @@ function MobileStatTile({ item, summary, vp }) {
   const tagProps = item.route ? { to: vp(item.route) } : {}
 
   return (
-    <Tag {...tagProps} className="min-w-0 bg-white dark:bg-paperDark border border-line dark:border-white/10 rounded-2xl px-2.5 min-[420px]:px-3 pt-2.5 pb-2.5 flex flex-col gap-1.5 no-underline active:bg-cream dark:active:bg-white/5 transition-colors">
+    <Tag {...tagProps} className="min-w-0 bg-white dark:bg-paperDark border border-line dark:border-white/10 rounded-card px-2.5 min-[420px]:px-3 pt-2.5 pb-2.5 flex flex-col gap-1.5 no-underline active:bg-cream dark:active:bg-white/5 transition-colors">
       <span className="flex items-start gap-1.5 min-w-0 min-h-[30px] min-[420px]:min-h-0">
         <span className={`w-2 h-2 mt-1 rounded-full shrink-0 ${isDanger ? 'bg-bad' : 'bg-good'}`} />
         <span className="text-caption min-[420px]:text-body-sm text-ink2 dark:text-white/70 leading-tight break-words">
@@ -129,13 +129,13 @@ function AttentionCard({ actions, editMode }) {
   return (
     <div
       className={[
-        'rounded-2xl overflow-hidden bg-white dark:bg-paperDark border border-line dark:border-white/10 transition-opacity duration-200',
+        'rounded-card overflow-hidden bg-white dark:bg-paperDark border border-line dark:border-white/10 transition-opacity duration-200',
         editMode ? 'opacity-45' : 'opacity-100',
       ].join(' ')}
     >
       {isEmpty ? (
         <div className="flex items-center gap-3.5 px-3.5 sm:px-3.5 py-2.5">
-          <div className="w-9 h-8 rounded-xl bg-goodBg dark:bg-good/20 flex items-center justify-center shrink-0">
+          <div className="w-9 h-8 rounded-control bg-goodBg dark:bg-good/20 flex items-center justify-center shrink-0">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-good dark:text-goodDark">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
@@ -186,7 +186,7 @@ function DisciplinaryStrip({ alerts, editMode, venueSlug }) {
   if (!alerts.length) return null
   return (
     <div className={[
-      'bg-severe rounded-[14px] p-[12px_16px] flex flex-col gap-2 transition-opacity duration-200',
+      'bg-severe rounded-card p-[12px_16px] flex flex-col gap-2 transition-opacity duration-200',
       editMode ? 'opacity-45' : 'opacity-100',
     ].join(' ')}>
       <div className="flex items-center gap-1.5">
@@ -201,7 +201,7 @@ function DisciplinaryStrip({ alerts, editMode, venueSlug }) {
         <Link
           key={a.id}
           to={`/v/${venueSlug}/timesheet`}
-          className="flex items-center gap-2 bg-white/10 rounded-[10px] p-[9px_12px] no-underline"
+          className="flex items-center gap-2 bg-white/10 rounded-control p-[9px_12px] no-underline"
         >
           <span className="flex-1 text-caption text-white font-medium leading-[1.35]">
             {a.staff_name ?? 'Staff member'} —{' '}
@@ -371,13 +371,13 @@ function MobileClockCard({ staffId }) {
           : '—' },
     { label: 'Last in', value: clockInAt ? format(clockInAt, 'EEE HH:mm') : '—' },
   ]
-  const primaryBtn = `w-full h-10 rounded-2xl bg-white text-brand text-body font-semibold border-0 cursor-pointer`
+  const primaryBtn = `w-full h-10 rounded-card bg-white text-brand text-body font-semibold border-0 cursor-pointer`
 
   return (
     <div>
       <StaffAlertModal {...alertModalProps} />
       <ClosingChecklistGateModal {...closingGuard.modalProps} />
-      <div className="bg-brand rounded-2xl px-3.5 sm:px-3.5 pt-2.5 pb-3">
+      <div className="bg-brand rounded-card px-3.5 sm:px-3.5 pt-2.5 pb-3">
         <div className="flex items-center justify-between gap-2.5">
           <div className="flex items-baseline gap-2.5 min-w-0">
             <span className="font-mono text-display font-semibold tracking-tight text-white leading-none">
@@ -426,7 +426,7 @@ function MobileClockCard({ staffId }) {
               Break
             </Button>
             <Button variant="inverse" onClick={closingGuard.guardClockOut} className="flex-[2]">
-              <span className="inline-block w-2.5 h-2.5 bg-brand rounded-[2px]" />
+              <span className="inline-block w-2.5 h-2.5 bg-brand rounded-tag" />
               Clock out
             </Button>
           </div>
@@ -472,13 +472,13 @@ function MobileSortableCard({ id, editMode, half = false, children }) {
         outline:      editMode ? `1.5px dashed ${colors.ink4}` : 'none',
         outlineOffset: 2,
       }}
-      className={`rounded-2xl relative min-w-0 ${half ? 'col-span-1' : 'col-span-2'}`}
+      className={`rounded-card relative min-w-0 ${half ? 'col-span-1' : 'col-span-2'}`}
     >
       {editMode && (
         <div
           {...attributes}
           {...listeners}
-          className="absolute top-2.5 right-2.5 z-20 cursor-grab p-1.5 rounded-lg bg-white/92 backdrop-blur-sm shadow-sm text-charcoal/50 dark:text-white/40 flex items-center justify-center"
+          className="absolute top-2.5 right-2.5 z-20 cursor-grab p-1.5 rounded-control bg-white/92 backdrop-blur-sm shadow-sm text-charcoal/50 dark:text-white/40 flex items-center justify-center"
         >
           <GripIcon />
         </div>
@@ -576,7 +576,7 @@ function MobileDraggableWidgetGrid({
                 {/* Below-the-fold cards wait to fetch until they're nearly on
                     screen, keeping them out of the cold-open request burst. */}
                 <FetchWhenNearViewport>
-                  <Suspense fallback={<div className="h-[120px] rounded-2xl bg-line2 dark:bg-white/8 border border-line dark:border-white/10 animate-pulse" />}>
+                  <Suspense fallback={<div className="h-[120px] rounded-card bg-line2 dark:bg-white/8 border border-line dark:border-white/10 animate-pulse" />}>
                     <Comp />
                   </Suspense>
                 </FetchWhenNearViewport>
@@ -587,7 +587,7 @@ function MobileDraggableWidgetGrid({
       </SortableContext>
       <DragOverlay>
         {activeContent && (
-          <div className="rounded-[14px] opacity-95 cursor-grabbing" style={{ boxShadow: `0 24px 48px ${alpha(colors.ink, 0.25)}`, transform: 'scale(1.02)' }}>
+          <div className="rounded-card opacity-95 cursor-grabbing" style={{ boxShadow: `0 24px 48px ${alpha(colors.ink, 0.25)}`, transform: 'scale(1.02)' }}>
             <Suspense fallback={null}>
               {activeContent}
             </Suspense>
@@ -695,7 +695,7 @@ export default function MobileManagerDashboard({
             type="button"
             onClick={() => setEditMode(v => !v)}
             className={[
-              'shrink-0 h-8 px-3.5 rounded-xl border text-body-sm font-semibold cursor-pointer transition-colors',
+              'shrink-0 h-8 px-3.5 rounded-control border text-body-sm font-semibold cursor-pointer transition-colors',
               editMode
                 ? 'bg-goodBg text-good border-good/30 dark:bg-good/20 dark:text-goodDark'
                 : 'bg-white dark:bg-paperDark text-ink2 dark:text-white/80 border-line dark:border-white/10 hover:border-ink4',
@@ -741,7 +741,7 @@ export default function MobileManagerDashboard({
             {!summary ? (
               <div className="grid grid-cols-4 gap-2">
                 {[1,2,3,4].map(i => (
-                  <div key={i} className="h-[72px] rounded-2xl bg-line2 dark:bg-white/8 border border-line dark:border-white/10 animate-pulse" />
+                  <div key={i} className="h-[72px] rounded-card bg-line2 dark:bg-white/8 border border-line dark:border-white/10 animate-pulse" />
                 ))}
               </div>
             ) : glanceItems.length === 0 ? null : (

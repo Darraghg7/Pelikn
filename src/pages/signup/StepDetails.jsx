@@ -58,10 +58,10 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
                 placeholder="Venue name (e.g. The Star Inn)"
                 value={form.venueName}
                 onChange={e => set('venueName', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
+                className="w-full px-4 py-3 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
               />
               <div>
-                <div className="flex items-center rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark overflow-hidden focus-within:border-brand/40 focus-within:ring-2 focus-within:ring-brand/10 transition-all">
+                <div className="flex items-center rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark overflow-hidden focus-within:border-brand/40 focus-within:ring-2 focus-within:ring-brand/10 transition-all">
                   <span className="px-3 text-xs text-charcoal/35 dark:text-white/30 font-mono border-r border-charcoal/10 dark:border-white/10 py-3 bg-charcoal/3 dark:bg-white/5 shrink-0">get-pelikn.com/v/</span>
                   <input
                     type="text"
@@ -87,7 +87,7 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
                 placeholder="Your full name"
                 value={form.ownerName}
                 onChange={e => set('ownerName', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
+                className="w-full px-4 py-3 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
               />
               <div className="relative">
                 <input
@@ -99,7 +99,7 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
                   placeholder="Staff PIN (4-6 digits)"
                   value={form.pin}
                   onChange={e => set('pin', e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white font-mono tracking-[0.3em] placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
+                  className="w-full px-4 py-3 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white font-mono tracking-[0.3em] placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
                 />
                 <p className="text-caption text-charcoal/30 dark:text-white/30 mt-1 px-1">Used by you and your staff to log into the app</p>
               </div>
@@ -116,7 +116,7 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
                 placeholder="Email address"
                 value={form.email}
                 onChange={e => set('email', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
+                className="w-full px-4 py-3 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
               />
               <input
                 type="password"
@@ -125,14 +125,14 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
                 placeholder="Password (min 6 characters)"
                 value={form.password}
                 onChange={e => set('password', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
+                className="w-full px-4 py-3 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
               />
               <p className="text-caption text-charcoal/30 dark:text-white/30 px-1">Used to manage billing and account settings</p>
             </div>
           </div>
 
           {error && (
-            <div className="bg-danger/5 border border-danger/20 rounded-xl px-4 py-3">
+            <div className="bg-danger/5 border border-danger/20 rounded-control px-4 py-3">
               <p className="text-danger text-xs">{error}</p>
             </div>
           )}
@@ -163,7 +163,7 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
 
       {/* Order summary — desktop sidebar */}
       <div className="w-full lg:w-72 shrink-0">
-        <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5 sticky top-6">
+        <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/10 dark:border-white/10 p-5 sticky top-6">
           <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-4">Order Summary</p>
 
           {/* Plan */}
@@ -205,7 +205,7 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
           </div>
 
           {/* Trial badge */}
-          <div className="bg-success/8 border border-success/20 rounded-xl px-4 py-3 mb-3">
+          <div className="bg-success/8 border border-success/20 rounded-control px-4 py-3 mb-3">
             <p className="text-xs text-brand font-medium inline-flex items-center gap-1"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> 7-day free trial</p>
             <p className="text-caption text-brand/60 mt-0.5">No card needed today. Add one in Plan & Billing whenever you're ready. You won't be charged until your trial ends.</p>
           </div>

@@ -14,7 +14,7 @@ function Stepper({ value, onChange, suffix, min = 0, max = 99, step = 1 }) {
     <button
       onClick={fn}
       disabled={disabled}
-      className={`w-[34px] h-[34px] rounded-[9px] border border-charcoal/10 dark:border-white/10 flex items-center justify-center text-lg font-semibold transition-colors ${disabled ? 'bg-charcoal/5 dark:bg-white/5 text-charcoal/30 dark:text-white/30 cursor-default' : 'bg-white dark:bg-paperDark text-charcoal dark:text-white hover:bg-charcoal/[0.03]'}`}
+      className={`w-[34px] h-[34px] rounded-control border border-charcoal/10 dark:border-white/10 flex items-center justify-center text-lg font-semibold transition-colors ${disabled ? 'bg-charcoal/5 dark:bg-white/5 text-charcoal/30 dark:text-white/30 cursor-default' : 'bg-white dark:bg-paperDark text-charcoal dark:text-white hover:bg-charcoal/[0.03]'}`}
     >{label}</button>
   )
   return (
@@ -48,7 +48,7 @@ function Group({ label, children, foot }) {
       {label && (
         <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pt-[18px] pb-1.5">{label}</div>
       )}
-      <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
+      <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card overflow-hidden">
         {children}
       </div>
       {foot && (
@@ -243,7 +243,7 @@ export default function AttendanceSettingsPage() {
                 value={holidayYearStartMonth}
                 onChange={e => saveHolidayYearStartMonth(Number(e.target.value))}
                 aria-label="Holiday year starts in"
-                className="shrink-0 h-[34px] px-2.5 rounded-[9px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-sm font-medium text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                className="shrink-0 h-[34px] px-2.5 rounded-control border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-sm font-medium text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               >
                 {MONTH_NAMES.map((name, i) => <option key={name} value={i + 1}>{name}</option>)}
               </select>

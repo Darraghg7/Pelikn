@@ -39,13 +39,13 @@ function SlotRow({ slot, roles, onDelete, onSave, isNew = false }) {
   const changed = JSON.stringify(form) !== JSON.stringify({ ...EMPTY_SLOT, ...slot })
 
   return (
-    <div className="flex flex-col gap-2 p-3 rounded-xl border border-charcoal/10 dark:border-white/10 bg-charcoal/[0.02]">
+    <div className="flex flex-col gap-2 p-3 rounded-control border border-charcoal/10 dark:border-white/10 bg-charcoal/[0.02]">
       {/* Row 1: Role + Count */}
       <div className="flex items-center gap-2 flex-wrap">
         <select
           value={form.role_id}
           onChange={e => handleRoleChange(e.target.value)}
-          className="flex-1 min-w-[130px] px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+          className="flex-1 min-w-[130px] px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
         >
           <option value="">Select role…</option>
           {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
@@ -56,7 +56,7 @@ function SlotRow({ slot, roles, onDelete, onSave, isNew = false }) {
           <input
             type="number" min={1} max={20} value={form.staff_count}
             onChange={e => set('staff_count', Math.max(1, parseInt(e.target.value) || 1))}
-            className="w-14 px-2 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+            className="w-14 px-2 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>
       </div>
@@ -72,7 +72,7 @@ function SlotRow({ slot, roles, onDelete, onSave, isNew = false }) {
         <input
           type="text" value={form.label} placeholder="Label (optional, e.g. Closer)"
           onChange={e => set('label', e.target.value)}
-          className="flex-1 min-w-[120px] px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+          className="flex-1 min-w-[120px] px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
         />
       </div>
 
@@ -167,7 +167,7 @@ export default function RotaConfigModal({ open, onClose, closedDayIndices = [] }
       <div className="flex flex-col gap-4 max-h-[80vh]">
 
         {/* Summary strip */}
-        <div className="rounded-xl bg-brand/6 border border-brand/12 px-4 py-3 flex items-center justify-between">
+        <div className="rounded-control bg-brand/6 border border-brand/12 px-4 py-3 flex items-center justify-between">
           <p className="text-xs text-charcoal/60 dark:text-white/50">
             {requirements.length === 0
               ? 'No requirements set — add slots below for each day you are open.'
@@ -191,7 +191,7 @@ export default function RotaConfigModal({ open, onClose, closedDayIndices = [] }
                 onClick={() => !isClosed && setActiveDay(d)}
                 disabled={isClosed}
                 className={[
-                  'flex flex-col items-center px-3 py-1.5 rounded-lg border text-micro font-medium transition-all',
+                  'flex flex-col items-center px-3 py-1.5 rounded-control border text-micro font-medium transition-all',
                   isClosed
                     ? 'bg-charcoal/4 dark:bg-white/5 border-charcoal/8 dark:border-white/8 text-charcoal/20 dark:text-white/20 cursor-not-allowed line-through'
                     : activeDay === d
@@ -252,7 +252,7 @@ export default function RotaConfigModal({ open, onClose, closedDayIndices = [] }
                   />
                 </div>
               ) : (
-                <div className="rounded-xl border border-charcoal/10 dark:border-white/10 px-4 py-6 text-center">
+                <div className="rounded-control border border-charcoal/10 dark:border-white/10 px-4 py-6 text-center">
                   <p className="text-sm text-charcoal/40 dark:text-white/35">No roles configured yet.</p>
                   <p className="text-xs text-charcoal/30 dark:text-white/30 mt-1">
                     Go to <strong>Settings → Roles</strong> to add your business roles first.

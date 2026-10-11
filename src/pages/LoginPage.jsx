@@ -10,6 +10,7 @@ import { captureSilent } from '../lib/reportError'
 import { staffListState } from '../lib/loginScreenState'
 import Avatar from '../components/ui/Avatar'
 import Button, { CloseButton } from '../components/ui/Button'
+import { radius } from '../lib/tokens'
 
 // ── Device venue helpers ──────────────────────────────────────────────────────
 function readDeviceVenues() {
@@ -37,7 +38,7 @@ function VenuePicker({ venues, currentSlug, onSelect }) {
             type="button"
             onClick={() => onSelect(v)}
             className={[
-              'w-full flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-all',
+              'w-full flex items-center justify-between px-4 py-3 rounded-control border text-left transition-all',
               v.slug === currentSlug
                 ? 'border-accent bg-accent/5 ring-1 ring-accent'
                 : 'border-charcoal/10 dark:border-white/10 hover:border-charcoal/25 dark:hover:border-white/25 bg-white dark:bg-paperDark',
@@ -118,7 +119,7 @@ function AddVenueModal({ currentDeviceVenues, onAdd, onClose }) {
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
-        className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-sm p-6 flex flex-col gap-4 shadow-2xl"
+        className="bg-white dark:bg-paperDark rounded-card w-full max-w-sm p-6 flex flex-col gap-4 shadow-2xl"
         style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
       >
         <div>
@@ -137,7 +138,7 @@ function AddVenueModal({ currentDeviceVenues, onAdd, onClose }) {
             onKeyDown={handleKey}
             placeholder="e.g. the-oak-tavern"
             className={[
-              'w-full px-4 py-3 rounded-xl border bg-white dark:bg-paperDark text-charcoal dark:text-white text-sm font-mono tracking-wider placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none transition-colors',
+              'w-full px-4 py-3 rounded-control border bg-white dark:bg-paperDark text-charcoal dark:text-white text-sm font-mono tracking-wider placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none transition-colors',
               status === 'error' ? 'border-danger' : 'border-charcoal/15 dark:border-white/15 focus:border-brand',
             ].join(' ')}
             autoCapitalize="none"
@@ -157,7 +158,7 @@ function AddVenueModal({ currentDeviceVenues, onAdd, onClose }) {
             {found.map(v => {
               const exists = existingSlugs.has(v.slug)
               return (
-                <div key={v.id} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border ${exists ? 'border-charcoal/8 dark:border-white/8 bg-charcoal/2 dark:bg-white/3' : 'border-brand/20 bg-brand/4'}`}>
+                <div key={v.id} className={`flex items-center gap-3 px-3 py-2.5 rounded-control border ${exists ? 'border-charcoal/8 dark:border-white/8 bg-charcoal/2 dark:bg-white/3' : 'border-brand/20 bg-brand/4'}`}>
                   <div className={`w-2 h-2 rounded-full shrink-0 ${exists ? 'bg-charcoal/20 dark:bg-white/20' : 'bg-brand'}`} />
                   <span className={`flex-1 text-sm font-semibold ${exists ? 'text-charcoal/40 dark:text-white/35' : 'text-charcoal dark:text-white'}`}>{v.name}</span>
                   {exists && <span className="text-xs uppercase tracking-widest text-charcoal/30 dark:text-white/30 font-semibold">Added</span>}
@@ -225,7 +226,7 @@ function SlidingVenueTabs({ venues, activeSlug, onSelect, onAdd }) {
       {/* Scrollable track */}
       <div
         ref={trackRef}
-        className="flex-1 relative flex items-center rounded-xl p-[3px] overflow-x-auto scrollbar-hide bg-brand/5 dark:bg-white/5"
+        className="flex-1 relative flex items-center rounded-control p-[3px] overflow-x-auto scrollbar-hide bg-brand/5 dark:bg-white/5"
       >
         {/* Sliding pill */}
         <div
@@ -236,7 +237,7 @@ function SlidingVenueTabs({ venues, activeSlug, onSelect, onAdd }) {
             height: 'calc(100% - 6px)',
             left: pill.left,
             width: pill.width || 0,
-            borderRadius: 9,
+            borderRadius: radius.control,
             transition: 'left 0.22s cubic-bezier(0.34,1.4,0.64,1), width 0.15s ease',
             pointerEvents: 'none',
             zIndex: 0,
@@ -253,7 +254,7 @@ function SlidingVenueTabs({ venues, activeSlug, onSelect, onAdd }) {
               style={{
                 zIndex: 1,
                 padding: '7px 14px',
-                borderRadius: 9,
+                borderRadius: radius.control,
                 transition: 'color 0.18s',
               }}
             >
@@ -270,7 +271,7 @@ function SlidingVenueTabs({ venues, activeSlug, onSelect, onAdd }) {
         className="flex-shrink-0 flex items-center justify-center transition-all bg-transparent border border-brand/10 text-brand/30 dark:border-white/10 dark:text-white/35"
         style={{
           width: 32, height: 32,
-          borderRadius: 9,
+          borderRadius: radius.control,
           cursor: 'pointer',
         }}
       >
@@ -297,7 +298,7 @@ function PINDots({ length, error }) {
                 ? 'bg-brand border-brand dark:bg-white dark:border-white shadow-[0_0_6px_theme(colors.brand.DEFAULT/20%)]'
                 : 'bg-transparent border-brand/20 dark:border-white/25'}`}
             style={{
-              width: 12, height: 12, borderRadius: 6,
+              width: 12, height: 12, borderRadius: radius.tag,
               transition: 'all 0.12s',
               transform: filled ? 'scale(1.1)' : 'scale(1)',
             }}
@@ -321,7 +322,7 @@ function Numpad({ onDigit, onDelete }) {
             type="button"
             onClick={() => k === '⌫' ? onDelete() : onDigit(String(k))}
             className={[
-              'h-14 rounded-xl border text-charcoal dark:text-white font-medium transition-all active:scale-95',
+              'h-14 rounded-control border text-charcoal dark:text-white font-medium transition-all active:scale-95',
               k === '⌫'
                 ? 'text-charcoal/50 dark:text-white/40 text-xl border-charcoal/8 dark:border-white/8 bg-charcoal/4 dark:bg-white/5 hover:bg-charcoal/8 dark:hover:bg-white/8'
                 : 'text-2xl border-charcoal/8 dark:border-white/8 bg-charcoal/4 dark:bg-white/5 hover:bg-charcoal/8 dark:hover:bg-white/8',
@@ -347,8 +348,8 @@ function StaffListSkeleton() {
           className={`flex items-center gap-3 px-4 py-3 ${i < 2 ? 'border-b border-charcoal/10 dark:border-white/10' : ''}`}
         >
           <div className="w-9 h-9 rounded-full bg-charcoal/10 dark:bg-white/10 animate-pulse shrink-0" />
-          <div className="h-3 rounded bg-charcoal/10 dark:bg-white/10 animate-pulse" style={{ width: `${[46, 38, 52][i]}%` }} />
-          <div className="ml-auto h-2.5 w-10 rounded bg-charcoal/5 dark:bg-white/5 animate-pulse" />
+          <div className="h-3 rounded-tag bg-charcoal/10 dark:bg-white/10 animate-pulse" style={{ width: `${[46, 38, 52][i]}%` }} />
+          <div className="ml-auto h-2.5 w-10 rounded-tag bg-charcoal/5 dark:bg-white/5 animate-pulse" />
         </div>
       ))}
     </div>
@@ -662,7 +663,7 @@ export default function LoginPage() {
 
       {/* Login card */}
       <div
-        className="w-full max-w-sm bg-white dark:bg-paperDark rounded-2xl shadow-sm border border-charcoal/8 dark:border-white/8 overflow-hidden"
+        className="w-full max-w-sm bg-white dark:bg-paperDark rounded-card shadow-sm border border-charcoal/8 dark:border-white/8 overflow-hidden"
         style={ready ? { animation: 'login-card-enter 0.5s 0.08s cubic-bezier(.34,1.15,.64,1) both', willChange: 'transform, opacity' } : { opacity: 0 }}
       >
         {/* Venue name — single-venue only */}
@@ -704,7 +705,7 @@ export default function LoginPage() {
                     placeholder="Search name…"
                     value={staffQuery}
                     onChange={e => setStaffQuery(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-brand/25 focus:border-brand/40 transition-all"
+                    className="w-full pl-9 pr-4 py-2.5 rounded-control border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-brand/25 focus:border-brand/40 transition-all"
                   />
                   {staffQuery && (
                     <Button variant="ghost" size="sm" iconOnly aria-label="Clear search" onClick={() => setStaffQuery('')}
@@ -716,7 +717,7 @@ export default function LoginPage() {
               )}
 
               {/* Staff rows */}
-              <div className="flex flex-col border border-charcoal/8 dark:border-white/8 rounded-xl overflow-hidden">
+              <div className="flex flex-col border border-charcoal/8 dark:border-white/8 rounded-control overflow-hidden">
                 {listState === 'loading' && <StaffListSkeleton />}
                 {listState === 'error' && (
                   <ListMessage
@@ -768,7 +769,7 @@ export default function LoginPage() {
                     >
                       {/* Selected left accent bar */}
                       {isSel && (
-                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-accent rounded-r-[2px]" />
+                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-accent rounded-r-tag" />
                       )}
 
                       {/* Avatar */}

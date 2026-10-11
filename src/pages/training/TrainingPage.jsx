@@ -109,7 +109,7 @@ function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSav
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 p-4" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
+      <div className="bg-white dark:bg-paperDark rounded-card w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
         <div className="px-6 py-5 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between sticky top-0 bg-white dark:bg-paperDark z-10">
           <div>
             <p className="font-semibold text-charcoal dark:text-white">New SC6 Training Record</p>
@@ -126,7 +126,7 @@ function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSav
               <select
                 value={form.staff_id}
                 onChange={e => setForm(f => ({ ...f, staff_id: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                className="w-full px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               >
                 <option value="">Select</option>
                 {staff.filter(s => s.id !== managerStaffId).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -138,7 +138,7 @@ function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSav
                 type="date"
                 value={form.training_date}
                 onChange={e => setForm(f => ({ ...f, training_date: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                className="w-full px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
           </div>
@@ -150,7 +150,7 @@ function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSav
               value={form.trainer_name}
               onChange={e => setForm(f => ({ ...f, trainer_name: e.target.value }))}
               placeholder="Name of person delivering the training"
-              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="w-full px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
@@ -165,7 +165,7 @@ function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSav
                 <label key={t} className="flex items-start gap-2.5 cursor-pointer group">
                   <span
                     onClick={() => toggleTopic(t)}
-                    className={`mt-0.5 w-4 h-4 rounded border shrink-0 flex items-center justify-center text-micro transition-colors ${
+                    className={`mt-0.5 w-4 h-4 rounded-tag border shrink-0 flex items-center justify-center text-micro transition-colors ${
                       form.topics.includes(t)
                         ? 'bg-charcoal border-charcoal dark:border-white text-cream'
                         : 'border-charcoal/25 dark:border-white/25 group-hover:border-charcoal/50 dark:group-hover:border-white/50'
@@ -192,7 +192,7 @@ function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSav
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               rows={2}
               placeholder="Any additional context about this training session"
-              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="w-full px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
@@ -244,7 +244,7 @@ function SignOffDetailModal({ record, venueId, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 p-4" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-paperDark rounded-card w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="px-6 py-5 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between">
           <div>
             <p className="font-semibold text-charcoal dark:text-white">{record.staff?.name}</p>
@@ -268,7 +268,7 @@ function SignOffDetailModal({ record, venueId, onClose }) {
           </div>
 
           {record.notes && (
-            <div className="bg-white dark:bg-paperDark rounded-lg px-4 py-3">
+            <div className="bg-white dark:bg-paperDark rounded-control px-4 py-3">
               <p className="text-micro text-charcoal/40 dark:text-white/35 uppercase tracking-widest mb-1">Notes</p>
               <p className="text-sm text-charcoal/70 dark:text-white/60 italic">{record.notes}</p>
             </div>
@@ -293,7 +293,7 @@ function SignOffDetailModal({ record, venueId, onClose }) {
           )}
 
           {!record.staff_acknowledged && (
-            <div className="bg-warning/8 border border-warning/25 rounded-lg px-4 py-3 flex items-center justify-between gap-3">
+            <div className="bg-warning/8 border border-warning/25 rounded-control px-4 py-3 flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm text-warning font-medium">Awaiting employee signature</p>
                 <p className="text-xs text-warning/70 mt-0.5">
@@ -319,7 +319,7 @@ function SignOffDetailModal({ record, venueId, onClose }) {
 
 // ── Shared bits ───────────────────────────────────────────────────────────────
 const FIELD_LABEL = 'block text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
-const TEXT_FIELD  = 'w-full h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
+const TEXT_FIELD  = 'w-full h-9 px-3.5 rounded-control border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
 
 const PILL = {
   signed:    { label: 'Signed',    cls: TONE.ok },
@@ -370,7 +370,7 @@ function FileField({ label, onFile, accept }) {
         type="file"
         accept={accept}
         onChange={e => onFile(e.target.files?.[0] ?? null)}
-        className="w-full text-body-sm text-ink2 dark:text-white/70 file:mr-3 file:h-8 file:px-3.5 file:rounded-xl file:border file:border-line dark:file:border-white/15 file:bg-white dark:file:bg-paperDark file:text-body-sm file:font-semibold file:text-ink2 dark:file:text-white/80"
+        className="w-full text-body-sm text-ink2 dark:text-white/70 file:mr-3 file:h-8 file:px-3.5 file:rounded-control file:border file:border-line dark:file:border-white/15 file:bg-white dark:file:bg-paperDark file:text-body-sm file:font-semibold file:text-ink2 dark:file:text-white/80"
       />
     </label>
   )
@@ -399,7 +399,7 @@ function InductionTab({ venueId, isManager, session, showCreate, onCloseCreate }
   return (
     <div className="flex flex-col gap-2.5">
       {!isManager && pending.length > 0 && (
-        <div className="rounded-2xl bg-warnBg dark:bg-warn/20 px-3.5 sm:px-3.5 py-2.5 flex items-center justify-between gap-2.5">
+        <div className="rounded-card bg-warnBg dark:bg-warn/20 px-3.5 sm:px-3.5 py-2.5 flex items-center justify-between gap-2.5">
           <div className="min-w-0">
             <p className="text-body-sm font-semibold text-ink dark:text-white">Training record awaiting your signature</p>
             <p className="text-body-sm text-ink2 dark:text-white/70 mt-0.5">
@@ -612,7 +612,7 @@ function CertificatesTab({ venueId, showCreate, onCloseCreate }) {
                   View certificate
                 </Button>
               ) : (
-                <span className="h-9 rounded-xl bg-cream dark:bg-white/5 inline-flex items-center justify-center text-body-sm text-ink3 dark:text-white/45">No file attached</span>
+                <span className="h-9 rounded-control bg-cream dark:bg-white/5 inline-flex items-center justify-center text-body-sm text-ink3 dark:text-white/45">No file attached</span>
               )}
             </div>
           </div>

@@ -34,7 +34,7 @@ export default function VenueTypeIndicator({ venueId, venueSlug }) {
   const preset = VENUE_PRESETS.find(p => p.id === venueType)
 
   return (
-    <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-brand/5 border border-brand/15">
+    <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-control bg-brand/5 border border-brand/15">
       {preset ? (
         <>
           <span className="text-lg">{VENUE_TYPE_ICONS[preset.icon] ?? ''}</span>

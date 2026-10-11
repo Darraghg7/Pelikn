@@ -47,7 +47,7 @@ export default function StaffSettingsPage() {
           <h1 className="text-title leading-tight font-bold tracking-tight text-ink dark:text-white whitespace-nowrap">Team setup</h1>
           <Link
             to={`/v/${venueSlug}/staff`}
-            className="shrink-0 inline-flex items-center gap-1 h-8 px-3.5 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-body-sm font-semibold text-ink dark:text-white hover:border-ink4"
+            className="shrink-0 inline-flex items-center gap-1 h-8 px-3.5 rounded-control border border-line dark:border-white/15 bg-white dark:bg-paperDark text-body-sm font-semibold text-ink dark:text-white hover:border-ink4"
           >
             Manage staff
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>

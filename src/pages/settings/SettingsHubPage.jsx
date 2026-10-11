@@ -17,7 +17,7 @@ function GroupLabel({ label }) {
 
 function RowGroup({ children }) {
   return (
-    <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
+    <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card overflow-hidden">
       {children}
     </div>
   )
@@ -29,7 +29,7 @@ function SRow({ icon, label, sub, value, attention, last, onClick, danger }) {
       onClick={onClick}
       className={`w-full text-left flex items-center gap-[13px] px-[14px] min-h-[52px] border-b border-charcoal/6 dark:border-white/8 last:border-0 hover:bg-charcoal/[0.02] transition-colors ${last ? 'border-b-0' : ''}`}
     >
-      <span className={`w-8 h-8 rounded-[9px] shrink-0 flex items-center justify-center ${attention ? 'bg-warning/10 text-warning' : danger ? 'bg-danger/10 text-danger' : 'bg-brand/8 text-brand'}`}>
+      <span className={`w-8 h-8 rounded-control shrink-0 flex items-center justify-center ${attention ? 'bg-warning/10 text-warning' : danger ? 'bg-danger/10 text-danger' : 'bg-brand/8 text-brand'}`}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           {icon}
         </svg>
@@ -76,7 +76,7 @@ export default function SettingsHubPage() {
       <button
         onClick={staffId ? () => navigate(vp(`/staff?staff=${staffId}`)) : undefined}
         disabled={!staffId}
-        className={`w-full text-left bg-brand text-white rounded-[14px] p-4 flex items-center gap-[13px] mb-1 transition-colors ${staffId ? 'hover:bg-brand/90 cursor-pointer' : 'cursor-default'}`}
+        className={`w-full text-left bg-brand text-white rounded-card p-4 flex items-center gap-[13px] mb-1 transition-colors ${staffId ? 'hover:bg-brand/90 cursor-pointer' : 'cursor-default'}`}
       >
         <Avatar name={staffName} id={staffId} tone="onDark" size="2xl" decorative />
         <div className="flex-1 min-w-0">

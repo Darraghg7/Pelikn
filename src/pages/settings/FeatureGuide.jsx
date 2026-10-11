@@ -84,7 +84,7 @@ function FeatureRow({ feature, venueSlug, locked, first }) {
         <div className="flex items-center gap-2 flex-wrap">
           <p className="text-sm font-medium text-charcoal dark:text-white">{feature.label}</p>
           {locked && (
-            <span className="font-mono text-micro font-bold uppercase tracking-[0.04em] bg-accent/10 text-accent px-1.5 py-0.5 rounded shrink-0">
+            <span className="font-mono text-micro font-bold uppercase tracking-[0.04em] bg-accent/10 text-accent px-1.5 py-0.5 rounded-tag shrink-0">
               Pro
             </span>
           )}
@@ -121,7 +121,7 @@ function FeatureGroup({ group, venueSlug, venuePlan, first }) {
             {GROUP_LABELS[group.id] ?? group.label}
           </span>
           {isStarter && proCount > 0 && (
-            <span className="font-mono text-micro font-bold uppercase tracking-[0.04em] bg-accent/10 text-accent px-1.5 py-0.5 rounded">
+            <span className="font-mono text-micro font-bold uppercase tracking-[0.04em] bg-accent/10 text-accent px-1.5 py-0.5 rounded-tag">
               {proCount} Pro
             </span>
           )}
@@ -157,21 +157,21 @@ export default function FeatureGuide() {
   return (
     <>
       <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[18px] pb-[7px] px-0.5">Feature guide</div>
-      <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
+      <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card overflow-hidden">
         {[...FEATURE_GROUPS, EXTRAS_GROUP].map((group, i) => (
           <FeatureGroup key={group.id} group={group} venueSlug={venueSlug} venuePlan={venuePlan} first={i === 0} />
         ))}
       </div>
 
       {isStarter && (
-        <div className="mt-3 bg-accent/5 border border-accent/20 rounded-[14px] px-4 py-4 flex flex-col gap-2">
+        <div className="mt-3 bg-accent/5 border border-accent/20 rounded-card px-4 py-4 flex flex-col gap-2">
           <p className="text-sm font-semibold text-charcoal dark:text-white">Unlock the full platform</p>
           <p className="text-xs text-charcoal/55 dark:text-white/45 leading-relaxed">
             Pro adds rota management, timesheets, staff training records, time-off requests, HACCP tools, and more — everything you need to run your team alongside your compliance.
           </p>
           <Link
             to={`/v/${venueSlug}/settings/billing`}
-            className="mt-1 inline-flex items-center gap-1.5 bg-accent text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-accent/90 transition-colors self-start"
+            className="mt-1 inline-flex items-center gap-1.5 bg-accent text-white text-xs font-semibold px-4 py-2 rounded-control hover:bg-accent/90 transition-colors self-start"
           >
             Upgrade to Pro — {PRO_PRICE}/mo →
           </Link>

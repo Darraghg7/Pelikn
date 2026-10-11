@@ -135,7 +135,7 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 p-4" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
+      <div className="bg-white dark:bg-paperDark rounded-card w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-charcoal/8 dark:border-white/8">
           <h2 className="text-lg font-bold text-charcoal dark:text-white">Add Tip Split</h2>
           <CloseButton onClick={onClose} />
@@ -150,7 +150,7 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
                 <input
                   type="number" step="0.01" min="0" value={total}
                   onChange={e => setTotal(e.target.value)}
-                  className="w-full border border-charcoal/15 dark:border-white/15 rounded-xl py-2.5 pl-7 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+                  className="w-full border border-charcoal/15 dark:border-white/15 rounded-control py-2.5 pl-7 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
                   placeholder="0.00"
                   autoFocus
                 />
@@ -161,7 +161,7 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
               <input
                 type="date" value={date}
                 onChange={e => setDate(e.target.value)}
-                className="w-full border border-charcoal/15 dark:border-white/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+                className="w-full border border-charcoal/15 dark:border-white/15 rounded-control py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
               />
             </div>
           </div>
@@ -171,7 +171,7 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
             <input
               type="text" value={notes}
               onChange={e => setNotes(e.target.value)}
-              className="w-full border border-charcoal/15 dark:border-white/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+              className="w-full border border-charcoal/15 dark:border-white/15 rounded-control py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
               placeholder="e.g. Friday evening service"
             />
           </div>
@@ -198,7 +198,7 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
                         type="number" step="0.01" min="0"
                         value={amounts[s.id]}
                         onChange={e => setAmount(s.id, e.target.value)}
-                        className="w-full border border-charcoal/15 dark:border-white/15 rounded-lg py-1.5 pl-6 pr-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-brand/30"
+                        className="w-full border border-charcoal/15 dark:border-white/15 rounded-control py-1.5 pl-6 pr-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-brand/30"
                         placeholder="0.00"
                       />
                     </div>
@@ -206,7 +206,7 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
                 ))}
               </div>
 
-              <div className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold ${
+              <div className={`flex items-center justify-between px-3 py-2.5 rounded-control text-sm font-semibold ${
                 remaining === 0 ? 'bg-success/8 text-success' :
                 remaining < 0 ? 'bg-danger/8 text-danger' :
                 'bg-warning/8 text-warning'
@@ -244,7 +244,7 @@ function TipSplitCard({ split }) {
   const createdBy = split.created_by_staff?.name || 'Unknown'
 
   return (
-    <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 dark:border-white/8 overflow-hidden">
+    <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 overflow-hidden">
       <button
         onClick={() => setExpanded(e => !e)}
         className="w-full flex items-center justify-between px-4 py-3.5 text-left"

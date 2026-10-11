@@ -40,7 +40,7 @@ function PlanOption({ plan, selected, onSelect, price, sfx }) {
       type="button"
       onClick={() => onSelect(plan)}
       aria-pressed={active}
-      className={`flex-1 rounded-xl border-2 px-3 py-3 text-left transition-colors ${active ? 'border-brand bg-brand/5' : 'border-charcoal/10 dark:border-white/10 hover:border-charcoal/25 dark:hover:border-white/25'}`}
+      className={`flex-1 rounded-control border-2 px-3 py-3 text-left transition-colors ${active ? 'border-brand bg-brand/5' : 'border-charcoal/10 dark:border-white/10 hover:border-charcoal/25 dark:hover:border-white/25'}`}
     >
       <div className="text-sm font-semibold text-charcoal dark:text-white">{PLAN_NAME[plan]}</div>
       <div className="text-body-sm text-charcoal/55 dark:text-white/45">£{price}{sfx}</div>
@@ -154,7 +154,7 @@ export default function BillingSettingsPage() {
       <div className="pt-4 pb-24 max-w-[480px] mx-auto">
 
         {/* Current plan */}
-        <div className="bg-brand rounded-[14px] p-[18px] pb-4 mb-[14px] text-white">
+        <div className="bg-brand rounded-card p-[18px] pb-4 mb-[14px] text-white">
           <div className="font-mono text-micro tracking-[0.1em] uppercase text-white/55 font-semibold">Current plan</div>
           <div className="flex items-baseline gap-[10px] mt-2">
             <span className="text-display font-bold tracking-[-0.02em]">{PLAN_NAME[plan] ?? 'Starter'}</span>
@@ -178,16 +178,16 @@ export default function BillingSettingsPage() {
 
         {loading ? null : !managed ? (
           /* Venues from before self-serve billing are invoiced by hand. */
-          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px] text-body-sm text-charcoal/60 dark:text-white/50 leading-[1.5]">
+          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card px-4 py-[14px] text-body-sm text-charcoal/60 dark:text-white/50 leading-[1.5]">
             Your account is billed directly by Pelikn. To change plan, add a venue or cancel, email{' '}
             <a href="mailto:hello@get-pelikn.com?subject=Plan change" className="text-brand dark:text-accent font-medium">hello@get-pelikn.com</a>.
           </div>
         ) : !canManage ? (
-          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px] text-body-sm text-charcoal/60 dark:text-white/50 leading-[1.5]">
+          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card px-4 py-[14px] text-body-sm text-charcoal/60 dark:text-white/50 leading-[1.5]">
             Only the venue owner can change the plan or payment details. Sign in with the owner&apos;s email and password to manage billing.
           </div>
         ) : hasLiveSub ? (
-          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px]">
+          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card px-4 py-[14px]">
             {access.state === 'past_due' && (
               <p className="text-body-sm text-danger font-medium mb-3">
                 Your last payment didn&apos;t go through. Stripe will try again, but updating your card now keeps things running.
@@ -220,19 +220,19 @@ export default function BillingSettingsPage() {
           </div>
         ) : (
           /* Trial, or lapsed: pick a plan and add a card. */
-          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px]">
+          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card px-4 py-[14px]">
             <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase font-semibold mb-3">
               {access.state === 'trial' ? 'Keep Pelikn after your trial' : 'Choose a plan'}
             </div>
 
-            <div className="inline-flex bg-charcoal/5 dark:bg-white/8 rounded-lg p-0.5 mb-3" role="group" aria-label="Billing period">
+            <div className="inline-flex bg-charcoal/5 dark:bg-white/8 rounded-control p-0.5 mb-3" role="group" aria-label="Billing period">
               {[['month', 'Monthly'], ['year', 'Annual · 2 months free']].map(([val, label]) => (
                 <button
                   key={val}
                   type="button"
                   onClick={() => setPeriod(val)}
                   aria-pressed={period === val}
-                  className={`text-xs font-medium px-3 py-1.5 rounded-md transition-colors ${period === val ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm' : 'text-charcoal/50 dark:text-white/45'}`}
+                  className={`text-xs font-medium px-3 py-1.5 rounded-tag transition-colors ${period === val ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm' : 'text-charcoal/50 dark:text-white/45'}`}
                 >
                   {label}
                 </button>
@@ -267,7 +267,7 @@ export default function BillingSettingsPage() {
         )}
 
         {managed && (
-          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px] mt-[14px]">
+          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card px-4 py-[14px] mt-[14px]">
             <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase font-semibold mb-2">Add another venue</div>
             <div className="text-body-sm text-charcoal/55 dark:text-white/45 leading-[1.5]">
               {isPro

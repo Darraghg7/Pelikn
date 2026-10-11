@@ -146,7 +146,7 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
         <div className="flex flex-col gap-4">
 
           {/* Current status */}
-          <div className={`rounded-xl border px-4 py-2.5 flex items-center justify-between ${STATUS_COLOURS[request.status]}`}>
+          <div className={`rounded-control border px-4 py-2.5 flex items-center justify-between ${STATUS_COLOURS[request.status]}`}>
             <span className="text-xs font-medium">
               {format(parseISO(request.start_date), 'd MMM')} — {format(parseISO(request.end_date), 'd MMM yyyy')}
             </span>
@@ -197,7 +197,7 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
                       startDate: e.target.value,
                       endDate: f.endDate < e.target.value ? e.target.value : f.endDate,
                     }))}
-                    className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                    className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                   />
                 </div>
                 <div>
@@ -207,7 +207,7 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
                     value={form.endDate}
                     min={form.startDate}
                     onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))}
-                    className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                    className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                   />
                 </div>
               </div>
@@ -230,7 +230,7 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
                     value={form.paidHours}
                     onChange={e => setForm(f => ({ ...f, paidHours: e.target.value }))}
                     placeholder="Not recorded — estimated from their average week"
-                    className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                    className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                   />
                 </div>
               )}
@@ -242,12 +242,12 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
                   value={form.reason}
                   onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
                   rows={2}
-                  className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                  className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                 />
               </div>
 
               {willNeedReapproval && (
-                <div className="rounded-xl bg-warning/8 border border-warning/20 px-4 py-2.5">
+                <div className="rounded-control bg-warning/8 border border-warning/20 px-4 py-2.5">
                   <p className="text-caption text-warning font-medium">
                     This leave is already approved — saving changes sends it back to your manager for approval.
                   </p>

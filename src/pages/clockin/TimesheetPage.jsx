@@ -248,8 +248,8 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
   return (
     <div className="fixed inset-0 z-[60] flex flex-col justify-end">
       <div onClick={onClose} className="absolute inset-0 bg-ink/45" />
-      <div className="relative bg-surface dark:bg-paperDark rounded-t-[22px] px-3.5 pb-[34px] pt-[10px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch] shadow-[0_-12px_40px_theme(colors.ink/24%)]">
-        <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-4" />
+      <div className="relative bg-surface dark:bg-paperDark rounded-t-sheet px-3.5 pb-[34px] pt-[10px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch] shadow-[0_-12px_40px_theme(colors.ink/24%)]">
+        <div className="w-[38px] h-1 rounded-tag bg-charcoal/10 dark:bg-white/10 mx-auto mb-4" />
         <div className="flex items-start justify-between mb-4">
           <div>
             <div className="text-title-sm font-semibold tracking-[-0.015em]">{dayLabel}</div>
@@ -257,14 +257,14 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
           </div>
           {session?.in && <span className="font-mono text-micro font-bold text-warning bg-warning/10 uppercase tracking-[0.05em] px-[9px] py-1 rounded-full">Editing</span>}
         </div>
-        <div className="flex gap-2 bg-charcoal/[0.06] dark:bg-white/8 p-1 rounded-xl mb-2">
+        <div className="flex gap-2 bg-charcoal/[0.06] dark:bg-white/8 p-1 rounded-control mb-2">
           {[['in', 'Clock in', clockIn], ['out', 'Clock out', clockOut]].map(([k, label, val]) => {
             const on = edge === k
             return (
               <button
                 key={k}
                 onClick={() => setEdge(k)}
-                className={`flex-1 cursor-pointer border-none rounded-[9px] py-2 ${on ? 'bg-paper dark:bg-white/15 shadow-[0_1px_3px_theme(colors.ink/10%)]' : 'bg-transparent'}`}
+                className={`flex-1 cursor-pointer border-none rounded-control py-2 ${on ? 'bg-paper dark:bg-white/15 shadow-[0_1px_3px_theme(colors.ink/10%)]' : 'bg-transparent'}`}
               >
                 <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{label}</div>
                 <div className={`font-mono text-title-sm font-semibold mt-0.5 tabular-nums ${on ? 'text-brand dark:text-white' : 'text-charcoal/50 dark:text-white/40'}`}>{val}</div>
@@ -289,7 +289,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
                 <button
                   key={b}
                   onClick={() => setBrk(b)}
-                  className={`font-mono text-xs font-semibold cursor-pointer px-[11px] py-[6px] rounded-[9px] border ${on ? 'border-brand bg-brand text-white' : 'border-charcoal/10 dark:border-white/10 bg-paper dark:bg-white/5 text-charcoal/75 dark:text-white/60'}`}
+                  className={`font-mono text-xs font-semibold cursor-pointer px-[11px] py-[6px] rounded-control border ${on ? 'border-brand bg-brand text-white' : 'border-charcoal/10 dark:border-white/10 bg-paper dark:bg-white/5 text-charcoal/75 dark:text-white/60'}`}
                 >
                   {b === 0 ? 'None' : `${b}m`}
                 </button>
@@ -297,7 +297,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
             })}
           </div>
         </div>
-        <div className={`mt-[10px] px-[13px] py-[10px] rounded-[11px] flex items-center gap-2 ${valid ? 'bg-brand/8' : 'bg-danger/10'}`}>
+        <div className={`mt-[10px] px-[13px] py-[10px] rounded-control flex items-center gap-2 ${valid ? 'bg-brand/8' : 'bg-danger/10'}`}>
           <span className="font-mono text-sm font-semibold tabular-nums">{clockIn} – {clockOut}</span>
           <span className={`text-body-sm ${valid ? 'text-charcoal/50 dark:text-white/40' : 'text-danger'}`}>· {valid ? minsStr(worked(clockIn, clockOut, brk)) : 'clock out must be after in'}</span>
         </div>
@@ -361,8 +361,8 @@ function StaffHoursSheet({ t, person, periodDays, dailyGrid, periodLabel, onEdit
   return (
     <div className="fixed inset-0 z-[55] flex flex-col justify-end">
       <div onClick={onClose} className="absolute inset-0 bg-ink/45" />
-      <div className="relative bg-surface dark:bg-paperDark rounded-t-[22px] px-3.5 pt-5 pb-[34px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch] shadow-[0_-12px_40px_theme(colors.ink/24%)]">
-        <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-4" />
+      <div className="relative bg-surface dark:bg-paperDark rounded-t-sheet px-3.5 pt-5 pb-[34px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch] shadow-[0_-12px_40px_theme(colors.ink/24%)]">
+        <div className="w-[38px] h-1 rounded-tag bg-charcoal/10 dark:bg-white/10 mx-auto mb-4" />
         <div className="flex items-center gap-2.5 mb-[14px]">
           <Avatar name={t.name} id={t.staffId} colour={person?.colour} photoUrl={person?.photo_url} size="xl" decorative />
           <div className="flex-1 min-w-0">
@@ -380,8 +380,8 @@ function StaffHoursSheet({ t, person, periodDays, dailyGrid, periodLabel, onEdit
             const { real, orphans } = partitionDaySessions(dayData?.sessions ?? [])
             const has = real.length > 0
             return (
-              <div key={i} className={`flex items-center gap-[10px] px-3 py-[10px] rounded-xl border ${has ? 'bg-paper dark:bg-white/5 border-charcoal/10 dark:border-white/10' : 'bg-surface dark:bg-transparent border-charcoal/[0.06] dark:border-white/5'}`}>
-                <div className={`w-[42px] h-[46px] rounded-[9px] border border-charcoal/10 dark:border-white/10 shrink-0 flex flex-col items-center justify-center gap-px ${has ? 'bg-surface dark:bg-white/5' : 'bg-charcoal/[0.06] dark:bg-white/5'}`}>
+              <div key={i} className={`flex items-center gap-[10px] px-3 py-[10px] rounded-control border ${has ? 'bg-paper dark:bg-white/5 border-charcoal/10 dark:border-white/10' : 'bg-surface dark:bg-transparent border-charcoal/[0.06] dark:border-white/5'}`}>
+                <div className={`w-[42px] h-[46px] rounded-control border border-charcoal/10 dark:border-white/10 shrink-0 flex flex-col items-center justify-center gap-px ${has ? 'bg-surface dark:bg-white/5' : 'bg-charcoal/[0.06] dark:bg-white/5'}`}>
                   <span className="font-mono text-micro text-charcoal/50 dark:text-white/40 font-semibold tracking-[0.06em]">{format(d, 'EEE').toUpperCase()}</span>
                   <span className={`font-mono text-body font-semibold leading-none ${has ? 'text-charcoal dark:text-white' : 'text-charcoal/30 dark:text-white/30'}`}>{format(d, 'd')}</span>
                 </div>
@@ -427,7 +427,7 @@ function StaffHoursSheet({ t, person, periodDays, dailyGrid, periodLabel, onEdit
             )
           })}
         </div>
-        <div className="mt-[14px] px-[14px] py-[13px] bg-white dark:bg-paperDark rounded-xl border border-charcoal/10 dark:border-white/10 flex items-center gap-5">
+        <div className="mt-[14px] px-[14px] py-[13px] bg-white dark:bg-paperDark rounded-control border border-charcoal/10 dark:border-white/10 flex items-center gap-5">
           <div>
             <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.1em] uppercase font-semibold">Total</div>
             <div className="font-mono text-title-sm font-semibold text-charcoal dark:text-white mt-[3px] tabular-nums">{minsStr(t.totalMinutes)}</div>
@@ -813,9 +813,9 @@ export default function TimesheetPage() {
             ))}
             {period === 'custom' && (
               <span className="flex items-center gap-2 w-full sm:w-auto">
-                <input type="date" aria-label="From" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="flex-1 h-8 px-3 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-body-sm" />
+                <input type="date" aria-label="From" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="flex-1 h-8 px-3 rounded-control border border-line dark:border-white/10 bg-white dark:bg-paperDark text-body-sm" />
                 <span className="text-body-sm text-ink3">to</span>
-                <input type="date" aria-label="To" value={customTo} min={customFrom} onChange={e => setCustomTo(e.target.value)} className="flex-1 h-8 px-3 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-body-sm" />
+                <input type="date" aria-label="To" value={customTo} min={customFrom} onChange={e => setCustomTo(e.target.value)} className="flex-1 h-8 px-3 rounded-control border border-line dark:border-white/10 bg-white dark:bg-paperDark text-body-sm" />
               </span>
             )}
           </div>
@@ -831,7 +831,7 @@ export default function TimesheetPage() {
               type="button"
               onClick={togglePayrollLock}
               disabled={lockSaving}
-              className={`shrink-0 inline-flex items-center gap-2 h-8 px-3 min-[420px]:px-3.5 rounded-xl border text-body-sm font-semibold transition-colors disabled:opacity-40 ${isPeriodLocked ? 'border-good/40 bg-goodBg text-good dark:bg-good/20 dark:text-goodDark' : 'border-line dark:border-white/10 bg-white dark:bg-paperDark text-ink2 dark:text-white/80 hover:border-ink4'}`}
+              className={`shrink-0 inline-flex items-center gap-2 h-8 px-3 min-[420px]:px-3.5 rounded-control border text-body-sm font-semibold transition-colors disabled:opacity-40 ${isPeriodLocked ? 'border-good/40 bg-goodBg text-good dark:bg-good/20 dark:text-goodDark' : 'border-line dark:border-white/10 bg-white dark:bg-paperDark text-ink2 dark:text-white/80 hover:border-ink4'}`}
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d={isPeriodLocked ? 'M7 11V7a5 5 0 0 1 10 0v4' : 'M7 11V7a5 5 0 0 1 9.9-1'}/></svg>
               {isPeriodLocked ? 'Locked for payroll' : lockSaving ? 'Locking…' : 'Lock for payroll'}

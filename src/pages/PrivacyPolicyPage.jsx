@@ -41,7 +41,7 @@ export default function PrivacyPolicyPage() {
         <h1 className="text-2xl font-bold text-charcoal dark:text-white mb-1">Privacy Policy</h1>
         <p className="text-xs text-charcoal/40 dark:text-white/35 mb-6">Effective date: {EFFECTIVE_DATE}</p>
 
-        <p className="text-xs text-charcoal/60 dark:text-white/50 leading-relaxed border border-charcoal/10 dark:border-white/10 rounded-lg px-4 py-3 mb-10">
+        <p className="text-xs text-charcoal/60 dark:text-white/50 leading-relaxed border border-charcoal/10 dark:border-white/10 rounded-control px-4 py-3 mb-10">
           This policy has not yet been reviewed by a solicitor. It is not legal advice and should
           not be relied on as such until it has been.
         </p>
