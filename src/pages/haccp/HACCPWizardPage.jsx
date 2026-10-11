@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { format } from 'date-fns'
-import { supabase } from '../../lib/supabase'
+import { useHACCPPlan } from '../../hooks/useHACCP'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
-import { reportError } from '../../lib/reportError'
 import LoadError from '../../components/ui/LoadError'
 import Button from '../../components/ui/Button'
 import { colors } from '../../lib/tokens'
@@ -188,31 +187,6 @@ All records are available for inspection by an Environmental Health Officer on r
   },
 ]
 
-// ── Data hook ─────────────────────────────────────────────────────────────────
-
-function useHACCPPlan(venueId) {
-  const [plan, setPlan]       = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [failed, setFailed]   = useState(false)
-
-  const load = useCallback(async () => {
-    if (!venueId) return
-    setLoading(true)
-    const { data, error } = await supabase
-      .from('haccp_plans')
-      .select('*')
-      .eq('venue_id', venueId)
-      .maybeSingle()
-    if (error) reportError(error, 'HACCPWizardPage:load')
-    else setPlan(data)
-    setFailed(!!error)
-    setLoading(false)
-  }, [venueId])
-
-  useEffect(() => { load() }, [load])
-  return { plan, loading, failed, reload: load }
-}
-
 // ── Step indicator ────────────────────────────────────────────────────────────
 
 function StepIndicator({ current, total, steps }) {
@@ -301,7 +275,7 @@ export default function HACCPWizardPage() {
   const { venueId, venueName } = useVenue()
   const { session } = useSession()
   const toast = useToast()
-  const { plan, loading, failed, reload } = useHACCPPlan(venueId)
+  const { plan, loading, failed, reload, save: savePlan } = useHACCPPlan()
 
   const [step, setStep]         = useState(0)
   const [answers, setAnswers]   = useState({})
@@ -342,20 +316,21 @@ export default function HACCPWizardPage() {
       ...answers,
     }
 
-    const { error } = plan
-      ? await supabase.from('haccp_plans').update(payload).eq('id', plan.id)
-      : await supabase.from('haccp_plans').insert({ ...payload, is_complete: false }).select().single()
-
+    try {
+      await savePlan(payload)
+    } catch (err) {
+      setSaving(false)
+      toast(err.message, 'error')
+      return
+    }
     setSaving(false)
-    if (error) { toast(error.message, 'error'); return }
 
-    await reload()
     if (andNext && step < STEPS.length - 1) {
       setStep(s => s + 1)
     } else if (!andNext) {
       toast('HACCP plan saved')
     }
-  }, [venueId, venueName, plan, answers, meta, step, reload, toast])
+  }, [venueId, venueName, answers, meta, step, savePlan, toast])
 
   const handleNext = () => save(true)
   const handlePrev = async () => {

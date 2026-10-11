@@ -1,44 +1,23 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { format } from 'date-fns'
-import { supabase } from '../../lib/supabase'
+import { usePPDSItem } from '../../hooks/usePPDSItems'
 import { useVenue } from '../../contexts/VenueContext'
 import { PageSkeleton } from '../../components/ui/Skeleton'
-import { reportError } from '../../lib/reportError'
 import LoadError from '../../components/ui/LoadError'
 import Button from '../../components/ui/Button'
 import { colors, radius } from '../../lib/tokens'
 
 export default function PPDSLabelPage() {
   const { id }              = useParams()
-  const { venueId, venueSlug, venueName } = useVenue()
+  const { venueSlug, venueName } = useVenue()
 
-  const [item, setItem]     = useState(null)
-  const [loading, setLoading] = useState(true)
   const [madeOn, setMadeOn] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [useBy, setUseBy]   = useState('')
-  const [failed, setFailed] = useState(false)
-  const [attempt, setAttempt] = useState(0)
-
-  useEffect(() => {
-    if (!id || !venueId) return
-    supabase
-      .from('ppds_items')
-      .select('*')
-      .eq('id', id)
-      .eq('venue_id', venueId)
-      .single()
-      .then(({ data, error }) => {
-        // .single() answers PGRST116 when the row doesn't exist — that alone
-        // is "not found"; anything else means we couldn't check.
-        if (error && error.code !== 'PGRST116') { reportError(error, 'PPDSLabelPage:load'); setFailed(true) }
-        setItem(data)
-        setLoading(false)
-      })
-  }, [id, venueId, attempt])
+  const { item, loading, failed, reload } = usePPDSItem(id)
 
   if (loading) return <PageSkeleton />
-  if (failed)  return <LoadError what="this item" onRetry={() => { setFailed(false); setLoading(true); setAttempt(a => a + 1) }} />
+  if (failed)  return <LoadError what="this item" onRetry={reload} />
   if (!item)   return <div className="pt-10 text-center text-charcoal/40 dark:text-white/35 text-sm">Item not found.</div>
 
   const ingredients   = item.ingredients ?? []

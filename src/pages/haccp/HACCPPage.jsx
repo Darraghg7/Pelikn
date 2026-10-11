@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { format, subDays } from 'date-fns'
-import { supabase } from '../../lib/supabase'
+import { format } from 'date-fns'
+import { useHACCPSummary } from '../../hooks/useHACCP'
+import { reportError } from '../../lib/reportError'
+import { useToast } from '../../components/ui/Toast'
 import { useVenue } from '../../contexts/VenueContext'
 import Button from '../../components/ui/Button'
 import { SkeletonList } from '../../components/ui/Skeleton'
@@ -33,42 +35,24 @@ const HACCP_POINTS = [
   },
 ]
 
-function useHACCPData(venueId, venueName) {
+function useHACCPData(venueName) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(false)
+  const fetchSummary = useHACCPSummary()
 
+  // Resolves true when the numbers loaded.
   const load = async () => {
-    if (!venueId) return
     setLoading(true)
-
-    const thirtyDaysAgo = subDays(new Date(), 30).toISOString()
-
-    const [fridge, cooking, cleaning, deliveries, allergens, probes] = await Promise.all([
-      supabase.from('fridge_temperature_logs').select('id', { count: 'exact', head: true })
-        .eq('venue_id', venueId).gte('logged_at', thirtyDaysAgo),
-      supabase.from('cooking_temp_logs').select('id', { count: 'exact', head: true })
-        .eq('venue_id', venueId).gte('logged_at', thirtyDaysAgo),
-      supabase.from('cleaning_completions').select('id', { count: 'exact', head: true })
-        .eq('venue_id', venueId).gte('completed_at', thirtyDaysAgo),
-      supabase.from('delivery_checks').select('id', { count: 'exact', head: true })
-        .eq('venue_id', venueId).gte('checked_at', thirtyDaysAgo),
-      supabase.from('food_items').select('id', { count: 'exact', head: true })
-        .eq('venue_id', venueId),
-      supabase.from('probe_calibrations').select('id', { count: 'exact', head: true })
-        .eq('venue_id', venueId).gte('calibrated_at', thirtyDaysAgo),
-    ])
-
-    setData({
-      venueName,
-      generatedAt: new Date(),
-      fridgeCount:    fridge.count   ?? 0,
-      cookingCount:   cooking.count  ?? 0,
-      cleaningCount:  cleaning.count ?? 0,
-      deliveryCount:  deliveries.count ?? 0,
-      allergenCount:  allergens.count  ?? 0,
-      probeCount:     probes.count     ?? 0,
-    })
-    setLoading(false)
+    try {
+      const counts = await fetchSummary()
+      setData({ venueName, generatedAt: new Date(), ...counts })
+      return true
+    } catch (err) {
+      reportError(err, 'HACCPPage:load')
+      return false
+    } finally {
+      setLoading(false)
+    }
   }
 
   return { data, loading, load }
@@ -178,13 +162,15 @@ function HACCPDocument({ data, hazardPoints }) {
 }
 
 export default function HACCPPage() {
-  const { venueId, venueName } = useVenue()
-  const { data, loading, load } = useHACCPData(venueId, venueName)
+  const { venueName } = useVenue()
+  const toast = useToast()
+  const { data, loading, load } = useHACCPData(venueName)
   const [showDoc, setShowDoc] = useState(false)
   const [hazardPoints] = useState({})
 
   const handleGenerate = async () => {
-    await load()
+    // A failed read must not print a report claiming "No records".
+    if (!(await load())) { toast('Could not load your records — please try again', 'error'); return }
     setShowDoc(true)
   }
 

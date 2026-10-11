@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
-import { useFoodItem } from '../../hooks/useFoodItems'
+import { useFoodItem, useFoodItemActions } from '../../hooks/useFoodItems'
 import { EU_ALLERGENS } from '../../lib/constants'
 import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
@@ -18,10 +17,11 @@ export default function FoodItemFormPage() {
   const isEdit   = Boolean(id)
   const navigate = useNavigate()
   const toast    = useToast()
-  const { venueId, venueSlug } = useVenue()
+  const { venueSlug } = useVenue()
   const { session } = useSession()
 
   const { item, loading } = useFoodItem(id)
+  const foodItems = useFoodItemActions()
 
   const [name, setName]               = useState('')
   const [description, setDescription] = useState('')
@@ -55,48 +55,25 @@ export default function FoodItemFormPage() {
     setSubmitting(true)
 
     if (isEdit) {
-      const { error: itemErr } = await supabase.rpc('replace_food_item_allergens', {
-        p_session_token: session?.token,
-        p_food_item_id:  id,
-        p_venue_id:      venueId,
-        p_name:          name,
-        p_description:   description || null,
-        p_allergens:     allergens,
-      })
-      if (itemErr) { toast(itemErr.message, 'error'); setSubmitting(false); return }
       // Allergen information: a "may contain" list that silently didn't save
       // is a food-safety problem, so never say "updated" unless it did.
-      // `.select('id')` because RLS filtering the row out returns no error.
-      const { data: updated, error: mayErr } = await supabase.from('food_items').update({
-        may_contain_allergens:    mayContain.length > 0 ? mayContain : null,
-        verbal_confirmation_note: verbalNote.trim() || null,
-      }).eq('id', id).eq('venue_id', venueId).select('id')
-      if (mayErr || !updated?.length) {
-        toast('Allergens saved, but "may contain" and the verbal note did not — please try again', 'error')
-        setSubmitting(false)
-        return
-      }
+      try {
+        const { mayContainFailed } = await foodItems.update(id, {
+          sessionToken: session?.token, name, description, allergens, mayContain, verbalNote,
+        })
+        if (mayContainFailed) {
+          toast('Allergens saved, but "may contain" and the verbal note did not — please try again', 'error')
+          setSubmitting(false)
+          return
+        }
+      } catch (err) { toast(err.message, 'error'); setSubmitting(false); return }
       toast('Item updated')
       navigate(`/v/${venueSlug}/allergens/${id}`)
     } else {
-      const { data: newItem, error: itemErr } = await supabase
-        .from('food_items')
-        .insert({
-          name,
-          description:              description || null,
-          venue_id:                 venueId,
-          may_contain_allergens:    mayContain.length > 0 ? mayContain : null,
-          verbal_confirmation_note: verbalNote.trim() || null,
-        })
-        .select()
-        .single()
-      if (itemErr) { toast(itemErr.message, 'error'); setSubmitting(false); return }
-      if (allergens.length > 0) {
-        const { error: allergenErr } = await supabase.from('food_allergens').insert(
-          allergens.map((a) => ({ food_item_id: newItem.id, allergen: a, venue_id: venueId }))
-        )
-        if (allergenErr) { toast('Item saved but allergens could not be recorded — please edit the item to add them', 'error'); setSubmitting(false); return }
-      }
+      try {
+        const { allergensFailed } = await foodItems.create({ name, description, allergens, mayContain, verbalNote })
+        if (allergensFailed) { toast('Item saved but allergens could not be recorded — please edit the item to add them', 'error'); setSubmitting(false); return }
+      } catch (err) { toast(err.message, 'error'); setSubmitting(false); return }
       toast('Item added')
       navigate(`/v/${venueSlug}/allergens`)
     }

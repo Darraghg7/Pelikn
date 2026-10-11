@@ -1,36 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
+import { usePPDSItems, usePPDSActions } from '../../hooks/usePPDSItems'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
-import { reportError } from '../../lib/reportError'
 import LoadError from '../../components/ui/LoadError'
 import Button, { CloseButton } from '../../components/ui/Button'
-
-function usePPDSItems(venueId) {
-  const [items, setItems]   = useState([])
-  const [loading, setLoading] = useState(true)
-  const [failed, setFailed]   = useState(false)
-
-  const load = useCallback(async () => {
-    if (!venueId) return
-    setLoading(true)
-    const { data, error } = await supabase
-      .from('ppds_items')
-      .select('id, name, description, ingredients, may_contain_allergens, is_active')
-      .eq('venue_id', venueId)
-      .order('name')
-    if (error) reportError(error, 'PPDSItemsPage:load')
-    else setItems(data ?? [])
-    setFailed(!!error)
-    setLoading(false)
-  }, [venueId])
-
-  useEffect(() => { load() }, [load])
-  return { items, loading, failed, reload: load }
-}
 
 function AllergenSummary({ ingredients, mayContain }) {
   const inIngredients = ingredients?.filter(r => r.allergen).map(r => r.allergen) ?? []
@@ -50,34 +26,29 @@ function AllergenSummary({ ingredients, mayContain }) {
 }
 
 export default function PPDSItemsPage() {
-  const { venueId, venueSlug } = useVenue()
+  const { venueSlug } = useVenue()
   const toast = useToast()
-  const { items, loading, failed, reload } = usePPDSItems(venueId)
+  const { items, loading, failed, reload } = usePPDSItems()
+  const ppds = usePPDSActions()
   const [deleting, setDeleting] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
 
   const toggleActive = async (item) => {
-    const { error } = await supabase
-      .from('ppds_items')
-      .update({ is_active: !item.is_active })
-      .eq('id', item.id)
-      .eq('venue_id', venueId)
-    if (error) { toast(error.message, 'error'); return }
+    try { await ppds.setActive(item.id, !item.is_active) } catch (err) { toast(err.message, 'error'); return }
     toast(item.is_active ? 'Item deactivated' : 'Item activated')
-    reload()
   }
 
   const deleteItem = async (item) => {
     setDeleting(item.id)
-    const { error } = await supabase
-      .from('ppds_items')
-      .delete()
-      .eq('id', item.id)
-      .eq('venue_id', venueId)
+    try {
+      await ppds.remove(item.id)
+    } catch (err) {
+      setDeleting(null)
+      toast(err.message, 'error')
+      return
+    }
     setDeleting(null)
-    if (error) { toast(error.message, 'error'); return }
     toast('Item deleted')
-    reload()
   }
 
   return (

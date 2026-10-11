@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import { format } from 'date-fns'
-import { supabase } from '../../lib/supabase'
-import { useVenue } from '../../contexts/VenueContext'
+import { useAllergenProcedure } from '../../hooks/useAllergenProcedure'
 import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
-import { reportError } from '../../lib/reportError'
 import LoadError from '../../components/ui/LoadError'
 import Button from '../../components/ui/Button'
 
@@ -78,37 +76,11 @@ const PROC_SECTIONS = [
 
 const DEFAULT_SECTIONS = Object.fromEntries(PROC_SECTIONS.map(s => [s.key, s.default]))
 
-// ── Data hook ─────────────────────────────────────────────────────────────────
-
-function useAllergenProcedure(venueId) {
-  const [procedure, setProcedure] = useState(null)
-  const [loading, setLoading]     = useState(true)
-  const [failed, setFailed]       = useState(false)
-
-  const load = useCallback(async () => {
-    if (!venueId) return
-    setLoading(true)
-    const { data, error } = await supabase
-      .from('allergen_procedures')
-      .select('*')
-      .eq('venue_id', venueId)
-      .maybeSingle()
-    if (error) reportError(error, 'AllergenProcedurePage:load')
-    else setProcedure(data)
-    setFailed(!!error)
-    setLoading(false)
-  }, [venueId])
-
-  useEffect(() => { load() }, [load])
-  return { procedure, loading, failed, reload: load }
-}
-
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function AllergenProcedurePage() {
-  const { venueId }                         = useVenue()
   const toast                               = useToast()
-  const { procedure, loading, failed, reload } = useAllergenProcedure(venueId)
+  const { procedure, loading, failed, reload, save: saveProcedure } = useAllergenProcedure()
   const [sections, setSections]             = useState(DEFAULT_SECTIONS)
   const [meta, setMeta]                     = useState({ responsible_manager: '', eho_contact: '' })
   const [saving, setSaving]                 = useState(false)
@@ -131,20 +103,21 @@ export default function AllergenProcedurePage() {
   const save = async () => {
     setSaving(true)
     const payload = {
-      venue_id:            venueId,
       procedure_sections:  sections,
       procedure_text:      buildProcedureText(sections),
       responsible_manager: meta.responsible_manager.trim() || null,
       eho_contact:         meta.eho_contact.trim() || null,
       updated_at:          new Date().toISOString(),
     }
-    const { error } = procedure
-      ? await supabase.from('allergen_procedures').update(payload).eq('venue_id', venueId)
-      : await supabase.from('allergen_procedures').insert(payload)
+    try {
+      await saveProcedure(payload)
+    } catch (err) {
+      setSaving(false)
+      toast(err.message, 'error')
+      return
+    }
     setSaving(false)
-    if (error) { toast(error.message, 'error'); return }
     toast('Allergen procedure saved')
-    await reload()
   }
 
   if (loading) return <PageSkeleton />

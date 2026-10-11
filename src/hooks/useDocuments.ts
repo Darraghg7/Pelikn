@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { differenceInCalendarDays, parseISO } from 'date-fns'
-import { supabase } from '../lib/supabase'
+import { fetchDocuments } from '../lib/api/documents'
 import { useVenue } from '../contexts/VenueContext'
 
 export const DOCUMENT_CATEGORIES = [
@@ -46,15 +46,7 @@ export function useDocuments(): { docs: VenueDocument[]; loading: boolean; isErr
 
   const { data = [], isLoading, isError } = useQuery({
     queryKey,
-    queryFn: async () => {
-      const { data: rows, error: rowsErr } = await supabase
-        .from('documents')
-        .select('id, venue_id, title, category, file_url, file_path, file_name, file_size, expiry_date, notes, uploaded_by, created_at')
-        .eq('venue_id', venueId)
-        .order('created_at', { ascending: false })
-      if (rowsErr) throw rowsErr
-      return (rows ?? []) as VenueDocument[]
-    },
+    queryFn: async () => (await fetchDocuments(venueId!)) as VenueDocument[],
     enabled: !!venueId,
   })
 
