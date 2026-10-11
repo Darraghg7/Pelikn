@@ -15,7 +15,7 @@ import { invalidateSummaryCache } from '../../hooks/useTodaySummary'
 import { timeOffPermissions, isBlocking } from '../../lib/api/timeOff'
 import { useAppSettings } from '../../hooks/useSettings'
 import {
-  LEAVE_TYPES,
+  leaveTypeChoices,
   leaveTypeLabel, getRequestsForDay, fmtDays, maxStaffOffInRange,
 } from './timeOffConstants'
 import {
@@ -42,7 +42,7 @@ export default function TimeOffPage() {
   const queryClient = useQueryClient()
   const { venueId }          = useVenue()
   const { session, isManager } = useSession()
-  const { maxStaffOffEnabled, maxStaffOffCount } = useAppSettings()
+  const { maxStaffOffEnabled, maxStaffOffCount, allowUnpaidLeave } = useAppSettings()
   const { requests, loading, error, reload } = useTimeOffRequests(venueId)
   const staff      = useActiveStaff(venueId)
   const ownProfile = useOwnProfile(session?.staffId)
@@ -173,9 +173,9 @@ export default function TimeOffPage() {
     refreshDependents()
   }
 
-  // `asUnavailable`: booked as annual leave, but it isn't paid holiday — they
-  // just can't work. Approved as Not available, so it doesn't use holiday.
-  const approve = async (id, paidHours = null, { asUnavailable = false } = {}) => {
+  // `asUnpaid`: booked as annual leave, but it isn't paid holiday. Approved as
+  // unpaid leave, so it doesn't use holiday.
+  const approve = async (id, paidHours = null, { asUnpaid = false } = {}) => {
     setReviewing(id)
     const req = requests.find(r => r.id === id)
     const patch = {
@@ -184,7 +184,7 @@ export default function TimeOffPage() {
       reviewed_at:  new Date().toISOString(),
       manager_note: noteFor(id) || null,
     }
-    if (asUnavailable) patch.leave_type = 'unavailable'
+    if (asUnpaid) patch.leave_type = 'unpaid'
     else if (paidHours != null) patch.paid_hours = paidHours
     let { error: err } = await supabase.from('time_off_requests').update(patch).eq('id', id)
     // Before migration 149 there is no paid_hours column: approve without it
@@ -196,14 +196,14 @@ export default function TimeOffPage() {
     setReviewing(null)
     if (err) { toast(err.message, 'error'); return }
     clearNote(id)
-    toast(asUnavailable ? 'Approved as Not available' : 'Time off approved')
+    toast(asUnpaid ? 'Approved as unpaid leave' : 'Time off approved')
     if (req?.staff_id) {
       sendPush({
         venueId,
         notificationType: 'time_off_decision',
         title: 'Time Off Approved',
-        body:  asUnavailable
-          ? `Your time off (${req.start_date} – ${req.end_date}) has been approved as Not available. It doesn't use your holiday.`
+        body:  asUnpaid
+          ? `Your time off (${req.start_date} – ${req.end_date}) has been approved as unpaid leave. It doesn't use your holiday.`
           : `Your ${leaveTypeLabel(req.leave_type)} (${req.start_date} – ${req.end_date}) has been approved.`,
         url:   '/time-off',
         staffIds: [req.staff_id],
@@ -318,7 +318,7 @@ export default function TimeOffPage() {
                 holiday={teamHoliday[r.staff_id]}
                 rotaHoursByDate={rotaHours[r.staff_id]}
                 onApprove={(paidHours) => approve(r.id, paidHours)}
-                onApproveUnavailable={() => approve(r.id, null, { asUnavailable: true })}
+                onApproveUnpaid={() => approve(r.id, null, { asUnpaid: true })}
                 onReject={() => reject(r.id)}
               />
             ))}
@@ -465,7 +465,7 @@ export default function TimeOffPage() {
           <div>
             <span className={FIELD_LABEL}>Leave type</span>
             <div className="flex gap-2 flex-wrap">
-              {LEAVE_TYPES.map(t => (
+              {leaveTypeChoices({ allowUnpaid: allowUnpaidLeave, isManager }).map(t => (
                 <button
                   key={t.value}
                   type="button"
@@ -482,14 +482,16 @@ export default function TimeOffPage() {
                 </button>
               ))}
             </div>
-            {form.leaveType === 'unavailable' && (
+            {form.leaveType === 'unpaid' && (
               <p className="text-body-sm text-ink3 dark:text-white/45 mt-2">
                 For days you can't work. You won't be put on the rota, it isn't paid, and it doesn't use your holiday.
               </p>
             )}
             {form.leaveType === 'annual' && ownBalance?.isZeroHours && (
               <p className="text-body-sm text-ink3 dark:text-white/45 mt-2">
-                Paid holiday. If you just can't work these days, choose Not available instead.
+                {allowUnpaidLeave || isManager
+                  ? "Paid holiday. If you just can't work these days, choose Unpaid leave instead."
+                  : 'Your manager decides whether these days are paid as holiday or unpaid.'}
               </p>
             )}
           </div>
@@ -626,7 +628,7 @@ export default function TimeOffPage() {
         />
       )}
 
-      {/* One person's holiday bookings this year: "that wasn't holiday" */}
+      {/* One person's holiday bookings this year: "that wasn't paid holiday" */}
       {bookingsFor && (
         <HolidayBookingsModal
           staff={bookingsFor}
@@ -766,7 +768,7 @@ function OwnBalanceCard({ balance, year, holiday }) {
   )
 }
 
-function PendingRequest({ request: r, balance, holiday, rotaHoursByDate, note, onNote, busy, onApprove, onApproveUnavailable, onReject }) {
+function PendingRequest({ request: r, balance, holiday, rotaHoursByDate, note, onNote, busy, onApprove, onApproveUnpaid, onReject }) {
   // Zero-hours annual leave is paid in hours, so the manager confirms how many.
   const asksForHours = r.leave_type === 'annual' && balance?.isZeroHours && holiday?.status === 'ok'
   const suggested = asksForHours ? suggestedPaidHours(r, holiday.avgWeekHours, r.staff?.working_days, rotaHoursByDate) : null
@@ -837,7 +839,7 @@ function PendingRequest({ request: r, balance, holiday, rotaHoursByDate, note, o
           That's {fmtHours(paidHours - holiday.balance)} more than they've built up.
         </p>
       )}
-      {r.leave_type === 'unavailable' && (
+      {(r.leave_type === 'unavailable' || r.leave_type === 'unpaid') && (
         <p className="text-body-sm text-ink3 dark:text-white/45 -mt-1">Not paid and doesn't use holiday — it keeps them off the rota on these days.</p>
       )}
       <input
@@ -866,8 +868,8 @@ function PendingRequest({ request: r, balance, holiday, rotaHoursByDate, note, o
         </Button>
       </div>
       {r.leave_type === 'annual' && balance?.isZeroHours && (
-        <Button variant="link" size="sm" onClick={onApproveUnavailable} disabled={busy} className="self-center">
-          Not paid holiday? Approve as Not available
+        <Button variant="link" size="sm" onClick={onApproveUnpaid} disabled={busy} className="self-center">
+          Not paid holiday? Approve as unpaid leave
         </Button>
       )}
     </div>

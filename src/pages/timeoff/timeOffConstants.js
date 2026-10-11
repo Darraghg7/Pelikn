@@ -30,6 +30,25 @@ export const STATUS_COLOURS = {
   cancelled: 'bg-charcoal/5 dark:bg-white/5 text-charcoal/45 dark:text-white/40 border-charcoal/10 dark:border-white/10',
 }
 
+/**
+ * The leave types to offer when booking or editing time off.
+ *
+ *   - Unpaid leave: only when the venue lets staff request it (Settings →
+ *     Attendance, 'allow_unpaid_leave'); managers can always choose it.
+ *     When it's off, staff book annual leave and the manager decides on the
+ *     timesheet whether it's paid as holiday or unpaid.
+ *   - Not available: no longer offered — unpaid leave covers it. Still shown
+ *     when editing a booking that already is one, so it can be kept or changed.
+ *
+ * @param {{ allowUnpaid?: boolean, isManager?: boolean, current?: string|null }} opts
+ */
+export function leaveTypeChoices({ allowUnpaid = false, isManager = false, current = null } = {}) {
+  return LEAVE_TYPES.filter(t =>
+    t.value === 'unavailable' ? current === 'unavailable'
+      : t.value === 'unpaid' ? allowUnpaid || isManager || current === 'unpaid'
+        : true)
+}
+
 export const leaveTypeLabel = (value) => LEAVE_TYPES.find(t => t.value === value)?.label ?? value
 
 export function getRequestsForDay(requests, day) {

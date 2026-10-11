@@ -2,9 +2,9 @@ import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 
-const markNotHoliday = vi.fn(async (_ids) => ({ error: null }))
+const markUnpaid = vi.fn(async (_ids) => ({ error: null }))
 const restoreAsHoliday = vi.fn(async (_id, _hours) => ({ error: null }))
-vi.mock('../../../lib/api/timeOff', () => ({ markNotHoliday: (ids) => markNotHoliday(ids), restoreAsHoliday: (id, hours) => restoreAsHoliday(id, hours) }))
+vi.mock('../../../lib/api/timeOff', () => ({ markUnpaid: (ids) => markUnpaid(ids), restoreAsHoliday: (id, hours) => restoreAsHoliday(id, hours) }))
 vi.mock('../../../lib/sendPush', () => ({ sendPush: vi.fn() }))
 vi.mock('../../../components/ui/Toast', () => ({ useToast: () => vi.fn() }))
 
@@ -36,7 +36,7 @@ const show = () => render(
   />,
 )
 
-beforeEach(() => { markNotHoliday.mockClear(); restoreAsHoliday.mockClear() })
+beforeEach(() => { markUnpaid.mockClear(); restoreAsHoliday.mockClear() })
 
 describe('HolidayBookingsModal', () => {
   it('lists only their annual leave, with estimated and confirmed hours', () => {
@@ -48,19 +48,19 @@ describe('HolidayBookingsModal', () => {
     expect(screen.queryByText('Sat 15 Aug')).toBeNull()  // someone else's
   })
 
-  it('"Not holiday" changes one booking, and Undo puts back its hours', async () => {
+  it('"Unpaid" changes one booking, and Undo puts back its hours', async () => {
     show()
-    fireEvent.click(screen.getAllByRole('button', { name: 'Not holiday' })[2])  // the 6 h one
-    await waitFor(() => expect(markNotHoliday).toHaveBeenCalledWith(['c']))
-    expect(await screen.findByText(/Not available · doesn’t use holiday/)).toBeTruthy()
+    fireEvent.click(screen.getAllByRole('button', { name: 'Unpaid' })[2])  // the 6 h one
+    await waitFor(() => expect(markUnpaid).toHaveBeenCalledWith(['c']))
+    expect(await screen.findByText(/Unpaid leave · doesn’t use holiday/)).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
     await waitFor(() => expect(restoreAsHoliday).toHaveBeenCalledWith('c', 6))
   })
 
   it('changes every unconfirmed booking at once, leaving confirmed ones alone', async () => {
     show()
-    fireEvent.click(screen.getByRole('button', { name: 'Change all 2 unconfirmed to Not available' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Mark all 2 unconfirmed as unpaid' }))
     fireEvent.click(screen.getByRole('button', { name: 'Change them' }))
-    await waitFor(() => expect(markNotHoliday).toHaveBeenCalledWith(['a', 'b']))
+    await waitFor(() => expect(markUnpaid).toHaveBeenCalledWith(['a', 'b']))
   })
 })

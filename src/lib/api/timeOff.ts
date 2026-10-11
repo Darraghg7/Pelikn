@@ -97,19 +97,19 @@ export function timeOffPermissions(
 }
 
 /**
- * A manager saying approved "annual leave" was never paid holiday — the person
- * was just not available to work (zero-hours staff often book it that way).
- * It becomes 'unavailable': still keeps them off the rota on those days, but no
- * longer uses holiday, so any recorded paid hours are cleared.
+ * A manager saying approved annual leave wasn't paid holiday — zero-hours
+ * staff often book annual leave for days they simply can't work. It becomes
+ * unpaid leave: still keeps them off the rota on those days, but no longer
+ * uses holiday, so any recorded paid hours are cleared.
  *
  * Asks for the rows back: a write the database refuses for a non-manager
  * matches zero rows and would otherwise look like success.
  */
-export async function markNotHoliday(ids: string[]): Promise<{ error: { message: string } | null }> {
+export async function markUnpaid(ids: string[]): Promise<{ error: { message: string } | null }> {
   if (!ids.length) return { error: null }
   const { data, error } = await supabase
     .from('time_off_requests')
-    .update({ leave_type: 'unavailable', paid_hours: null })
+    .update({ leave_type: 'unpaid', paid_hours: null })
     .in('id', ids)
     .select('id')
   if (error) return { error }
@@ -117,7 +117,7 @@ export async function markNotHoliday(ids: string[]): Promise<{ error: { message:
   return { error: null }
 }
 
-/** Undo markNotHoliday for one booking, putting back the paid hours it had. */
+/** Undo markUnpaid for one booking, putting back the paid hours it had. */
 export async function restoreAsHoliday(id: string, paidHours: number | null): Promise<{ error: { message: string } | null }> {
   const { data, error } = await supabase
     .from('time_off_requests')

@@ -17,6 +17,7 @@ import { suggestedPaidHours } from '../../lib/holiday'
 import { holidayYearContaining } from '../../lib/holidayYear'
 import { useQueryClient } from '@tanstack/react-query'
 import HolidayPayModal from './HolidayPayModal'
+import { markUnpaid } from '../../lib/api/timeOff'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import AddSessionModal from './AddSessionModal'
 import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard'
@@ -433,6 +434,7 @@ export default function TimesheetPage() {
   const [editCtx,       setEditCtx]       = useState(null)
   const [addTarget,     setAddTarget]     = useState(null)
   const [holidayPayFor, setHolidayPayFor] = useState(null)
+  const [markingUnpaid, setMarkingUnpaid] = useState(null)   // booking id being marked unpaid
   const [leaveTick,     setLeaveTick]     = useState(0)
   const queryClient = useQueryClient()
 
@@ -528,6 +530,17 @@ export default function TimesheetPage() {
     queryClient.invalidateQueries({ queryKey: [HOLIDAY_BALANCES_KEY] })
   }, [queryClient])
 
+  // Booked as annual leave but not paid holiday: it becomes unpaid leave, so
+  // it drops out of holiday pay and the person's holiday balance.
+  const setUnpaid = async (r, name) => {
+    setMarkingUnpaid(r.id)
+    const { error } = await markUnpaid([r.id])
+    setMarkingUnpaid(null)
+    if (error) { toast(error.message, 'error'); return }
+    toast(`${name}'s ${format(parseISO(r.start_date), 'd MMM')} marked as unpaid leave`)
+    holidaySaved()
+  }
+
   useEffect(() => {
     if (!venueId) return
     // hourly_rate (117) and contracted_hours (118) are no longer selectable
@@ -607,7 +620,7 @@ export default function TimesheetPage() {
     // Unconfirmed zero-hours holiday isn't in the wage bill — locking now would
     // send payroll a total without it.
     if (!isPeriodLocked && holidayToConfirm > 0) {
-      toast(`Confirm the holiday pay for ${holidayToConfirm} booking${holidayToConfirm === 1 ? '' : 's'} before locking this period`, 'error')
+      toast(`Choose holiday pay or unpaid for ${holidayToConfirm} booking${holidayToConfirm === 1 ? '' : 's'} before locking this period`, 'error')
       return
     }
     setLockSaving(true)
@@ -808,11 +821,13 @@ export default function TimesheetPage() {
         )}
       </div>
 
-      {/* Zero-hours holiday pay to confirm */}
+      {/* Zero-hours annual leave in this period: pay it as holiday, or mark it unpaid.
+          When the venue doesn't let staff request unpaid leave (Settings →
+          Attendance), this is where the manager decides. */}
       {isManager && holidayItems.length > 0 && (
         <div className={`${CARD} overflow-hidden`}>
           <p className={`px-3.5 py-2.5 text-caption font-semibold tracking-[0.08em] uppercase ${holidayToConfirm ? 'bg-warnBg dark:bg-warn/20 text-warn dark:text-warnDark' : 'text-ink3 dark:text-white/45'}`}>
-            Holiday pay{holidayToConfirm ? ` · ${holidayToConfirm} to confirm` : ''}
+            Holiday pay{holidayToConfirm ? ` · ${holidayToConfirm} to decide` : ''}
           </p>
           <div className="divide-y divide-line dark:divide-white/10">
             {holidayItems.map(r => {
@@ -830,16 +845,28 @@ export default function TimesheetPage() {
                       {' · '}
                       {r.paid_hours != null
                         ? <span className="font-mono text-ink2 dark:text-white/70">{Number(r.paid_hours)} h paid{rate > 0 && ` · ${fmtGBP(Number(r.paid_hours) * rate)}`}</span>
-                        : <span className="text-warn dark:text-warnDark">{suggestion != null ? `suggested ${suggestion} h` : 'hours needed'} — not in the wage bill yet</span>}
+                        : <span className="text-warn dark:text-warnDark">holiday pay{suggestion != null ? ` (suggested ${suggestion} h)` : ''} or unpaid?</span>}
                     </p>
                   </div>
+                  {r.paid_hours == null && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      loading={markingUnpaid === r.id}
+                      disabled={isPeriodLocked || !!markingUnpaid}
+                      onClick={() => setUnpaid(r, name)}
+                      className="shrink-0"
+                    >
+                      Unpaid
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     variant={r.paid_hours != null ? 'secondary' : 'primary'}
                     onClick={() => setHolidayPayFor(r)}
                     className="shrink-0"
                   >
-                    {r.paid_hours != null ? 'Change' : 'Confirm'}
+                    {r.paid_hours != null ? 'Change' : 'Holiday pay'}
                   </Button>
                 </div>
               )

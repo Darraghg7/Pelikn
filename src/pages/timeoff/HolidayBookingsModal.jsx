@@ -7,7 +7,7 @@ import { useToast } from '../../components/ui/Toast'
 import { sendPush } from '../../lib/sendPush'
 import { estimateLeaveHours } from '../../lib/holiday'
 import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
-import { markNotHoliday, restoreAsHoliday } from '../../lib/api/timeOff'
+import { markUnpaid, restoreAsHoliday } from '../../lib/api/timeOff'
 import { fmtDays } from './timeOffConstants'
 
 const round1 = (n) => Math.round(n * 10) / 10
@@ -21,12 +21,13 @@ function when(r) {
 /**
  * The holiday someone has booked this holiday year, from their name on the
  * team holiday list — so a manager can see where the balance went and say
- * "that wasn't paid holiday, they just weren't available".
+ * "that wasn't paid holiday, it was unpaid".
  *
- * Zero-hours staff often book "annual leave" for days they simply can't work.
- * Pelikn then counts it as holiday taken and their balance goes negative.
- * "Not holiday" changes the booking to Not available: it still keeps them off
- * the rota, but no longer uses holiday.
+ * Zero-hours staff often book annual leave for days they simply can't work
+ * (and must, when the venue doesn't let staff request unpaid leave). Pelikn
+ * counts it as holiday taken until a manager says otherwise. "Unpaid" changes
+ * the booking to unpaid leave: it still keeps them off the rota, but no longer
+ * uses holiday. The timesheet offers the same choice per booking.
  *
  * @param {object} props
  * @param {{ id: string, name: string, isZeroHours: boolean }} props.staff  team balance row
@@ -71,8 +72,8 @@ export default function HolidayBookingsModal({ staff, holiday, requests, holiday
       notificationType: 'time_off_decision',
       title: 'Time off changed',
       body: count === 1
-        ? 'A manager changed one of your annual leave bookings to Not available. It doesn\'t use your holiday.'
-        : `A manager changed ${count} of your annual leave bookings to Not available. They don't use your holiday.`,
+        ? 'A manager changed one of your annual leave bookings to unpaid leave. It doesn\'t use your holiday.'
+        : `A manager changed ${count} of your annual leave bookings to unpaid leave. They don't use your holiday.`,
       url: '/time-off',
       staffIds: [staff.id],
     })
@@ -80,7 +81,7 @@ export default function HolidayBookingsModal({ staff, holiday, requests, holiday
 
   const change = async (rows) => {
     setBusy(rows.length === 1 ? rows[0].id : 'all')
-    const { error } = await markNotHoliday(rows.map(r => r.id))
+    const { error } = await markUnpaid(rows.map(r => r.id))
     setBusy(null)
     setConfirmAll(false)
     if (error) { toast(error.message, 'error'); onSaved(); return }
@@ -89,7 +90,7 @@ export default function HolidayBookingsModal({ staff, holiday, requests, holiday
       for (const r of rows) next.set(r.id, r.paid_hours ?? null)
       return next
     })
-    toast(rows.length === 1 ? 'Changed to Not available' : `${rows.length} bookings changed to Not available`)
+    toast(rows.length === 1 ? 'Changed to unpaid leave' : `${rows.length} bookings changed to unpaid leave`)
     tellThem(rows.length)
     onSaved()
   }
@@ -108,8 +109,8 @@ export default function HolidayBookingsModal({ staff, holiday, requests, holiday
     <Modal open onClose={onClose} title={`${staff.name} — holiday ${holidayYear.label}`}>
       <div className="flex flex-col gap-3">
         <p className="text-body-sm text-ink3 dark:text-white/45">
-          Annual leave booked this holiday year. If a day wasn’t paid holiday — they just weren’t available to work — tap
-          <span className="font-semibold text-ink2 dark:text-white/75"> Not holiday</span>. It still keeps them off the rota but stops using their holiday.
+          Annual leave booked this holiday year. If a day wasn’t paid holiday, tap
+          <span className="font-semibold text-ink2 dark:text-white/75"> Unpaid</span>. It still keeps them off the rota but stops using their holiday.
         </p>
 
         {bookings.length === 0 ? (
@@ -124,13 +125,13 @@ export default function HolidayBookingsModal({ staff, holiday, requests, holiday
                   <div className="flex-1 min-w-0">
                     <p className={`text-body font-semibold ${isChanged ? 'text-ink3 dark:text-white/45' : 'text-ink dark:text-white'}`}>{when(r)}</p>
                     <p className="text-body-sm text-ink3 dark:text-white/45">
-                      {isChanged ? 'Not available · doesn’t use holiday' : c.confirmed ? c.text : `${c.text} · not confirmed`}
+                      {isChanged ? 'Unpaid leave · doesn’t use holiday' : c.confirmed ? c.text : `${c.text} · not confirmed`}
                     </p>
                   </div>
                   {isChanged ? (
                     <Button variant="ghost" size="sm" loading={busy === r.id} onClick={() => undo(r)} className="shrink-0">Undo</Button>
                   ) : (
-                    <Button variant="secondary" size="sm" loading={busy === r.id} disabled={!!busy} onClick={() => change([r])} className="shrink-0">Not holiday</Button>
+                    <Button variant="secondary" size="sm" loading={busy === r.id} disabled={!!busy} onClick={() => change([r])} className="shrink-0">Unpaid</Button>
                   )}
                 </div>
               )
@@ -140,7 +141,7 @@ export default function HolidayBookingsModal({ staff, holiday, requests, holiday
 
         {unconfirmed.length > 1 && (
           <Button variant="secondary" fullWidth disabled={!!busy} onClick={() => setConfirmAll(true)}>
-            Change all {unconfirmed.length} unconfirmed to Not available
+            Mark all {unconfirmed.length} unconfirmed as unpaid
           </Button>
         )}
 
@@ -150,7 +151,7 @@ export default function HolidayBookingsModal({ staff, holiday, requests, holiday
       <ConfirmDialog
         open={confirmAll}
         title={`Change ${unconfirmed.length} bookings?`}
-        message={`Every annual leave booking for ${staff.name} without confirmed paid hours becomes Not available. They stay off the rota on those days, but it no longer uses their holiday. Bookings with paid hours recorded are left alone.`}
+        message={`Every annual leave booking for ${staff.name} without confirmed paid hours becomes unpaid leave. They stay off the rota on those days, but it no longer uses their holiday. Bookings with paid hours recorded are left alone.`}
         confirmLabel="Change them"
         loading={busy === 'all'}
         onConfirm={() => change(unconfirmed)}
