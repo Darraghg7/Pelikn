@@ -134,7 +134,7 @@ function AddSupplierModal({ open, onClose, onAdded, venueId }) {
           value={name}
           onChange={e => setName(e.target.value)}
           placeholder="e.g. Henderson's, Brakes, Musgrave"
-          className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+          className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           autoFocus
         />
         <Button
@@ -156,14 +156,14 @@ function ItemCategoryPicker({ itemName, onSave, onSkip }) {
   const cat = categoryConfig(category)
 
   return (
-    <div className="bg-charcoal/4 dark:bg-white/5 rounded-xl p-3 flex flex-col gap-2">
+    <div className="bg-charcoal/4 dark:bg-white/5 rounded-control p-3 flex flex-col gap-2">
       <p className="text-sm font-medium text-charcoal dark:text-white truncate">{itemName}</p>
       <div className="flex gap-1.5 flex-wrap">
         {CATEGORIES.map(c => (
           <button
             key={c.value}
             onClick={() => setCategory(c.value)}
-            className={`px-2.5 py-1 rounded-lg text-micro font-medium border transition-all ${
+            className={`px-2.5 py-1 rounded-control text-micro font-medium border transition-all ${
               category === c.value
                 ? 'bg-charcoal text-cream border-charcoal dark:border-white'
                 : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15'
@@ -459,7 +459,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                 <button
                   key={s.id}
                   onClick={() => selectSupplier(s)}
-                  className="text-left px-4 py-3 rounded-xl border border-charcoal/10 dark:border-white/10 hover:border-charcoal/25 dark:hover:border-white/25 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-all"
+                  className="text-left px-4 py-3 rounded-control border border-charcoal/10 dark:border-white/10 hover:border-charcoal/25 dark:hover:border-white/25 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-all"
                 >
                   <p className="text-sm font-medium text-charcoal dark:text-white">{s.name}</p>
                 </button>
@@ -480,7 +480,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
             {/* OCR scan button */}
             <div className="flex gap-2">
               <label className="flex-1 cursor-pointer">
-                <div className={`text-center py-2.5 rounded-xl border border-dashed text-sm font-medium transition-all ${
+                <div className={`text-center py-2.5 rounded-control border border-dashed text-sm font-medium transition-all ${
                   scanning
                     ? 'border-charcoal/30 dark:border-white/30 bg-charcoal/5 dark:bg-white/5 text-charcoal/50 dark:text-white/40'
                     : 'border-charcoal/20 dark:border-white/20 text-charcoal/40 dark:text-white/35 hover:border-charcoal/35 dark:hover:border-white/35 hover:text-charcoal/60 dark:hover:text-white/50'
@@ -520,11 +520,11 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                 </p>
                 <div className="flex flex-col gap-2">
                   {tempItems.map(([id, item]) => (
-                    <div key={id} className={`rounded-xl border p-3 ${item.received ? (item.tempPass ? 'border-charcoal/10 dark:border-white/10' : 'border-danger/25 bg-danger/3') : 'border-charcoal/10 bg-charcoal/4 dark:bg-white/5 opacity-50'}`}>
+                    <div key={id} className={`rounded-control border p-3 ${item.received ? (item.tempPass ? 'border-charcoal/10 dark:border-white/10' : 'border-danger/25 bg-danger/3') : 'border-charcoal/10 bg-charcoal/4 dark:bg-white/5 opacity-50'}`}>
                       <div className="flex items-center gap-3 mb-2">
                         <button
                           onClick={() => updateItem(id, 'received', !item.received)}
-                          className={`w-9 h-9 rounded-xl border-2 flex items-center justify-center shrink-0 transition-all ${
+                          className={`w-9 h-9 rounded-control border-2 flex items-center justify-center shrink-0 transition-all ${
                             item.received ? 'bg-success border-success text-white' : 'border-charcoal/20 dark:border-white/20'
                           }`}
                         >
@@ -541,7 +541,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                             value={item.tempReading}
                             onChange={e => checkTemp(id, e.target.value)}
                             placeholder={`${item.minTemp ?? '?'}C to ${item.maxTemp ?? '?'}C`}
-                            className="flex-1 px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm font-mono focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                            className="flex-1 px-3 py-1.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm font-mono focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                           />
                           <span className="text-xs">°C</span>
                           {item.tempReading && (
@@ -563,10 +563,10 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                 </p>
                 <div className="flex flex-col gap-1.5">
                   {nonTempItems.map(([id, item]) => (
-                    <div key={id} className="flex items-center gap-3 rounded-xl border border-charcoal/10 dark:border-white/10 px-3 py-2.5">
+                    <div key={id} className="flex items-center gap-3 rounded-control border border-charcoal/10 dark:border-white/10 px-3 py-2.5">
                       <button
                         onClick={() => updateItem(id, 'received', !item.received)}
-                        className={`w-9 h-9 rounded-xl border-2 flex items-center justify-center shrink-0 transition-all ${
+                        className={`w-9 h-9 rounded-control border-2 flex items-center justify-center shrink-0 transition-all ${
                           item.received ? 'bg-success border-success text-white' : 'border-charcoal/20 dark:border-white/20'
                         }`}
                       >
@@ -601,7 +601,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                   key={key}
                   type="button"
                   onClick={() => set(!value)}
-                  className={`min-h-12 w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all mb-1.5 ${
+                  className={`min-h-12 w-full flex items-center justify-between px-4 py-3 rounded-control border transition-all mb-1.5 ${
                     value
                       ? 'bg-success/5 border-success/20 text-charcoal dark:text-white'
                       : 'bg-danger/5 border-danger/20 text-danger'
@@ -631,7 +631,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                 onChange={e => setOverallNotes(e.target.value)}
                 rows={2}
                 placeholder="Any issues or observations..."
-                className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
 
@@ -643,7 +643,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                 value={checkedAt}
                 max={nowDatetimeLocal()}
                 onChange={e => setCheckedAt(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
 
@@ -711,7 +711,7 @@ export default function DeliveryChecksPage() {
           { label: 'Passed', value: passCount, color: 'text-success' },
           { label: 'Failed', value: failCount, color: 'text-danger' },
         ].map(s => (
-          <div key={s.label} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-3 sm:p-4 text-center">
+          <div key={s.label} className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-3 sm:p-4 text-center">
             <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">{s.label}</p>
             <p className={`text-xl sm:text-2xl font-bold ${s.color}`}>{s.value}</p>
           </div>
@@ -724,7 +724,7 @@ export default function DeliveryChecksPage() {
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+            className={`px-3 py-1.5 rounded-control text-xs font-medium border transition-all ${
               filter === f
                 ? 'bg-charcoal text-cream border-charcoal dark:border-white'
                 : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30'
@@ -739,14 +739,14 @@ export default function DeliveryChecksPage() {
       {loading ? (
         <SkeletonList rows={4} />
       ) : isError ? (<LoadError what="deliveries" onRetry={reload} />) : filtered.length === 0 ? (
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-10 text-center">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-10 text-center">
           <p className="text-charcoal/30 dark:text-white/30 text-sm">No delivery checks recorded yet.</p>
           <p className="text-charcoal/20 dark:text-white/20 text-xs mt-1">Tap "+ Check Delivery" to log your first one.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
           {filtered.map(c => (
-            <div key={c.id} className={`bg-white dark:bg-paperDark rounded-2xl p-4 ${c.overall_pass ? 'border-charcoal/10 dark:border-white/10' : 'border-danger/25 bg-danger/3'}`}>
+            <div key={c.id} className={`bg-white dark:bg-paperDark rounded-card p-4 ${c.overall_pass ? 'border-charcoal/10 dark:border-white/10' : 'border-danger/25 bg-danger/3'}`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">

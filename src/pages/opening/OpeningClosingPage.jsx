@@ -87,7 +87,7 @@ function IssueModal({ check, onConfirm, onCancel, saving }) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-md p-6 flex flex-col gap-4 shadow-2xl max-h-[90dvh] overflow-y-auto"
+        className="bg-white dark:bg-paperDark rounded-card w-full max-w-md p-6 flex flex-col gap-4 shadow-2xl max-h-[90dvh] overflow-y-auto"
         style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
       >
         <div>
@@ -107,7 +107,7 @@ function IssueModal({ check, onConfirm, onCancel, saving }) {
             placeholder="e.g. Back door lock was stiff, reported to maintenance and used side entrance for closing."
             rows={4}
             autoFocus
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+            className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>
         <div className="flex gap-2">
@@ -234,7 +234,7 @@ function CheckSection({ type, label, departmentId, departmentName, checks, compl
   }
 
   return (
-    <div className="bg-white dark:bg-paperDark rounded-2xl overflow-hidden flex flex-col">
+    <div className="bg-white dark:bg-paperDark rounded-card overflow-hidden flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-4 pb-3">
         <div>
@@ -289,7 +289,7 @@ function CheckSection({ type, label, departmentId, departmentName, checks, compl
             onKeyDown={e => e.key === 'Enter' && handleAdd()}
             placeholder="e.g. Check all fridges are at temperature"
             autoFocus
-            className="flex-1 px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+            className="flex-1 px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
           <Button
             loading={saving}
@@ -351,10 +351,10 @@ function DateSelector({ value, onChange }) {
   }
 
   return (
-    <div className="bg-white dark:bg-paperDark rounded-2xl p-1 flex items-center gap-1">
+    <div className="bg-white dark:bg-paperDark rounded-card p-1 flex items-center gap-1">
       <button
         onClick={() => onChange(prevDay)}
-        className="p-2 rounded-xl text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors"
+        className="p-2 rounded-control text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
       </button>
@@ -366,7 +366,7 @@ function DateSelector({ value, onChange }) {
             onClick={() => onChange(d)}
             disabled={d > today}
             className={[
-              'flex-1 py-2 px-2 rounded-xl text-caption font-semibold transition-colors text-center truncate',
+              'flex-1 py-2 px-2 rounded-control text-caption font-semibold transition-colors text-center truncate',
               d === value
                 ? 'bg-brand text-white'
                 : d > today
@@ -382,7 +382,7 @@ function DateSelector({ value, onChange }) {
       <button
         onClick={() => onChange(nextDay)}
         disabled={nextDay > today}
-        className="p-2 rounded-xl text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors disabled:opacity-25 disabled:cursor-default"
+        className="p-2 rounded-control text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors disabled:opacity-25 disabled:cursor-default"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
       </button>

@@ -194,11 +194,11 @@ export default function CleaningPage() {
       {/* Summary banner */}
       {(overdueCount > 0 || dueSoonCount > 0) && (
         <div className={[
-          'rounded-xl p-[10px_12px] flex items-center gap-[9px] border',
+          'rounded-control p-[10px_12px] flex items-center gap-[9px] border',
           overdueCount > 0 ? 'bg-danger/8 border-danger/20' : 'bg-warning/8 border-warning/20',
         ].join(' ')}>
           <span className={[
-            'w-6 h-6 rounded-[7px] shrink-0 grid place-items-center text-white',
+            'w-6 h-6 rounded-tag shrink-0 grid place-items-center text-white',
             overdueCount > 0 ? 'bg-danger' : 'bg-warning',
           ].join(' ')}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -214,13 +214,13 @@ export default function CleaningPage() {
 
       {/* Add task form (isManager only) */}
       {showAdd && isManager && (
-        <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
+        <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
           <SectionLabel>New Cleaning Task</SectionLabel>
           <input
             value={form.title}
             onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
             placeholder="Task title e.g. Deep clean storage room"
-            className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+            className="px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -303,7 +303,7 @@ export default function CleaningPage() {
       </div>
 
       {/* Task list */}
-      <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 overflow-hidden px-[14px]">
+      <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/10 dark:border-white/10 overflow-hidden px-[14px]">
         <div className="flex flex-col divide-y divide-charcoal/6 dark:divide-white/8">
           {filtered.map((t) => {
             const done = t.status === 'done'
@@ -391,7 +391,7 @@ export default function CleaningPage() {
       {/* Complete modal */}
       {completeModal && (
         <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4 bg-charcoal/40 dark:bg-white/40 backdrop-blur-sm" onClick={() => setCompleteModal(null)}>
-          <div className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-md p-6 flex flex-col gap-4 shadow-2xl max-h-[90dvh] overflow-y-auto" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }} onClick={e => e.stopPropagation()}>
+          <div className="bg-white dark:bg-paperDark rounded-card w-full max-w-md p-6 flex flex-col gap-4 shadow-2xl max-h-[90dvh] overflow-y-auto" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }} onClick={e => e.stopPropagation()}>
             <div>
               <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Mark Complete</p>
               <h3 className="font-semibold text-charcoal dark:text-white text-lg">{completeModal.title}</h3>
@@ -405,7 +405,7 @@ export default function CleaningPage() {
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Any notes about this cleaning task…"
                 rows={3}
-                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
             <div className="flex gap-2">

@@ -82,7 +82,7 @@ export default function FridgeBackfillModal({ open, onClose, fridge, dateStr, pe
   return (
     <Modal open={open} onClose={onClose} title="Record missed reading">
       <div className="flex flex-col gap-4">
-        <div className="rounded-2xl bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 px-4 py-3">
+        <div className="rounded-card bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 px-4 py-3">
           <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">{period.toUpperCase()} check</p>
           <p className="text-sm font-semibold text-charcoal dark:text-white mt-0.5">{fridge.name}</p>
           <p className="text-xs text-charcoal/50 dark:text-white/40 mt-0.5">{headerDate}</p>
@@ -98,7 +98,7 @@ export default function FridgeBackfillModal({ open, onClose, fridge, dateStr, pe
               onChange={e => setTemp(e.target.value)}
               placeholder="e.g. 3.5"
               className={[
-                'w-full px-3 py-2.5 rounded-xl border bg-white dark:bg-paperDark focus:outline-none focus:ring-2',
+                'w-full px-3 py-2.5 rounded-control border bg-white dark:bg-paperDark focus:outline-none focus:ring-2',
                 'text-lg font-mono text-charcoal dark:text-white placeholder-charcoal/20 dark:placeholder-white/15',
                 outOfRange ? 'border-warning/50 focus:ring-warning/20' : 'border-charcoal/15 dark:border-white/15 focus:ring-charcoal/20 dark:focus:ring-white/20',
               ].join(' ')}
@@ -110,13 +110,13 @@ export default function FridgeBackfillModal({ open, onClose, fridge, dateStr, pe
               type="time"
               value={time}
               onChange={e => setTime(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
         </div>
 
         {outOfRange && (
-          <div className="rounded-2xl border border-warning/30 bg-warning/5 p-4 flex flex-col gap-3">
+          <div className="rounded-card border border-warning/30 bg-warning/5 p-4 flex flex-col gap-3">
             <div className="flex items-center gap-1.5">
               <span className="text-warning">
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -133,7 +133,7 @@ export default function FridgeBackfillModal({ open, onClose, fridge, dateStr, pe
                   type="button"
                   onClick={() => { setReason(r.id); setComment('') }}
                   className={[
-                    'flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border text-left text-xs font-medium transition-all',
+                    'flex items-center justify-between gap-2 px-3 py-2.5 rounded-control border text-left text-xs font-medium transition-all',
                     reason === r.id
                       ? r.explained
                         ? 'bg-warning/15 border-warning/40 text-charcoal dark:text-white'
@@ -152,7 +152,7 @@ export default function FridgeBackfillModal({ open, onClose, fridge, dateStr, pe
                 onChange={e => setComment(e.target.value)}
                 placeholder="Describe the corrective action taken…"
                 rows={2}
-                className="w-full px-3 py-2 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark focus:outline-none focus:ring-2 focus:ring-danger/20 text-sm resize-none"
+                className="w-full px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark focus:outline-none focus:ring-2 focus:ring-danger/20 text-sm resize-none"
               />
             )}
           </div>

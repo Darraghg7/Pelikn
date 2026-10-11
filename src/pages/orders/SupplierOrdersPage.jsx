@@ -175,7 +175,7 @@ export default function SupplierOrdersPage() {
 
       {/* Manage suppliers */}
       {showManage && isManager && (
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
           <SectionLabel>Manage Suppliers</SectionLabel>
           <div className="grid grid-cols-2 gap-2">
             {['name', 'contact_name', 'email', 'phone'].map(field => (
@@ -183,7 +183,7 @@ export default function SupplierOrdersPage() {
                 value={supplierForm[field]}
                 onChange={e => setSupplierForm(f => ({ ...f, [field]: e.target.value }))}
                 placeholder={field === 'name' ? 'Supplier name *' : field === 'contact_name' ? 'Contact name' : field}
-                className="px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                className="px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             ))}
           </div>
@@ -209,7 +209,7 @@ export default function SupplierOrdersPage() {
       )}
 
       {suppliers.length === 0 && !showManage && (
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-8 text-center">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-8 text-center">
           <p className="text-charcoal/40 dark:text-white/35 text-sm">No suppliers set up yet.</p>
           {isManager && (
             <Button variant="link" size="sm" onClick={() => setShowManage(true)}
@@ -226,7 +226,7 @@ export default function SupplierOrdersPage() {
           {['all', 'submitted', 'ordered', 'received'].map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={[
-                'px-4 py-1.5 rounded-lg text-xs font-medium border transition-all',
+                'px-4 py-1.5 rounded-control text-xs font-medium border transition-all',
                 tab === t
                   ? 'bg-charcoal text-cream border-charcoal dark:border-white'
                   : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/35 dark:hover:border-white/35',
@@ -241,7 +241,7 @@ export default function SupplierOrdersPage() {
       {filteredOrders.length > 0 && (
         <div className="flex flex-col gap-3">
           {filteredOrders.map(order => (
-            <div key={order.id} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
+            <div key={order.id} className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5">
               <div className="flex items-start justify-between gap-4 mb-3">
                 <div>
                   <p className="font-semibold text-charcoal dark:text-white">{order.supplier_name}</p>
@@ -287,7 +287,7 @@ export default function SupplierOrdersPage() {
       )}
 
       {!ordersFailed && filteredOrders.length === 0 && suppliers.length > 0 && (
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-8 text-center">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-8 text-center">
           <p className="text-charcoal/40 dark:text-white/35 text-sm">No {tab !== 'all' ? tab : ''} orders yet.</p>
         </div>
       )}
@@ -300,7 +300,7 @@ export default function SupplierOrdersPage() {
             <select
               value={orderForm.supplier_id}
               onChange={e => setOrderForm(f => ({ ...f, supplier_id: e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             >
               {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
@@ -319,16 +319,16 @@ export default function SupplierOrdersPage() {
                   <div className="flex-1 grid grid-cols-3 gap-1.5">
                     <input value={item.item_name} onChange={e => updateItem(i, 'item_name', e.target.value)}
                       placeholder="Item name *"
-                      className="col-span-3 px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
+                      className="col-span-3 px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
                     <input value={item.quantity} onChange={e => updateItem(i, 'quantity', e.target.value)}
                       placeholder="Qty *"
-                      className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
+                      className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
                     <input value={item.unit} onChange={e => updateItem(i, 'unit', e.target.value)}
                       placeholder="Unit"
-                      className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
+                      className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
                     <input value={item.notes} onChange={e => updateItem(i, 'notes', e.target.value)}
                       placeholder="Notes"
-                      className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
+                      className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
                   </div>
                   {orderItems.length > 1 && (
                     <CloseButton label="Remove item" onClick={() => removeItem(i)} />
@@ -343,7 +343,7 @@ export default function SupplierOrdersPage() {
             <textarea value={orderForm.notes} onChange={e => setOrderForm(f => ({ ...f, notes: e.target.value }))}
               placeholder="Any special instructions or notes for this order"
               rows={2}
-              className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
+              className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
           </div>
 
           <Button fullWidth loading={submittingOrder} onClick={submitOrder} disabled={submittingOrder}>

@@ -34,8 +34,8 @@ import Button from '../../components/ui/Button'
 const ALL_CLEAR_TEXT = 'All clear — no activity, traps checked and reset.'
 
 const FIELD_LABEL = 'block text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
-const TEXT_FIELD  = 'w-full h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
-const TEXT_AREA   = 'w-full px-3.5 py-2.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 resize-none transition-colors'
+const TEXT_FIELD  = 'w-full h-9 px-3.5 rounded-control border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
+const TEXT_AREA   = 'w-full px-3.5 py-2.5 rounded-control border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 resize-none transition-colors'
 
 const SEVERITY_TONE = { low: TONE.ok, medium: TONE.explained, high: TONE.bad }
 
@@ -134,7 +134,7 @@ function ToggleRow({ title, hint, checked, onChange }) {
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className={`w-full flex items-center gap-2.5 text-left rounded-xl px-3.5 sm:px-3.5 py-2 transition-colors ${checked ? 'bg-goodBg dark:bg-good/15' : 'bg-cream dark:bg-white/5'}`}
+      className={`w-full flex items-center gap-2.5 text-left rounded-control px-3.5 sm:px-3.5 py-2 transition-colors ${checked ? 'bg-goodBg dark:bg-good/15' : 'bg-cream dark:bg-white/5'}`}
     >
       <span className="flex-1 min-w-0">
         <span className="block text-body font-semibold text-ink dark:text-white">{title}</span>
@@ -256,7 +256,7 @@ function LogEntryForm({ issues, followUpIssueId, onFollowUpIssue, onSaved }) {
               aria-pressed={active}
               onClick={() => { setLogType(t.value); setResolved(false) }}
               className={[
-                'text-left rounded-2xl border-2 px-3.5 sm:px-3.5 py-2.5 transition-colors',
+                'text-left rounded-card border-2 px-3.5 sm:px-3.5 py-2.5 transition-colors',
                 active ? 'border-brand bg-brand-tint dark:bg-white/10 dark:border-white/70' : 'border-line dark:border-white/10 bg-white dark:bg-paperDark hover:border-ink4/60',
               ].join(' ')}
             >
@@ -280,7 +280,7 @@ function LogEntryForm({ issues, followUpIssueId, onFollowUpIssue, onSaved }) {
       {/* Follow-up: which issue */}
       {logType === 'follow_up' && (
         issues.length === 0 ? (
-          <p className="rounded-xl bg-goodBg dark:bg-good/15 px-3.5 py-2 text-body-sm text-good dark:text-goodDark font-semibold">
+          <p className="rounded-control bg-goodBg dark:bg-good/15 px-3.5 py-2 text-body-sm text-good dark:text-goodDark font-semibold">
             No open issues to follow up.
           </p>
         ) : (
@@ -296,7 +296,7 @@ function LogEntryForm({ issues, followUpIssueId, onFollowUpIssue, onSaved }) {
                     aria-pressed={active}
                     onClick={() => onFollowUpIssue(i.id)}
                     className={[
-                      'text-left rounded-xl border-2 px-3.5 py-2.5 transition-colors',
+                      'text-left rounded-control border-2 px-3.5 py-2.5 transition-colors',
                       active ? 'border-brand bg-brand-tint dark:bg-white/10 dark:border-white/70' : 'border-line dark:border-white/10 hover:border-ink4/60',
                     ].join(' ')}
                   >
@@ -352,7 +352,7 @@ function LogEntryForm({ issues, followUpIssueId, onFollowUpIssue, onSaved }) {
                   aria-pressed={severity === s.value}
                   onClick={() => setSeverity(s.value)}
                   className={[
-                    'h-8 rounded-xl border text-body-sm font-semibold transition-colors',
+                    'h-8 rounded-control border text-body-sm font-semibold transition-colors',
                     severity === s.value
                       ? `${SEVERITY_TONE[s.value]} border-transparent`
                       : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
@@ -493,7 +493,7 @@ function OpenIssueCard({ issue, onFollowUp, onResolve }) {
         <p className="text-body-sm text-ink2 dark:text-white/75">{issue.description}</p>
       )}
 
-      <div className="rounded-xl bg-cream dark:bg-white/5 px-3.5 py-2.5 flex flex-col gap-2">
+      <div className="rounded-control bg-cream dark:bg-white/5 px-3.5 py-2.5 flex flex-col gap-2">
         {timeline.map(entry => (
           <div key={entry.id} className="flex gap-2.5 text-body-sm">
             <span className="shrink-0 w-10 font-mono text-body-sm text-ink3 dark:text-white/45 pt-px">{shortDay(entry.at)}</span>
@@ -663,7 +663,7 @@ export default function PestControlPage() {
             <button
               type="button"
               onClick={() => setTab('open')}
-              className="w-full flex items-center gap-2.5 rounded-2xl bg-badBg dark:bg-bad/20 px-3.5 sm:px-3.5 py-2 text-left"
+              className="w-full flex items-center gap-2.5 rounded-card bg-badBg dark:bg-bad/20 px-3.5 sm:px-3.5 py-2 text-left"
             >
               <span className="shrink-0 w-2.5 h-2.5 rounded-full bg-bad" />
               <span className="flex-1 min-w-0 text-body-sm min-[420px]:text-body font-semibold text-ink dark:text-white truncate">

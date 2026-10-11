@@ -120,7 +120,7 @@ function Field({ label, required, children }) {
   )
 }
 
-const INPUT_CLS = 'w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20'
+const INPUT_CLS = 'w-full px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20'
 
 function Input({ value, onChange, ...rest }) {
   return <input value={value} onChange={e => onChange(e.target.value)} className={INPUT_CLS} {...rest} />
@@ -237,7 +237,7 @@ function LogCard({ log, onEdit }) {
   const resolved = !!log.resolved_at
 
   return (
-    <div className={`bg-white dark:bg-paperDark rounded-2xl border overflow-hidden ${resolved ? 'border-charcoal/10 dark:border-white/10' : 'border-danger/30'}`}>
+    <div className={`bg-white dark:bg-paperDark rounded-card border overflow-hidden ${resolved ? 'border-charcoal/10 dark:border-white/10' : 'border-danger/30'}`}>
       <div className="px-5 py-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
@@ -344,7 +344,7 @@ function ProcedureTab({ venueId }) {
     <div className="flex flex-col gap-5">
 
       {/* Key contacts */}
-      <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
+      <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/10 dark:border-white/10 p-5">
         <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Key Contacts</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
@@ -358,7 +358,7 @@ function ProcedureTab({ venueId }) {
                 value={meta[f.key]}
                 onChange={e => setMeta(m => ({ ...m, [f.key]: e.target.value }))}
                 placeholder={f.placeholder}
-                className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
           ))}
@@ -367,14 +367,14 @@ function ProcedureTab({ venueId }) {
 
       {/* Procedure sections */}
       {PROC_SECTIONS.map(section => (
-        <div key={section.key} className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
+        <div key={section.key} className="bg-white dark:bg-paperDark rounded-card border border-charcoal/10 dark:border-white/10 p-5">
           <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">{section.title}</p>
           <p className="text-xs text-charcoal/40 dark:text-white/35 mb-3">{section.desc}</p>
           <textarea
             value={sections[section.key] || ''}
             onChange={e => setSections(prev => ({ ...prev, [section.key]: e.target.value }))}
             rows={section.rows}
-            className="w-full px-4 py-3 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal dark:text-white text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 resize-none"
+            className="w-full px-4 py-3 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal dark:text-white text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 resize-none"
           />
         </div>
       ))}
@@ -433,7 +433,7 @@ function LogTab({ venueId }) {
 
         {/* Alert banner for open recalls */}
         {openCount > 0 && (
-          <div className="bg-danger/8 border border-danger/25 rounded-xl px-4 py-3 flex items-start gap-2">
+          <div className="bg-danger/8 border border-danger/25 rounded-control px-4 py-3 flex items-start gap-2">
             <svg className="w-4 h-4 text-danger mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
               <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
@@ -455,7 +455,7 @@ function LogTab({ venueId }) {
               <button
                 key={f.value}
                 onClick={() => setFilter(f.value)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded-control text-xs font-medium transition-colors ${
                   filter === f.value
                     ? 'bg-charcoal text-cream'
                     : 'bg-white dark:bg-paperDark border border-charcoal/12 dark:border-white/15 text-charcoal/50 dark:text-white/40 hover:border-charcoal/25 dark:hover:border-white/25 hover:text-charcoal dark:hover:text-white'
@@ -476,7 +476,7 @@ function LogTab({ venueId }) {
         {loading ? (
           <SkeletonList rows={4} />
         ) : isError ? (<LoadError what="recall logs" onRetry={reload} />) : filtered.length === 0 ? (
-          <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 px-6 py-10 text-center">
+          <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 px-6 py-10 text-center">
             <p className="text-sm text-charcoal/35 dark:text-white/30 font-medium">
               {logs.length === 0
                 ? 'No recall events logged yet'
@@ -517,7 +517,7 @@ export default function RecallPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-charcoal/5 dark:bg-white/5 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 bg-charcoal/5 dark:bg-white/5 p-1 rounded-control w-fit">
         {[
           { id: 'procedure', label: 'Procedure' },
           { id: 'log',       label: 'Recall Log' },
@@ -525,7 +525,7 @@ export default function RecallPage() {
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-5 py-2 rounded-control text-sm font-medium transition-colors ${
               tab === t.id
                 ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm'
                 : 'text-charcoal/45 dark:text-white/40 hover:text-charcoal dark:hover:text-white'

@@ -78,7 +78,7 @@ function SectionCard({ title, status, children, sectionId, openSection, onToggle
   const dotColors = { good: 'bg-success', warning: 'bg-warning', bad: 'bg-danger', neutral: 'bg-charcoal/20 dark:bg-white/20' }
 
   return (
-    <div id={sectionId} className="bg-white dark:bg-paperDark rounded-2xl overflow-hidden">
+    <div id={sectionId} className="bg-white dark:bg-paperDark rounded-card overflow-hidden">
       <div className="p-5">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -207,7 +207,7 @@ export default function EHOAuditPage() {
       ) : !data ? null : (
         <>
           {/* Overall status banner */}
-          <div className={`rounded-2xl border px-4 py-3.5 flex items-center gap-3 ${
+          <div className={`rounded-card border px-4 py-3.5 flex items-center gap-3 ${
             overall === 'good' ? 'border-success/25 bg-success/8' :
             overall === 'warning' ? 'border-warning/25 bg-warning/8' :
             'border-danger/25 bg-danger/8'
@@ -228,7 +228,7 @@ export default function EHOAuditPage() {
           </div>
 
           {/* Overall score card */}
-          <div className="bg-white dark:bg-paperDark rounded-2xl p-5">
+          <div className="bg-white dark:bg-paperDark rounded-card p-5">
             <p className="text-micro font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Overall Score</p>
             <div className="flex items-baseline gap-2 mb-3">
               <span className="text-4xl font-bold text-midgreen">{overallScore}%</span>
@@ -463,7 +463,7 @@ export default function EHOAuditPage() {
           </div>
 
           {/* EHO Inspection Report */}
-          <div className="bg-white dark:bg-paperDark rounded-2xl px-5 py-4">
+          <div className="bg-white dark:bg-paperDark rounded-card px-5 py-4">
             <p className="text-micro font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">EHO Inspection Report</p>
             <p className="text-xs text-charcoal/45 dark:text-white/40 mb-3">One comprehensive PDF covering all compliance areas — ready to show an EHO inspector.</p>
             <Button
@@ -475,7 +475,7 @@ export default function EHOAuditPage() {
           </div>
 
           {/* Data Export */}
-          <div className="bg-white dark:bg-paperDark rounded-2xl px-5 py-4">
+          <div className="bg-white dark:bg-paperDark rounded-card px-5 py-4">
             <p className="text-micro font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Export Records (PDF)</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {[
@@ -498,7 +498,7 @@ export default function EHOAuditPage() {
           </div>
 
           {/* Guidance note */}
-          <div className="bg-white dark:bg-paperDark rounded-2xl px-5 py-4">
+          <div className="bg-white dark:bg-paperDark rounded-card px-5 py-4">
             <p className="text-micro font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">EHO Inspection Tips</p>
             <ul className="text-xs text-charcoal/50 dark:text-white/40 space-y-1.5 list-disc list-inside">
               <li>Ensure all fridge temps are logged at least twice daily (opening and closing)</li>

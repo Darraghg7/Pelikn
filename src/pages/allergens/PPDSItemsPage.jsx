@@ -102,7 +102,7 @@ export default function PPDSItemsPage() {
           </div>
           <Link
             to={`/v/${venueSlug}/allergens/ppds/new`}
-            className="shrink-0 bg-charcoal text-cream px-4 py-2 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors"
+            className="shrink-0 bg-charcoal text-cream px-4 py-2 rounded-control text-sm font-semibold hover:bg-charcoal/90 transition-colors"
           >
             + Add Item
           </Link>
@@ -110,14 +110,14 @@ export default function PPDSItemsPage() {
       </div>
 
       {/* Info banner */}
-      <div className="bg-charcoal/4 dark:bg-white/5 border border-charcoal/10 dark:border-white/10 rounded-xl px-4 py-3">
+      <div className="bg-charcoal/4 dark:bg-white/5 border border-charcoal/10 dark:border-white/10 rounded-control px-4 py-3">
         <p className="text-xs text-charcoal/60 dark:text-white/50 leading-relaxed">
           <strong className="text-charcoal/80 dark:text-white/68">Natasha's Law</strong> (in force since October 2021) requires all pre-packed for direct sale food — such as sandwiches, wraps, and pastries made and packaged on your premises — to carry a label with the product name, a full ingredient list, and all 14 allergens highlighted in bold.
         </p>
       </div>
 
       {/* List */}
-      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+      <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 overflow-hidden">
         {loading ? (
           <SkeletonList rows={4} />
         ) : failed && items.length === 0 ? (
@@ -128,7 +128,7 @@ export default function PPDSItemsPage() {
             <p className="text-xs text-charcoal/25 dark:text-white/25 mt-1">Add any pre-packaged items — sandwiches, wraps, pastries, salads — that are made and packaged on your premises.</p>
             <Link
               to={`/v/${venueSlug}/allergens/ppds/new`}
-              className="inline-block mt-4 bg-charcoal text-cream px-4 py-2 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors"
+              className="inline-block mt-4 bg-charcoal text-cream px-4 py-2 rounded-control text-sm font-semibold hover:bg-charcoal/90 transition-colors"
             >
               + Add First Item
             </Link>
@@ -141,7 +141,7 @@ export default function PPDSItemsPage() {
                 className={`flex items-center gap-4 px-5 py-3.5 ${idx > 0 ? 'border-t border-charcoal/6 dark:border-white/8' : ''}`}
               >
                 {/* Icon */}
-                <div className="w-7 h-7 rounded-md bg-charcoal/8 dark:bg-white/8 flex items-center justify-center shrink-0 text-charcoal/40 dark:text-white/35">
+                <div className="w-7 h-7 rounded-tag bg-charcoal/8 dark:bg-white/8 flex items-center justify-center shrink-0 text-charcoal/40 dark:text-white/35">
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/>
                     <line x1="7" y1="7" x2="7.01" y2="7"/>

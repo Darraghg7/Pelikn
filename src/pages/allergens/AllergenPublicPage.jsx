@@ -119,7 +119,7 @@ export default function AllergenPublicPage() {
         </div>
 
         {items.length === 0 ? (
-          <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 px-6 py-8 text-center">
+          <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 px-6 py-8 text-center">
             <p className="text-sm text-charcoal/40 dark:text-white/35">No allergen information available yet.</p>
           </div>
         ) : (
@@ -130,7 +130,7 @@ export default function AllergenPublicPage() {
                 const allergenSet  = new Set((item.food_allergens ?? []).map(a => a.allergen))
                 const mayContainSet = new Set((item.may_contain_allergens ?? []))
                 return (
-                  <div key={item.id} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 px-5 py-4">
+                  <div key={item.id} className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 px-5 py-4">
                     <p className="font-semibold text-charcoal dark:text-white mb-1">{item.name}</p>
                     {item.description && <p className="text-xs text-charcoal/45 dark:text-white/40 mb-3">{item.description}</p>}
                     {allergenSet.size === 0 && mayContainSet.size === 0 ? (
@@ -163,7 +163,7 @@ export default function AllergenPublicPage() {
             </div>
 
             {/* Desktop: matrix table */}
-            <div className="hidden lg:block bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+            <div className="hidden lg:block bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
@@ -186,9 +186,9 @@ export default function AllergenPublicPage() {
                           {ALL_ALLERGENS.map(a => (
                             <td key={a} className="px-2 py-2.5 text-center">
                               {allergenSet.has(a) ? (
-                                <span title="Contains" className="inline-flex w-4 h-4 rounded-sm bg-amber-400 text-white items-center justify-center"><svg className="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>
+                                <span title="Contains" className="inline-flex w-4 h-4 rounded-tag bg-amber-400 text-white items-center justify-center"><svg className="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>
                               ) : mayContainSet.has(a) ? (
-                                <span title="May contain" className="inline-flex w-4 h-4 rounded-sm bg-amber-100 border border-amber-300 text-amber-600 items-center justify-center text-micro font-bold">M</span>
+                                <span title="May contain" className="inline-flex w-4 h-4 rounded-tag bg-amber-100 border border-amber-300 text-amber-600 items-center justify-center text-micro font-bold">M</span>
                               ) : (
                                 <span className="text-charcoal/15 dark:text-white/15">–</span>
                               )}
@@ -203,11 +203,11 @@ export default function AllergenPublicPage() {
               {/* Legend */}
               <div className="px-4 py-3 border-t border-charcoal/6 dark:border-white/8 flex items-center gap-5">
                 <div className="flex items-center gap-1.5">
-                  <span className="inline-flex w-4 h-4 rounded-sm bg-amber-400 text-white items-center justify-center"><svg className="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>
+                  <span className="inline-flex w-4 h-4 rounded-tag bg-amber-400 text-white items-center justify-center"><svg className="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>
                   <span className="text-micro text-charcoal/50 dark:text-white/40">Contains</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="inline-flex w-4 h-4 rounded-sm bg-amber-100 border border-amber-300 text-amber-600 items-center justify-center text-micro font-bold">M</span>
+                  <span className="inline-flex w-4 h-4 rounded-tag bg-amber-100 border border-amber-300 text-amber-600 items-center justify-center text-micro font-bold">M</span>
                   <span className="text-micro text-charcoal/50 dark:text-white/40">May contain (cross-contamination risk)</span>
                 </div>
               </div>

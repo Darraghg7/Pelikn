@@ -143,7 +143,7 @@ function HACCPDocument({ data, hazardPoints }) {
             <div
               contentEditable
               suppressContentEditableWarning
-              className="border border-charcoal/15 dark:border-white/15 rounded-lg p-3 min-h-[80px] text-sm text-charcoal/80 dark:text-white/68 leading-relaxed outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="border border-charcoal/15 dark:border-white/15 rounded-control p-3 min-h-[80px] text-sm text-charcoal/80 dark:text-white/68 leading-relaxed outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               style={{ whiteSpace: 'pre-wrap' }}
               ref={(el) => {
                 if (el && !el.dataset.initialized) {
@@ -220,7 +220,7 @@ export default function HACCPPage() {
         </div>
 
         {!showDoc ? (
-          <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-8 text-center flex flex-col items-center gap-4">
+          <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-8 text-center flex flex-col items-center gap-4">
             <div className="text-charcoal/30 dark:text-white/30"><svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></div>
             <div>
               <p className="font-semibold text-charcoal dark:text-white">Generate your HACCP Summary</p>
@@ -246,7 +246,7 @@ export default function HACCPPage() {
                 { label: 'Allergen Items',     count: data.allergenCount },
                 { label: 'Probe Calibrations', count: data.probeCount    },
               ].map((item) => (
-                <div key={item.label} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-4">
+                <div key={item.label} className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-4">
                   <p className="text-2xl font-bold font-semibold text-charcoal dark:text-white">{item.count}</p>
                   <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mt-0.5">{item.label}</p>
                   <p className="text-caption text-charcoal/30 dark:text-white/30 mt-0.5">last 30 days</p>
@@ -269,7 +269,7 @@ export default function HACCPPage() {
             </div>
 
             {/* Printable document */}
-            <div id="haccp-print-root" className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-6 sm:p-8">
+            <div id="haccp-print-root" className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-6 sm:p-8">
               <HACCPDocument data={data} hazardPoints={hazardPoints} />
             </div>
 

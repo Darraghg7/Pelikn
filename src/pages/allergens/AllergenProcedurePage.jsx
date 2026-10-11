@@ -164,7 +164,7 @@ export default function AllergenProcedurePage() {
       </div>
 
       {/* Legal banner */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 flex gap-3">
+      <div className="bg-amber-50 border border-amber-200 rounded-card px-5 py-4 flex gap-3">
         <span className="text-amber-500 mt-0.5 shrink-0">⚠</span>
         <div>
           <p className="text-sm font-semibold text-amber-800">Required document</p>
@@ -178,7 +178,7 @@ export default function AllergenProcedurePage() {
       </div>
 
       {/* Key contacts */}
-      <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
+      <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/10 dark:border-white/10 p-5">
         <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Key Contacts</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
@@ -191,7 +191,7 @@ export default function AllergenProcedurePage() {
                 value={meta[f.key]}
                 onChange={e => setMeta(m => ({ ...m, [f.key]: e.target.value }))}
                 placeholder={f.placeholder}
-                className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
           ))}
@@ -200,14 +200,14 @@ export default function AllergenProcedurePage() {
 
       {/* Procedure sections */}
       {PROC_SECTIONS.map(section => (
-        <div key={section.key} className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
+        <div key={section.key} className="bg-white dark:bg-paperDark rounded-card border border-charcoal/10 dark:border-white/10 p-5">
           <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">{section.title}</p>
           <p className="text-xs text-charcoal/40 dark:text-white/35 mb-3">{section.desc}</p>
           <textarea
             value={sections[section.key] || ''}
             onChange={e => setSections(prev => ({ ...prev, [section.key]: e.target.value }))}
             rows={section.rows}
-            className="w-full px-4 py-3 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal dark:text-white text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 resize-none"
+            className="w-full px-4 py-3 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal dark:text-white text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 resize-none"
           />
         </div>
       ))}

@@ -79,7 +79,7 @@ function WorklistRow({ check, statusInfo, onClick }) {
       onClick={onClick}
       className="w-full text-left cursor-pointer bg-white dark:bg-paperDark border-none border-b border-charcoal/6 dark:border-white/8 px-4 py-[13px] flex items-center gap-[13px] last:border-b-0"
     >
-      <span className={`w-9 h-9 rounded-[10px] shrink-0 flex items-center justify-center ${bg} ${fg}`}>
+      <span className={`w-9 h-9 rounded-control shrink-0 flex items-center justify-center ${bg} ${fg}`}>
         <span className="w-[18px] h-[18px] inline-flex"><Icon /></span>
       </span>
 
@@ -186,7 +186,7 @@ export default function ChecksWorklistPage() {
         ))}
       </div>
 
-      <div className={isLoading ? '' : 'bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/10 dark:border-white/10 overflow-hidden'}>
+      <div className={isLoading ? '' : 'bg-white dark:bg-paperDark rounded-card border border-charcoal/10 dark:border-white/10 overflow-hidden'}>
         {isLoading ? (
           <SkeletonList rows={6} />
         ) : filtered.length === 0 ? (

@@ -23,7 +23,7 @@ const CATEGORY_LABEL = Object.fromEntries(DOCUMENT_CATEGORIES.map(c => [c.value,
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 
 const FIELD_LABEL = 'block text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
-const TEXT_FIELD  = 'w-full h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
+const TEXT_FIELD  = 'w-full h-9 px-3.5 rounded-control border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
 
 // Expired first, then expiring soonest-first, then the rest A–Z, undated last
 const STATUS_RANK = { expired: 0, expiring: 1, valid: 2, none: 3 }
@@ -121,7 +121,7 @@ function UploadDocumentModal({ open, onClose, onSaved }) {
       <div className="flex flex-col gap-4">
         <label
           className={[
-            'flex flex-col items-center justify-center gap-1.5 rounded-2xl border-[1.5px] border-dashed px-3.5 py-6 text-center cursor-pointer transition-colors',
+            'flex flex-col items-center justify-center gap-1.5 rounded-card border-[1.5px] border-dashed px-3.5 py-6 text-center cursor-pointer transition-colors',
             file ? 'border-brand/40 bg-brand-tint dark:bg-white/10' : 'border-ink4/70 dark:border-white/20 hover:border-ink3',
           ].join(' ')}
           onDragOver={e => e.preventDefault()}
@@ -264,7 +264,7 @@ export default function DocumentsPage() {
           onChange={e => setSearch(e.target.value)}
           placeholder="Search documents"
           aria-label="Search documents"
-          className="w-full h-10 pl-12 pr-4 rounded-2xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
+          className="w-full h-10 pl-12 pr-4 rounded-card border border-line dark:border-white/10 bg-white dark:bg-paperDark text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
         />
       </div>
 
@@ -281,7 +281,7 @@ export default function DocumentsPage() {
         <button
           type="button"
           onClick={() => setAttention(v => !v)}
-          className="w-full flex items-center gap-2.5 rounded-2xl bg-warnBg dark:bg-warn/20 px-3.5 sm:px-3.5 py-2 text-left"
+          className="w-full flex items-center gap-2.5 rounded-card bg-warnBg dark:bg-warn/20 px-3.5 sm:px-3.5 py-2 text-left"
         >
           <svg className="shrink-0 w-5 h-5 text-warn dark:text-warnDark" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="14" r="8" /><polyline points="12 10 12 14 14.5 15.5" /><line x1="10" y1="2" x2="14" y2="2" /></svg>
           <span className="flex-1 min-w-0 text-body-sm min-[420px]:text-body font-semibold text-ink dark:text-white">{bannerText}</span>
@@ -310,7 +310,7 @@ export default function DocumentsPage() {
               onClick={() => openVenueDocument(doc, toast)}
               className="w-full text-left flex items-center gap-2.5 min-[420px]:gap-2.5 px-3.5 sm:px-3.5 py-2.5 hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
             >
-              <span className="shrink-0 w-9 h-8 min-[420px]:w-9 min-[420px]:h-9 rounded-xl bg-cream dark:bg-white/10 border border-line dark:border-white/10 flex items-end justify-center pb-1.5 font-mono text-micro font-bold text-ink2 dark:text-white/70">
+              <span className="shrink-0 w-9 h-8 min-[420px]:w-9 min-[420px]:h-9 rounded-control bg-cream dark:bg-white/10 border border-line dark:border-white/10 flex items-end justify-center pb-1.5 font-mono text-micro font-bold text-ink2 dark:text-white/70">
                 {fileExt(doc)}
               </span>
               <span className="flex-1 min-w-0">

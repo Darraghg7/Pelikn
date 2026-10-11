@@ -88,7 +88,7 @@ function ComplaintModal({ open, onClose, editItem, venueId, onSaved }) {
     onSaved()
   }
 
-  const inp = 'px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20'
+  const inp = 'px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20'
   const ta  = `${inp} resize-none`
 
   return (
@@ -155,12 +155,12 @@ function ComplaintCard({ item, onEdit }) {
   const info     = typeInfo(item.complaint_type)
 
   return (
-    <div className={`bg-white dark:bg-paperDark rounded-2xl border overflow-hidden ${resolved ? 'border-charcoal/10 dark:border-white/10' : 'border-danger/30'}`}>
+    <div className={`bg-white dark:bg-paperDark rounded-card border overflow-hidden ${resolved ? 'border-charcoal/10 dark:border-white/10' : 'border-danger/30'}`}>
       <div className="px-5 py-4">
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`text-micro font-semibold px-2 py-0.5 rounded border ${info.color}`}>{info.label}</span>
+              <span className={`text-micro font-semibold px-2 py-0.5 rounded-tag border ${info.color}`}>{info.label}</span>
               <span className={`text-micro font-semibold px-2 py-0.5 rounded-full ${
                 resolved ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'
               }`}>
@@ -252,7 +252,7 @@ export default function ComplaintsPage() {
 
       {/* Open alert banner */}
       {openCount > 0 && (
-        <div className="bg-danger/8 border border-danger/20 rounded-xl px-5 py-3 flex items-center gap-3">
+        <div className="bg-danger/8 border border-danger/20 rounded-control px-5 py-3 flex items-center gap-3">
           <svg className="w-4 h-4 text-danger shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           <p className="text-sm text-danger font-medium">
             {openCount} open complaint{openCount !== 1 ? 's' : ''} — investigate and resolve as soon as possible
@@ -261,7 +261,7 @@ export default function ComplaintsPage() {
       )}
 
       {/* EHO info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-2xl px-5 py-4 flex gap-3">
+      <div className="bg-blue-50 border border-blue-200 rounded-card px-5 py-4 flex gap-3">
         <span className="text-blue-500 mt-0.5 shrink-0">ℹ</span>
         <p className="text-xs text-blue-700 leading-relaxed">
           EHOs expect a complete trail for every food safety complaint: complaint received → investigated → outcome established → corrective action taken → resolved. Records should be kept for a minimum of 3 years.
@@ -269,14 +269,14 @@ export default function ComplaintsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-1 bg-charcoal/5 dark:bg-white/5 rounded-xl p-1 w-fit">
+      <div className="flex gap-1 bg-charcoal/5 dark:bg-white/5 rounded-control p-1 w-fit">
         {[
           { id: 'all',      label: 'All' },
           { id: 'open',     label: `Open${openCount > 0 ? ` (${openCount})` : ''}` },
           { id: 'resolved', label: 'Resolved' },
         ].map(f => (
           <button key={f.id} onClick={() => setFilter(f.id)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`px-4 py-2 rounded-control text-sm font-medium transition-all ${
               filter === f.id ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm' : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white'
             }`}>
             {f.label}
@@ -288,7 +288,7 @@ export default function ComplaintsPage() {
       {loading ? (
         <SkeletonList rows={4} />
       ) : isError ? (<LoadError what="complaints" onRetry={reload} />) : filtered.length === 0 ? (
-        <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 px-5 py-12 text-center">
+        <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/10 dark:border-white/10 px-5 py-12 text-center">
           <p className="text-charcoal/40 dark:text-white/35 text-sm">
             {filter === 'open' ? 'No open complaints.' : filter === 'resolved' ? 'No resolved complaints yet.' : 'No complaints logged yet.'}
           </p>

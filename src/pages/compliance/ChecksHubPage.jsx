@@ -108,10 +108,10 @@ function HubCard({ check, statusInfo, onClick, editMode, isHidden, onToggle }) {
   return (
     <button
       onClick={editMode ? onToggle : onClick}
-      className={`text-left cursor-pointer w-full bg-white dark:bg-paperDark border rounded-xl p-3 flex flex-col gap-2 min-h-[84px] relative transition-opacity ${editMode && isHidden ? 'opacity-40' : 'opacity-100'} ${!editMode && status === 'overdue' ? 'border-danger/30' : 'border-charcoal/10 dark:border-white/10'}`}
+      className={`text-left cursor-pointer w-full bg-white dark:bg-paperDark border rounded-control p-3 flex flex-col gap-2 min-h-[84px] relative transition-opacity ${editMode && isHidden ? 'opacity-40' : 'opacity-100'} ${!editMode && status === 'overdue' ? 'border-danger/30' : 'border-charcoal/10 dark:border-white/10'}`}
     >
       <div className="flex items-start justify-between">
-        <span className={`w-[30px] h-[30px] rounded-[9px] flex items-center justify-center shrink-0 ${statusBg} ${statusTextClass}`}>
+        <span className={`w-[30px] h-[30px] rounded-control flex items-center justify-center shrink-0 ${statusBg} ${statusTextClass}`}>
           <span className="w-[15px] h-[15px] inline-flex"><Icon /></span>
         </span>
 
@@ -222,13 +222,13 @@ export default function ChecksHubPage() {
       {!editMode && (
         <button
           onClick={() => navigate(vp('/checks/worklist'))}
-          className="w-full text-left bg-brand text-white rounded-[14px] px-4 py-3.5 flex items-center gap-3.5 mb-3.5 hover:bg-brand/90 transition-colors border-none cursor-pointer"
+          className="w-full text-left bg-brand text-white rounded-card px-4 py-3.5 flex items-center gap-3.5 mb-3.5 hover:bg-brand/90 transition-colors border-none cursor-pointer"
         >
           <div className="flex-1 min-w-0">
             <div className="font-mono text-micro tracking-[0.1em] uppercase text-white/55 font-semibold">Today</div>
             <div className="text-base font-semibold tracking-[-0.015em] mt-[3px] min-h-[19px]">
               {isLoading
-                ? <span className="inline-block h-[15px] w-32 rounded bg-white/20 animate-pulse align-middle" />
+                ? <span className="inline-block h-[15px] w-32 rounded-tag bg-white/20 animate-pulse align-middle" />
                 : total === 0
                   ? 'All checks up to date'
                   : `${total} ${total === 1 ? 'check needs' : 'checks need'} doing`}
@@ -274,12 +274,12 @@ export default function ChecksHubPage() {
       </div>
 
       {!editMode && (
-        <div className="mt-4 rounded-xl border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark overflow-hidden">
+        <div className="mt-4 rounded-control border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark overflow-hidden">
           <button
             onClick={() => navigate(vp('/audit'))}
             className="w-full text-left cursor-pointer bg-transparent border-none px-[14px] py-[13px] flex items-center gap-[10px]"
           >
-            <span className="w-8 h-8 rounded-[9px] shrink-0 bg-surface text-charcoal/75 dark:text-white/60 flex items-center justify-center">
+            <span className="w-8 h-8 rounded-control shrink-0 bg-surface text-charcoal/75 dark:text-white/60 flex items-center justify-center">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/>
               </svg>

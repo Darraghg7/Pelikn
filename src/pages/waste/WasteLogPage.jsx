@@ -145,12 +145,12 @@ export default function WasteLogPage() {
             <div>
               <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">From</label>
               <input type="date" value={exportFrom} onChange={e => setExportFrom(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
+                className="w-full px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
             <div>
               <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">To</label>
               <input type="date" value={exportTo} onChange={e => setExportTo(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
+                className="w-full px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
           </div>
           <Button fullWidth loading={exporting} onClick={handleExportPdf} disabled={exporting}>
@@ -160,7 +160,7 @@ export default function WasteLogPage() {
       </Modal>
 
       {/* Log form */}
-      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
+      <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5">
         <SectionLabel>Log Waste</SectionLabel>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
@@ -170,7 +170,7 @@ export default function WasteLogPage() {
               value={form.item_name}
               onChange={e => setForm(f => ({ ...f, item_name: e.target.value }))}
               placeholder="e.g. Chicken breast, Mixed salad"
-              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
@@ -182,7 +182,7 @@ export default function WasteLogPage() {
                 value={form.quantity}
                 onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
                 placeholder="0.0"
-                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
             <div>
@@ -192,7 +192,7 @@ export default function WasteLogPage() {
                   <button key={u} type="button"
                     onClick={() => setForm(f => ({ ...f, unit: u }))}
                     className={[
-                      'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
+                      'px-3 py-1.5 rounded-control text-xs font-medium border transition-all',
                       form.unit === u
                         ? 'bg-charcoal text-cream border-charcoal dark:border-white'
                         : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/35 dark:hover:border-white/35',
@@ -211,7 +211,7 @@ export default function WasteLogPage() {
                 <button key={r} type="button"
                   onClick={() => setForm(f => ({ ...f, reason: r }))}
                   className={[
-                    'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
+                    'px-3 py-1.5 rounded-control text-xs font-medium border transition-all',
                     form.reason === r
                       ? 'bg-charcoal text-cream border-charcoal dark:border-white'
                       : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/35 dark:hover:border-white/35',
@@ -229,7 +229,7 @@ export default function WasteLogPage() {
               value={recordedTime.value}
               onChange={e => recordedTime.setByUser(e.target.value)}
               max={nowLocal()}
-              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
@@ -240,7 +240,7 @@ export default function WasteLogPage() {
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               placeholder="Any additional details"
               rows={2}
-              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
@@ -260,7 +260,7 @@ export default function WasteLogPage() {
         <div className="flex flex-col gap-4">
           <SectionLabel>Recent Waste (last 7 days)</SectionLabel>
           {grouped.map(([date, entries]) => (
-            <div key={date} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+            <div key={date} className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 overflow-hidden">
               <div className="px-5 py-3 border-b border-charcoal/8 dark:border-white/8">
                 <p className="text-xs font-medium text-charcoal/50 dark:text-white/40 uppercase tracking-widest">
                   {format(new Date(date + 'T12:00:00'), 'EEEE d MMMM')}
@@ -291,7 +291,7 @@ export default function WasteLogPage() {
       {isError && <LoadError what="waste logs" onRetry={reload} />}
 
       {!isError && grouped.length === 0 && (
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-8 text-center">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-8 text-center">
           <p className="text-charcoal/40 dark:text-white/35 text-sm">No waste logged this week.</p>
         </div>
       )}

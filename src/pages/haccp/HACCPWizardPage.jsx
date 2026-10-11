@@ -391,7 +391,7 @@ export default function HACCPWizardPage() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
+          <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
             <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Plan Details</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="flex flex-col gap-1">
@@ -400,7 +400,7 @@ export default function HACCPWizardPage() {
                   value={meta.business_name}
                   onChange={e => setMeta(m => ({ ...m, business_name: e.target.value }))}
                   placeholder={venueName}
-                  className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                  className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                 />
               </div>
               <div className="flex flex-col gap-1">
@@ -409,7 +409,7 @@ export default function HACCPWizardPage() {
                   value={meta.responsible_manager}
                   onChange={e => setMeta(m => ({ ...m, responsible_manager: e.target.value }))}
                   placeholder="Manager name"
-                  className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                  className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                 />
               </div>
               <div className="flex flex-col gap-1">
@@ -418,14 +418,14 @@ export default function HACCPWizardPage() {
                   type="date"
                   value={meta.review_date}
                   onChange={e => setMeta(m => ({ ...m, review_date: e.target.value }))}
-                  className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                  className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                 />
               </div>
             </div>
           </div>
 
           {STEPS.map((s, i) => (
-            <div key={s.id} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+            <div key={s.id} className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 overflow-hidden">
               <div className="px-5 py-3 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between">
                 <div>
                   <span className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">{s.principle}</span>
@@ -497,7 +497,7 @@ export default function HACCPWizardPage() {
         </div>
 
         {/* Step indicator */}
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 px-5 py-4">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 px-5 py-4">
           <StepIndicator current={step} total={STEPS.length} steps={STEPS} />
           <div className="mt-3">
             <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">{currentStep.principle}</p>
@@ -506,12 +506,12 @@ export default function HACCPWizardPage() {
         </div>
 
         {/* Guidance */}
-        <div className="bg-charcoal/4 dark:bg-white/5 rounded-xl px-4 py-3 border border-charcoal/8 dark:border-white/8">
+        <div className="bg-charcoal/4 dark:bg-white/5 rounded-control px-4 py-3 border border-charcoal/8 dark:border-white/8">
           <p className="text-sm text-charcoal/70 dark:text-white/60 leading-relaxed">{currentStep.guidance}</p>
         </div>
 
         {/* Textarea */}
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5">
           <div className="flex items-center justify-between mb-2">
             <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Your notes for this principle</label>
             {!currentAnswer && (
@@ -530,7 +530,7 @@ export default function HACCPWizardPage() {
             onChange={e => setCurrentAnswer(e.target.value)}
             placeholder={currentStep.placeholder}
             rows={14}
-            className="w-full px-4 py-3 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 resize-none font-mono leading-relaxed"
+            className="w-full px-4 py-3 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 resize-none font-mono leading-relaxed"
           />
           {!currentAnswer && (
             <p className="text-caption text-charcoal/30 dark:text-white/30 mt-1.5">
