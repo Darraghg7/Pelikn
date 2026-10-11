@@ -2,7 +2,7 @@ import React, { memo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { format, parseISO } from 'date-fns'
-import { supabase } from '../../lib/supabase'
+import { fetchPendingLeaveAndSwaps } from '../../lib/api/widgets'
 import { fetchTimeOffPrivateFields, withTimeOffPrivate } from '../../lib/api/timeOffPrivate'
 import { fetchUnsignedTrainingCount, unsignedTrainingKey } from '../../lib/api/training'
 import { decideTimeOff } from '../../lib/api/timeOffDecisions'
@@ -37,20 +37,8 @@ function StaffNotificationsWidget() {
   const [deciding, setDeciding] = useState(null)   // request id being saved
 
   const { data, isError, refetch } = useWidgetQuery('staff_notifications', [venueId], async () => {
-    const [{ data: leave, error: leaveError }, { data: swaps, error: swapsError }, trainCount] = await Promise.all([
-      supabase
-        .from('time_off_requests')
-        .select('id, staff_id, start_date, end_date, leave_type, staff:staff_id(name)')
-        .eq('venue_id', venueId)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false })
-        .limit(5),
-      supabase
-        .from('shift_swaps')
-        .select('id, requester_name, target_staff_name')
-        .eq('venue_id', venueId)
-        .eq('status', 'pending')
-        .limit(5),
+    const [{ leave, swaps }, trainCount] = await Promise.all([
+      fetchPendingLeaveAndSwaps(venueId),
       // Through the shared query key: the mobile dashboard shows the same
       // count, so whichever asks first fetches and the other reuses it.
       queryClient.fetchQuery({
@@ -59,13 +47,12 @@ function StaffNotificationsWidget() {
         staleTime: 60_000,
       }),
     ])
-    if (leaveError || swapsError) throw leaveError ?? swapsError
     // 119 withholds `reason`; a manager gets the venue's, anyone else only
     // their own, so this widget still reads as it did for the people it is for.
-    const leaveWithReasons = withTimeOffPrivate(leave ?? [], await fetchTimeOffPrivateFields())
+    const leaveWithReasons = withTimeOffPrivate(leave, await fetchTimeOffPrivateFields())
     return {
       leave:      leaveWithReasons,
-      swaps:      swaps  ?? [],
+      swaps,
       trainCount: trainCount ?? 0,
     }
   })

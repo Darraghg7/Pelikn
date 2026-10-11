@@ -1,7 +1,8 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { format } from 'date-fns'
-import { supabase } from '../../lib/supabase'
+import { insertFridgeLog, createFridge, deactivateFridge, updateFridge } from '../../lib/api/fridges'
+import { errorOf } from '../../lib/api/writes'
 import { useVenue } from '../../contexts/VenueContext'
 import { useFridges, useTodayCheckStatus } from '../../hooks/useFridgeLogs'
 import { useSession } from '../../contexts/SessionContext'
@@ -107,7 +108,7 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
     const now = new Date()
     const followUpDueAt = isExplained ? new Date(now.getTime() + 30 * 60 * 1000) : null
 
-    const { error } = await supabase.from('fridge_temperature_logs').insert({
+    const error = await errorOf(insertFridgeLog({
       fridge_id:         fridge.id,
       fridge_name:       fridge.name,
       temperature:       parseFloat(temp),
@@ -119,7 +120,7 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
       venue_id:          venueId,
       exceedance_reason: reason ?? null,
       follow_up_due_at:  followUpDueAt?.toISOString() ?? null,
-    })
+    }))
 
     savingRef.current = false
     setSaving(false)
@@ -319,7 +320,7 @@ export default function FridgeDashboardPage() {
   const reloadAll = () => { reloadFridges(); reloadDash() }
 
   const addFridge = async (values) => {
-    const { error } = await supabase.from('fridges').insert({ ...values, venue_id: venueId })
+    const error = await errorOf(createFridge(venueId, values))
     if (error) { toast(error.message, 'error'); return }
     toast(`${values.name} added`)
     setShowAdd(false)
@@ -327,7 +328,7 @@ export default function FridgeDashboardPage() {
   }
 
   const removeFridge = async (id, name) => {
-    const { error } = await supabase.from('fridges').update({ is_active: false }).eq('id', id)
+    const error = await errorOf(deactivateFridge(venueId, id))
     if (error) { toast(error.message, 'error'); return }
     toast(`${name} removed`)
     setOpenFridgeId(null)
@@ -335,11 +336,7 @@ export default function FridgeDashboardPage() {
   }
 
   const saveFridgeSettings = async (fridge, values) => {
-    const { error } = await supabase
-      .from('fridges')
-      .update(values)
-      .eq('venue_id', venueId)
-      .eq('id', fridge.id)
+    const error = await errorOf(updateFridge(venueId, fridge.id, values))
     if (error) { toast(error.message, 'error'); return }
     toast(`${values.name} settings saved`)
     setOpenFridgeId(null)
