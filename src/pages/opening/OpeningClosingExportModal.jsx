@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { runExport } from '../../lib/exportData'
 import { format, subDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
@@ -52,7 +53,7 @@ export default function OpeningClosingExportModal({ open, onClose }) {
         })
       : [['No checks completed in this period', '', '', '', '', '']]
 
-    buildPdfReport({
+    await buildPdfReport({
       title: 'Pelikn',
       subtitle: 'Opening & Closing Checks Report',
       periodLabel: `${dateFrom} – ${dateTo}`,
@@ -83,7 +84,7 @@ export default function OpeningClosingExportModal({ open, onClose }) {
         <Button
           fullWidth
           loading={loading}
-          onClick={handleExport}
+          onClick={() => runExport(handleExport, toast)}
           disabled={loading}
         >
           {loading ? 'Generating…' : 'Export PDF →'}

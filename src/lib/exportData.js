@@ -84,7 +84,7 @@ export async function exportTempLogs(venueId, days = 90) {
     ]
   })
 
-  buildPdfReport({
+  await buildPdfReport({
     title: 'Pelikn',
     subtitle: 'Temperature Log Report',
     periodLabel: `Last ${days} days`,
@@ -127,7 +127,7 @@ export async function exportCleaningRecords(venueId, days = 90) {
     r.notes ?? '',
   ])
 
-  buildPdfReport({
+  await buildPdfReport({
     title: 'Pelikn',
     subtitle: 'Cleaning Records Report',
     periodLabel: `Last ${days} days`,
@@ -165,7 +165,7 @@ export async function exportDeliveryChecks(venueId, days = 90) {
   ])
 
   // Colour-code columns 5-8 (Temp, Packaging, Use-By, Overall)
-  buildPdfReport({
+  await buildPdfReport({
     title: 'Pelikn',
     subtitle: 'Delivery Checks Report',
     periodLabel: `Last ${days} days`,
@@ -204,7 +204,7 @@ export async function exportCorrectiveActions(venueId, days = 90) {
     r.resolved_at ? format(new Date(r.resolved_at), 'dd/MM/yyyy') : '-',
   ])
 
-  buildPdfReport({
+  await buildPdfReport({
     title: 'Pelikn',
     subtitle: 'Corrective Actions Report',
     periodLabel: `Last ${days} days`,
@@ -260,7 +260,7 @@ export async function exportProbeCalibrations(venueId, days = 90) {
     r.notes ?? '',
   ])
 
-  buildPdfReport({
+  await buildPdfReport({
     title: 'Pelikn',
     subtitle: 'Probe Calibration Report',
     periodLabel: `Last ${days} days`,
@@ -295,7 +295,7 @@ export async function exportTrainingRecords(venueId) {
     ]
   })
 
-  buildPdfReport({
+  await buildPdfReport({
     title: 'Pelikn',
     subtitle: 'Staff Training Records',
     periodLabel: `All records as of ${format(now, 'dd/MM/yyyy')}`,

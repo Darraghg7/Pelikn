@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { runExport } from '../../lib/exportData'
 import { format, endOfWeek, addWeeks, startOfMonth, endOfMonth, subMonths, parseISO, eachDayOfInterval } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { fetchStaffPayRates, fetchStaffPrivateFields } from '../../lib/api/staffRestricted'
@@ -709,7 +710,7 @@ export default function TimesheetPage() {
     reload()
   }, [reload, toast])
 
-  const exportPdf = () => {
+  const exportPdf = async () => {
     const pFrom = dateFrom.slice(0, 10), pTo = dateTo.slice(0, 10)
     const pdfRows = timesheets.map(t => {
       const hrs    = (t.totalMinutes / 60).toFixed(2)
@@ -721,7 +722,7 @@ export default function TimesheetPage() {
       return [t.name, `${hrs} hrs`, rate > 0 ? `£${rate}/hr` : '—', worked > 0 ? `£${worked}` : '—', holPay > 0 ? `£${holPay}` : '—', `£${(parseFloat(worked) + parseFloat(holPay)).toFixed(2)}`]
     }).filter(Boolean)
     pdfRows.push(['TOTAL', `${(totalMins / 60).toFixed(2)} hrs`, '', totalWage > 0 ? fmtGBP(totalWage) : '—', totalHolidayPay > 0 ? fmtGBP(totalHolidayPay) : '—', fmtGBP(totalWage + totalHolidayPay)])
-    buildPdfReport({ title: 'Pelikn', subtitle: 'Timesheet Report', periodLabel, columns: ['Staff Member', 'Hours Worked', 'Hourly Rate', 'Worked Pay', 'Holiday Pay', 'Total Pay'], rows: pdfRows, didParseCell(h) { if (h.section === 'body' && h.row.index === pdfRows.length - 1) { h.cell.styles.fontStyle = 'bold'; h.cell.styles.fillColor = [240, 240, 240] } }, filename: `timesheet-${dateFrom.slice(0, 10)}.pdf` })
+    await buildPdfReport({ title: 'Pelikn', subtitle: 'Timesheet Report', periodLabel, columns: ['Staff Member', 'Hours Worked', 'Hourly Rate', 'Worked Pay', 'Holiday Pay', 'Total Pay'], rows: pdfRows, didParseCell(h) { if (h.section === 'body' && h.row.index === pdfRows.length - 1) { h.cell.styles.fontStyle = 'bold'; h.cell.styles.fillColor = [240, 240, 240] } }, filename: `timesheet-${dateFrom.slice(0, 10)}.pdf` })
   }
 
   const exportCsv = () => {
@@ -771,7 +772,7 @@ export default function TimesheetPage() {
                 variant="secondary"
                 size="sm"
                 key={fmt}
-                onClick={fn}
+                onClick={() => runExport(fn, toast)}
                 disabled={loading || (totalMins <= 0 && totalHolidayPay <= 0)}
               >
                 {fmt}

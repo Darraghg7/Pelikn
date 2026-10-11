@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { runExport } from '../../lib/exportData'
 import { format, subDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { capitalize } from '../../lib/utils'
@@ -65,7 +66,7 @@ export default function CleaningExportModal({ open, onClose }) {
       rows.push([t.title, capitalize(t.frequency), departmentLabel(t), 'NOT COMPLETED', '', ''])
     }
 
-    buildPdfReport({
+    await buildPdfReport({
       title: 'Pelikn',
       subtitle: 'Cleaning Records Report',
       periodLabel: `${dateFrom} – ${dateTo}`,
@@ -102,7 +103,7 @@ export default function CleaningExportModal({ open, onClose }) {
         <p className="text-xs text-charcoal/40 dark:text-white/35">Tasks with no completions in this period will appear highlighted in red.</p>
         <Button
           fullWidth
-          onClick={handleExport}
+          onClick={() => runExport(handleExport, toast)}
           disabled={loading}
         >
           {loading ? 'Generating…' : 'Export PDF →'}

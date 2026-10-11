@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { runExport } from '../../lib/exportData'
 import { format, subDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
@@ -98,7 +99,7 @@ export default function WasteLogPage() {
     setExporting(false)
     if (error) { toast(error.message, 'error'); return }
     if (!data?.length) { toast('No waste records in this period', 'error'); return }
-    buildPdfReport({
+    await buildPdfReport({
       title: 'Pelikn',
       subtitle: 'Waste Log Report',
       periodLabel: `${exportFrom} – ${exportTo}`,
@@ -153,7 +154,7 @@ export default function WasteLogPage() {
                 className="w-full px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
           </div>
-          <Button fullWidth loading={exporting} onClick={handleExportPdf} disabled={exporting}>
+          <Button fullWidth loading={exporting} onClick={() => runExport(handleExportPdf, toast)} disabled={exporting}>
             {exporting ? 'Generating…' : 'Export PDF →'}
           </Button>
         </div>
