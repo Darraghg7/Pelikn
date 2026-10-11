@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { T, IcoCogNav } from './navConfig'
+import { radius } from '../../lib/tokens'
 
 function BrandMark({ initial, notifCount, onClick }) {
   const [hovered, setHovered] = useState(false)
@@ -12,14 +13,14 @@ function BrandMark({ initial, notifCount, onClick }) {
       style={{
         display: 'block', margin: '0 auto 4px', background: 'none',
         border: 'none', padding: 0, cursor: 'pointer',
-        borderRadius: 12,
+        borderRadius: radius.control,
         outline: 'none',
       }}
     >
       <div
         className="font-sans font-bold text-body-lg tracking-[-0.02em] grid place-items-center relative transition-[background] duration-[120ms]"
         style={{
-          width: 40, height: 40, borderRadius: 10,
+          width: 40, height: 40, borderRadius: radius.control,
           background: hovered ? T.inkMuted : T.inkBright, color: T.bg,
         }}
       >
@@ -29,7 +30,7 @@ function BrandMark({ initial, notifCount, onClick }) {
             className="font-mono text-micro font-bold text-white grid place-items-center absolute"
             style={{
               top: -3, right: -4, minWidth: 15, height: 15, padding: '0 4px',
-              borderRadius: 8, background: T.alertRed,
+              borderRadius: radius.control, background: T.alertRed,
               border: `1.5px solid ${T.bg}`,
             }}
           >{notifCount}</span>
@@ -49,7 +50,7 @@ function RailTile({ cat, isActive, isCurrent, onClick }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         background: isActive ? T.bgActive : hovered ? T.bgHover : 'transparent',
-        border: 'none', borderRadius: 9,
+        border: 'none', borderRadius: radius.control,
         padding: '10px 4px 8px', cursor: 'pointer',
         color: isActive || hovered ? T.inkBright : T.ink,
         position: 'relative', width: '100%',
@@ -60,7 +61,7 @@ function RailTile({ cat, isActive, isCurrent, onClick }) {
       {isActive && (
         <span style={{
           position: 'absolute', left: -8, top: '18%', bottom: '18%', width: 3,
-          background: T.inkBright, borderRadius: '0 3px 3px 0',
+          background: T.inkBright, borderRadius: `0 ${radius.tag}px ${radius.tag}px 0`,
         }} />
       )}
       <span style={{
@@ -85,7 +86,7 @@ function RailTile({ cat, isActive, isCurrent, onClick }) {
           className="font-mono text-micro font-bold text-white grid place-items-center absolute"
           style={{
             top: 6, right: 8, minWidth: 14, height: 14, padding: '0 4px',
-            borderRadius: 7, background: T.accent,
+            borderRadius: radius.tag, background: T.accent,
             border: `1.5px solid ${T.bg}`,
           }}
         >{cat.alert}</span>
@@ -104,7 +105,7 @@ function SettingsTile({ isActive, onClick }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         background: isActive ? T.bgActive : hovered ? T.bgHover : 'transparent',
-        border: 'none', borderRadius: 9,
+        border: 'none', borderRadius: radius.control,
         padding: '10px 4px 8px', cursor: 'pointer',
         color: isActive || hovered ? T.inkBright : T.ink,
         position: 'relative', width: '100%',
@@ -115,7 +116,7 @@ function SettingsTile({ isActive, onClick }) {
       {isActive && (
         <span style={{
           position: 'absolute', left: -8, top: '18%', bottom: '18%', width: 3,
-          background: T.inkBright, borderRadius: '0 3px 3px 0',
+          background: T.inkBright, borderRadius: `0 ${radius.tag}px ${radius.tag}px 0`,
         }} />
       )}
       <span style={{ width: 18, height: 18, opacity: isActive || hovered ? 1 : 0.72, display: 'inline-flex' }}>
@@ -197,7 +198,7 @@ export default function Rail({
         {/* Avatar */}
         <div
           className="font-sans font-semibold text-xs grid place-items-center shrink-0"
-          style={{ width: 32, height: 32, borderRadius: 8, background: T.inkBright, color: T.bg }}
+          style={{ width: 32, height: 32, borderRadius: radius.control, background: T.inkBright, color: T.bg }}
         >
           {initials || venueInitial}
         </div>
@@ -207,7 +208,7 @@ export default function Rail({
           onClick={onSignOut}
           title="Sign out"
           style={{
-            width: 30, height: 30, borderRadius: 7,
+            width: 30, height: 30, borderRadius: radius.tag,
             background: 'transparent', border: 'none',
             color: T.inkMuted, cursor: 'pointer',
             display: 'grid', placeItems: 'center',

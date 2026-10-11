@@ -133,6 +133,21 @@ export const fontSize = {
   stat:       ['34px', { lineHeight: '40px' }],
 }
 
+// Corner radii: four steps plus `rounded-full`. Use the Tailwind class
+// (`rounded-card`); reach for `radius.card` only in inline styles.
+//   tag     6px   badges, chips, checkboxes, small swatches
+//   control 12px  buttons, inputs, tabs, icon tiles, banners, list rows
+//   card    16px  cards, panels, grouped lists, tiles
+//   sheet   24px  modals and bottom sheets (the top corners on mobile)
+// Circles, avatars and pills use `rounded-full`. An inner shape should never
+// be rounder than the shape that holds it. `npm run lint:radius` enforces this.
+export const radius = {
+  tag:     6,
+  control: 12,
+  card:    16,
+  sheet:   24,
+}
+
 // The app icon choices mirror the real icon image files in ios/ and android/.
 export const appIconColors = {
   white: '#ffffff',

@@ -40,7 +40,7 @@ export default function PlanGate({ feature, children }) {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center mb-5">
+      <div className="w-14 h-14 rounded-card bg-accent/10 flex items-center justify-center mb-5">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-accent" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
         </svg>
@@ -60,7 +60,7 @@ export default function PlanGate({ feature, children }) {
         {isManager ? (
           <Link
             to={`/v/${venueSlug}/settings/billing`}
-            className="flex-1 bg-accent text-cream py-3 rounded-xl text-sm font-semibold text-center hover:bg-accent/90 transition-colors"
+            className="flex-1 bg-accent text-cream py-3 rounded-control text-sm font-semibold text-center hover:bg-accent/90 transition-colors"
           >
             Upgrade to Pro — {PRO_PRICE}/mo
           </Link>
@@ -70,7 +70,7 @@ export default function PlanGate({ feature, children }) {
         <Link
           to="../dashboard"
           relative="path"
-          className="flex-1 border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 py-3 rounded-xl text-sm font-medium text-center hover:bg-charcoal/5 dark:hover:bg-white/8 transition-colors"
+          className="flex-1 border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 py-3 rounded-control text-sm font-medium text-center hover:bg-charcoal/5 dark:hover:bg-white/8 transition-colors"
         >
           Back to Dashboard
         </Link>

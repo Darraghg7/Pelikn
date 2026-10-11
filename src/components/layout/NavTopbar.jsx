@@ -52,7 +52,7 @@ export default function NavTopbar({ venueName, catLabel, itemLabel }) {
 
       {/* Export placeholder */}
       <button
-        className="font-sans inline-flex items-center gap-[7px] text-body-sm font-medium shrink-0 cursor-pointer rounded-lg"
+        className="font-sans inline-flex items-center gap-[7px] text-body-sm font-medium shrink-0 cursor-pointer rounded-control"
         style={{
           padding: '6px 11px',
           background: dark ? DARK.paper : T.paperWhite,

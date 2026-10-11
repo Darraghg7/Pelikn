@@ -38,7 +38,7 @@ export default function NumPad({ value, onChange }) {
       aria-label={k === '⌫' ? 'Delete' : k === '±' ? 'Toggle minus' : k === '.' ? 'Decimal point' : k}
       onPointerDown={(e) => { e.preventDefault(); handle(k) }}
       className={[
-        'h-14 rounded-2xl text-lg font-semibold transition-all select-none',
+        'h-14 rounded-card text-lg font-semibold transition-all select-none',
         'active:scale-95',
         k === '⌫' || k === '±'
           ? 'bg-charcoal/8 dark:bg-white/10 text-charcoal/50 dark:text-white/40 active:bg-charcoal/15 dark:active:bg-white/20'

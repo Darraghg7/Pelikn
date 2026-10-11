@@ -95,9 +95,9 @@ export function buttonClasses({ variant = 'primary', size = 'md', iconOnly = fal
   return [
     BASE,
     BUTTON_VARIANTS[variant] ?? BUTTON_VARIANTS.primary,
-    variant === 'link' ? 'gap-1.5 text-sm font-semibold rounded-md'
+    variant === 'link' ? 'gap-1.5 text-sm font-semibold rounded-tag'
       : variant === 'label' ? 'gap-1 pb-0.5 font-medium'
-      : `rounded-xl font-semibold ${iconOnly ? s.icon : s.text}`,
+      : `rounded-control font-semibold ${iconOnly ? s.icon : s.text}`,
     variant === 'label' ? '[&_svg]:w-3 [&_svg]:h-3' : s.svg,
     fullWidth ? 'w-full' : '',
     className,

@@ -140,7 +140,7 @@ function VenueLookupProblem({ slug, kind, onRetry }) {
   const notFound = kind === 'not-found'
   return (
     <div className="min-h-dvh bg-surface dark:bg-bgDark flex flex-col items-center justify-center px-4 font-sans">
-      <div className="w-full max-w-sm bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 dark:border-white/8 shadow-sm p-6 text-center">
+      <div className="w-full max-w-sm bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 shadow-sm p-6 text-center">
         <p className="text-micro tracking-widest font-semibold uppercase text-charcoal/50 dark:text-white/45 mb-2">
           {notFound ? 'Venue not found' : 'Can’t connect'}
         </p>
@@ -157,7 +157,7 @@ function VenueLookupProblem({ slug, kind, onRetry }) {
         {notFound ? (
           <a
             href="/login"
-            className="block w-full bg-brand text-cream py-3 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors"
+            className="block w-full bg-brand text-cream py-3 rounded-control text-sm font-semibold hover:bg-brand/90 transition-colors"
           >
             Manager sign in
           </a>

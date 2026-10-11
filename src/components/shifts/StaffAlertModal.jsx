@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Avatar from '../ui/Avatar'
 import Button from '../ui/Button'
+import { radius } from '../../lib/tokens'
 
 // ── Tones (token classes, light + dark) ───────────────────────────────────────
 // fg: text + icon colour · bg: icon tile · soft: tile ring + highlighted row ·
@@ -159,7 +160,7 @@ function ReasonChips({ type, selected, onSelect }) {
             className={`text-body-sm font-medium cursor-pointer transition-all duration-150 border-[1.5px] ${selected === r
               ? 'border-ink2 bg-ink text-white dark:border-white dark:bg-white dark:text-ink'
               : `${LINE} bg-transparent ${INK2}`}`}
-            style={{ borderRadius: 20, padding: '6px 14px' }}
+            style={{ borderRadius: radius.sheet, padding: '6px 14px' }}
           >
             {r}
           </button>
@@ -216,7 +217,7 @@ function ManagerNumpad({ pin, onChange }) {
   const keyStyle = {
     width: '100%', aspectRatio: '1.3',
     border: 'none',
-    borderRadius: 12,
+    borderRadius: radius.control,
     fontSize: 22,
     fontWeight: 600,
     cursor: 'pointer',
@@ -386,7 +387,7 @@ export default function StaffAlertModal({
             position: 'relative',
             width: '100%',
             maxWidth: 480,
-            borderRadius: '24px 24px 0 0',
+            borderRadius: `${radius.sheet}px ${radius.sheet}px 0 0`,
             paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
             maxHeight: '92dvh',
             // Column layout so the CTA can live in a footer that never scrolls.
@@ -403,7 +404,7 @@ export default function StaffAlertModal({
           }}
         >
           {/* Top accent hairline */}
-          <div className={tone.solid} style={{ height: 4, borderRadius: '24px 24px 0 0', flexShrink: 0 }} />
+          <div className={tone.solid} style={{ height: 4, borderRadius: `${radius.sheet}px ${radius.sheet}px 0 0`, flexShrink: 0 }} />
 
           {phase === 'alert' ? (
             <>
@@ -414,7 +415,7 @@ export default function StaffAlertModal({
                 <div
                   className={`border-[6px] outline outline-2 ${tone.bg} ${tone.ring} ${tone.outline} ${tone.fg}`}
                   style={{
-                    width: 56, height: 56, borderRadius: 14,
+                    width: 56, height: 56, borderRadius: radius.card,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     outlineOffset: 2,
                   }}
@@ -450,7 +451,7 @@ export default function StaffAlertModal({
               </div>
 
               {/* Comparison card */}
-              <div className={`border ${LINE}`} style={{ borderRadius: 12, overflow: 'hidden' }}>
+              <div className={`border ${LINE}`} style={{ borderRadius: radius.control, overflow: 'hidden' }}>
                 {isLate ? (
                   <>
                     <CompRow label="SCHEDULED"  value={scheduledTime}  tinted={false} tone={tone} />
@@ -477,7 +478,7 @@ export default function StaffAlertModal({
               {showBanner && (
                 <div
                   className={`text-body-sm font-semibold ${bannerSevere ? 'bg-severe text-white' : `${TONES.bad.bg} ${TONES.bad.fg}`}`}
-                  style={{ borderRadius: 10, padding: '10px 14px' }}
+                  style={{ borderRadius: radius.control, padding: '10px 14px' }}
                 >
                   {bannerSevere
                     ? 'Disciplinary review triggered'
@@ -562,12 +563,12 @@ export default function StaffAlertModal({
               {managers.length === 0 ? (
                 <div
                   className={`text-body-sm text-center bg-line2 dark:bg-white/5 ${INK3}`}
-                  style={{ padding: '14px', borderRadius: 10 }}
+                  style={{ padding: '14px', borderRadius: radius.control }}
                 >
                   No managers found for this venue.
                 </div>
               ) : (
-                <div className={`flex flex-col border ${LINE}`} style={{ borderRadius: 12, overflow: 'hidden' }}>
+                <div className={`flex flex-col border ${LINE}`} style={{ borderRadius: radius.control, overflow: 'hidden' }}>
                   {managers.map((m, i) => (
                     <button
                       key={m.id}

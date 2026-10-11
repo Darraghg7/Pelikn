@@ -138,7 +138,7 @@ function ComplianceScoreWidget() {
         <div className="mt-2 pt-2.5 border-t border-line dark:border-white/10 flex flex-col gap-0.5">
           {data.issueList.map(issue => {
             const content = (
-              <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 py-1.5 px-2 -mx-2 rounded-lg hover:bg-cream dark:hover:bg-white/5 transition-colors cursor-pointer">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 py-1.5 px-2 -mx-2 rounded-control hover:bg-cream dark:hover:bg-white/5 transition-colors cursor-pointer">
                 <span className="text-body-sm text-ink2 dark:text-white/70">{issue.label}</span>
                 <span className={`text-body-sm font-semibold ${issue.severity === 'bad' ? 'text-bad dark:text-badDark' : 'text-warn dark:text-warnDark'}`}>
                   {issue.detail} →

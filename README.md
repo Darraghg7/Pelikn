@@ -51,7 +51,7 @@ Production env vars live in Vercel → Project → Settings → Environment Vari
 |---|---|
 | `npm run dev` | Vite dev server |
 | `npm run build` / `npm run preview` | Production build to `dist/` / serve it locally |
-| `npm run lint` | ESLint over `src/` (rules-of-hooks is an error), then `lint:buttons` (raw `<button>` ratchet), `lint:colours` (hard-coded colour ratchet) and `lint:type` (one-off text size ratchet); see Conventions |
+| `npm run lint` | ESLint over `src/` (rules-of-hooks is an error), then `lint:buttons` (raw `<button>` ratchet), `lint:colours` (hard-coded colour ratchet) `lint:type` (one-off text size ratchet) and `lint:radius` (off-scale corner radius ratchet); see Conventions |
 | `npm run typecheck` | Both type checks: `typecheck:ts` (strict, `.ts` files) and `typecheck:js` (`.js`/`.jsx` against a baseline; see Conventions) |
 | `npm run test:unit` | Vitest unit tests (`test:unit:watch`, `test:unit:coverage` also exist) |
 | `npm test` | Playwright end-to-end tests (`test:ui`, `test:headed`, `test:report`) |
@@ -205,6 +205,17 @@ ios/  android/          Capacitor native projects
   | `text-stat` | 34 / 40 | the largest dashboard figures |
 
   Typing boxes stay at 16px (`text-base`) or iPhones zoom in. Sizes under 11px are only for the dense views (rota week grid, mobile rota grid, Gantt chart) and the shrunken app pictures on the marketing page. `npm run lint:type` (part of `npm run lint`) counts one-off sizes per file against `one-off-text-sizes-baseline.json`, ignoring the under-11px sizes in those dense files: a file may not gain any, and when you remove some, run `npm run lint:type -- --update` and commit the lowered baseline. The marketing page's big headlines are the ones left.
+- **Radius**: corner sizes come from the radius scale in `src/lib/tokens.js` (`radius`), which `tailwind.config.js` reads. Use the named classes, never `rounded-xl`, `rounded-[14px]` and friends:
+
+  | Class | Size | For |
+  |---|---|---|
+  | `rounded-tag` | 6px | badges, chips, checkboxes, small swatches |
+  | `rounded-control` | 12px | buttons, inputs, tabs, icon tiles, banners, list rows (same as `<Button>`) |
+  | `rounded-card` | 16px | cards, panels, grouped lists, hub tiles |
+  | `rounded-sheet` | 24px | modals and the top corners of bottom sheets (`rounded-t-sheet`) |
+  | `rounded-full` | pill | avatars, dots, pills |
+
+  An inner shape is never rounder than the one holding it. In an inline style use `radius.card` etc. from `src/lib/tokens.js` (`'50%'` and `999` stay fine for circles). `npm run lint:radius` (part of `npm run lint`) counts off-scale radii per file against `one-off-radii-baseline.json`, ignoring the two marketing files that draw phone frames: a file may not gain any, and when you remove some, run `npm run lint:radius -- --update` and commit the lowered baseline.
 - **Dark mode**: Tailwind `darkMode: 'class'`, toggled by `ThemeContext`.
 - **Modals and sheets** use `z-[60]` or above. `MobileNav` is portaled at `z-50`, so a `z-50` sheet can lose taps to it.
 - **Mobile vs desktop**: some screens have separate mobile and desktop components (for example the rota and the manager dashboard). Check both when changing behaviour.

@@ -8,7 +8,7 @@ import { format, isToday } from 'date-fns'
 import { TemperatureItemSettingsForm } from './TemperatureItemSettingsModal'
 import Button from '../ui/Button'
 
-export const CARD = 'bg-white dark:bg-paperDark rounded-2xl border border-line dark:border-white/10'
+export const CARD = 'bg-white dark:bg-paperDark rounded-card border border-line dark:border-white/10'
 
 // Status tones shared by chips, history cells and logged-reading blocks
 export const TONE = {
@@ -84,8 +84,8 @@ export function TabBar({ tabs, active, onChange, size = 'sm' }) {
             className={[
               // Grow from content width so a long label ("Today's check 3") never clips
               sm
-                ? 'flex-auto h-8 px-2.5 rounded-[10px] inline-flex items-center justify-center gap-1.5 text-body-sm font-semibold whitespace-nowrap transition-colors'
-                : 'flex-auto h-11 px-3 rounded-xl inline-flex items-center justify-center gap-2 text-sm min-[420px]:text-body-lg font-semibold whitespace-nowrap transition-colors',
+                ? 'flex-auto h-8 px-2.5 rounded-control inline-flex items-center justify-center gap-1.5 text-body-sm font-semibold whitespace-nowrap transition-colors'
+                : 'flex-auto h-11 px-3 rounded-control inline-flex items-center justify-center gap-2 text-sm min-[420px]:text-body-lg font-semibold whitespace-nowrap transition-colors',
               isActive ? 'bg-brand text-white' : 'text-ink2 dark:text-white/65 hover:text-ink dark:hover:text-white',
             ].join(' ')}
           >
@@ -103,7 +103,7 @@ export function AddDashedButton({ label, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="w-full h-10 rounded-2xl border-[1.5px] border-dashed border-ink4/70 dark:border-white/20 text-body-sm font-semibold text-ink2 dark:text-white/70 inline-flex items-center justify-center gap-2 hover:border-ink3 hover:text-ink dark:hover:text-white transition-colors"
+      className="w-full h-10 rounded-card border-[1.5px] border-dashed border-ink4/70 dark:border-white/20 text-body-sm font-semibold text-ink2 dark:text-white/70 inline-flex items-center justify-center gap-2 hover:border-ink3 hover:text-ink dark:hover:text-white transition-colors"
     >
       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
       {label}
@@ -187,7 +187,7 @@ export function ReadingInput({ value, onChange, onSubmit, placeholder, ariaLabel
           autoComplete="off"
           inputMode="decimal"
           className={[
-            'w-full h-10 pl-3.5 pr-10 rounded-xl border font-mono text-base text-ink dark:text-white',
+            'w-full h-10 pl-3.5 pr-10 rounded-control border font-mono text-base text-ink dark:text-white',
             '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
             'bg-cream dark:bg-white/5 placeholder:text-ink4 dark:placeholder:text-white/25',
             'focus:outline-none focus:ring-2 focus:bg-white dark:focus:bg-white/10 transition-colors',
@@ -219,7 +219,7 @@ export function ItemSettingsRow({ icon, name, subline, open, onToggle, formProps
         aria-expanded={open}
         className="w-full flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2.5 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
       >
-        <span className="shrink-0 w-9 h-9 rounded-xl bg-brand-tint dark:bg-white/10 text-brand dark:text-white/80 inline-flex items-center justify-center">
+        <span className="shrink-0 w-9 h-9 rounded-control bg-brand-tint dark:bg-white/10 text-brand dark:text-white/80 inline-flex items-center justify-center">
           {icon}
         </span>
         <span className="flex-1 min-w-0">
@@ -268,7 +268,7 @@ export const THERMOMETER_ICON = (
 
 /* ── Form fields shared by the log-a-reading pages (cooking, cooling) ─────── */
 export const FIELD_LABEL  = 'block text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
-export const TEXT_FIELD   = 'w-full h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
+export const TEXT_FIELD   = 'w-full h-9 px-3.5 rounded-control border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
 export const NUMBER_RESET = '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
 
 /** "COOLING NOW ········ Target ≤8°C within 90 min" */

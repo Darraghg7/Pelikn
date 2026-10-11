@@ -176,7 +176,7 @@ export default function NotificationBell({ variant = 'light' }) {
     <div className="relative" ref={ref}>
       <button
         onClick={handleBellClick}
-        className={`relative flex items-center justify-center w-9 h-9 rounded-lg transition-colors ${hoverColor} ${count > 0 ? (variant === 'light' ? 'bg-cream/15' : 'bg-charcoal/10 dark:bg-white/10') : ''}`}
+        className={`relative flex items-center justify-center w-9 h-9 rounded-control transition-colors ${hoverColor} ${count > 0 ? (variant === 'light' ? 'bg-cream/15' : 'bg-charcoal/10 dark:bg-white/10') : ''}`}
         aria-label={`Notifications${count > 0 ? ` (${count} unread)` : ''}`}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={iconColor}>
@@ -191,7 +191,7 @@ export default function NotificationBell({ variant = 'light' }) {
       </button>
 
       {open && popupPos && (
-        <div className="fixed w-80 bg-white dark:bg-paperDark rounded-2xl shadow-lg border border-charcoal/10 dark:border-white/10 z-[200] overflow-hidden" style={{ top: popupPos.top, left: popupPos.left }}>
+        <div className="fixed w-80 bg-white dark:bg-paperDark rounded-card shadow-lg border border-charcoal/10 dark:border-white/10 z-[200] overflow-hidden" style={{ top: popupPos.top, left: popupPos.left }}>
           <div className="flex items-center justify-between px-4 py-3 border-b border-charcoal/8 dark:border-white/8">
             <p className="text-xs font-semibold tracking-widest uppercase text-charcoal/50 dark:text-white/40">
               Notifications

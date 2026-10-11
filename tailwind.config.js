@@ -1,4 +1,4 @@
-import { colors, alpha, fontSize } from './src/lib/tokens.js'
+import { colors, alpha, fontSize, radius } from './src/lib/tokens.js'
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -21,6 +21,7 @@ export default {
       },
       // The type scale (text-micro … text-stat) also lives in src/lib/tokens.js.
       fontSize,
+      borderRadius: Object.fromEntries(Object.entries(radius).map(([k, v]) => [k, `${v}px`])),
       fontFamily: {
         sans:  ['Geist', '-apple-system', 'system-ui', 'sans-serif'],
         mono:  ['Geist Mono', 'ui-monospace', 'monospace'],

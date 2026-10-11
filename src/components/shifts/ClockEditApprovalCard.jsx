@@ -14,6 +14,7 @@ import { formatLondon } from '../../lib/time'
 import { reportError } from '../../lib/reportError'
 import LoadError from '../ui/LoadError'
 import Button from '../ui/Button'
+import { radius } from '../../lib/tokens'
 
 function fmt(iso) {
   if (!iso) return '—'
@@ -40,7 +41,7 @@ function DenySheet({ onDeny, onCancel }) {
       <div
         className="bg-paper dark:bg-paperDark shadow-[0_-8px_32px_theme(colors.black/15%)]"
         style={{
-          borderRadius: '20px 20px 0 0',
+          borderRadius: `${radius.sheet}px ${radius.sheet}px 0 0`,
           padding: '24px 20px 32px', width: '100%', maxWidth: 480,
         }}
         onClick={e => e.stopPropagation()}
@@ -55,7 +56,7 @@ function DenySheet({ onDeny, onCancel }) {
           rows={3}
           className="text-sm text-charcoal dark:text-white bg-paper dark:bg-white/5 border border-line dark:border-white/10 resize-none outline-none w-full"
           style={{
-            borderRadius: 10,
+            borderRadius: radius.control,
             padding: '10px 12px', boxSizing: 'border-box', marginBottom: 14,
           }}
         />
@@ -143,7 +144,7 @@ export default function ClockEditApprovalCard({ compact = false }) {
   // we don't know that, and a hidden card means edits sit unapproved.
   if (loadFailed && requests.length === 0) {
     return (
-      <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/10 dark:border-white/10">
+      <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/10 dark:border-white/10">
         <LoadError what="hour edit requests" onRetry={load} />
       </div>
     )
@@ -153,7 +154,7 @@ export default function ClockEditApprovalCard({ compact = false }) {
   return (
     <>
       <div className="bg-white dark:bg-paperDark border border-line dark:border-white/10" style={{
-        borderRadius: 14,
+        borderRadius: radius.card,
         overflow: 'hidden',
       }}>
         {/* Header */}
