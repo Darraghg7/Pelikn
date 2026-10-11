@@ -95,3 +95,36 @@ export function timeOffPermissions(
     lockedReason: null,
   }
 }
+
+/**
+ * A manager saying approved "annual leave" was never paid holiday — the person
+ * was just not available to work (zero-hours staff often book it that way).
+ * It becomes 'unavailable': still keeps them off the rota on those days, but no
+ * longer uses holiday, so any recorded paid hours are cleared.
+ *
+ * Asks for the rows back: a write the database refuses for a non-manager
+ * matches zero rows and would otherwise look like success.
+ */
+export async function markNotHoliday(ids: string[]): Promise<{ error: { message: string } | null }> {
+  if (!ids.length) return { error: null }
+  const { data, error } = await supabase
+    .from('time_off_requests')
+    .update({ leave_type: 'unavailable', paid_hours: null })
+    .in('id', ids)
+    .select('id')
+  if (error) return { error }
+  if ((data?.length ?? 0) !== ids.length) return { error: { message: 'Only a manager can change this — some bookings were not changed' } }
+  return { error: null }
+}
+
+/** Undo markNotHoliday for one booking, putting back the paid hours it had. */
+export async function restoreAsHoliday(id: string, paidHours: number | null): Promise<{ error: { message: string } | null }> {
+  const { data, error } = await supabase
+    .from('time_off_requests')
+    .update({ leave_type: 'annual', paid_hours: paidHours })
+    .eq('id', id)
+    .select('id')
+  if (error) return { error }
+  if (!data?.length) return { error: { message: 'Only a manager can change this' } }
+  return { error: null }
+}

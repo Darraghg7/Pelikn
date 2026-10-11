@@ -24,6 +24,7 @@ import {
 import CalendarView from './CalendarView'
 import ManualLeaveModal from './ManualLeaveModal'
 import EditRequestModal from './EditRequestModal'
+import HolidayBookingsModal from './HolidayBookingsModal'
 import { CARD, TONE, PageHeader } from '../../components/temperature/TempPageParts'
 import LoadError from '../../components/ui/LoadError'
 import Avatar from '../../components/ui/Avatar'
@@ -90,6 +91,7 @@ export default function TimeOffPage() {
 
   // Manual leave entry state
   const [manualEntry, setManualEntry] = useState(null) // null = closed; staff balance obj = open
+  const [bookingsFor, setBookingsFor] = useState(null) // team balance row whose holiday bookings are open
 
   // Request being edited / withdrawn — set from the calendar or "My Requests"
   const [editing, setEditing] = useState(null)
@@ -171,7 +173,9 @@ export default function TimeOffPage() {
     refreshDependents()
   }
 
-  const approve = async (id, paidHours = null) => {
+  // `asUnavailable`: booked as annual leave, but it isn't paid holiday — they
+  // just can't work. Approved as Not available, so it doesn't use holiday.
+  const approve = async (id, paidHours = null, { asUnavailable = false } = {}) => {
     setReviewing(id)
     const req = requests.find(r => r.id === id)
     const patch = {
@@ -180,7 +184,8 @@ export default function TimeOffPage() {
       reviewed_at:  new Date().toISOString(),
       manager_note: noteFor(id) || null,
     }
-    if (paidHours != null) patch.paid_hours = paidHours
+    if (asUnavailable) patch.leave_type = 'unavailable'
+    else if (paidHours != null) patch.paid_hours = paidHours
     let { error: err } = await supabase.from('time_off_requests').update(patch).eq('id', id)
     // Before migration 149 there is no paid_hours column: approve without it
     // rather than not at all. The balance then estimates, as it always did.
@@ -191,13 +196,15 @@ export default function TimeOffPage() {
     setReviewing(null)
     if (err) { toast(err.message, 'error'); return }
     clearNote(id)
-    toast('Time off approved')
+    toast(asUnavailable ? 'Approved as Not available' : 'Time off approved')
     if (req?.staff_id) {
       sendPush({
         venueId,
         notificationType: 'time_off_decision',
         title: 'Time Off Approved',
-        body:  `Your ${leaveTypeLabel(req.leave_type)} (${req.start_date} – ${req.end_date}) has been approved.`,
+        body:  asUnavailable
+          ? `Your time off (${req.start_date} – ${req.end_date}) has been approved as Not available. It doesn't use your holiday.`
+          : `Your ${leaveTypeLabel(req.leave_type)} (${req.start_date} – ${req.end_date}) has been approved.`,
         url:   '/time-off',
         staffIds: [req.staff_id],
       })
@@ -311,6 +318,7 @@ export default function TimeOffPage() {
                 holiday={teamHoliday[r.staff_id]}
                 rotaHoursByDate={rotaHours[r.staff_id]}
                 onApprove={(paidHours) => approve(r.id, paidHours)}
+                onApproveUnavailable={() => approve(r.id, null, { asUnavailable: true })}
                 onReject={() => reject(r.id)}
               />
             ))}
@@ -410,6 +418,7 @@ export default function TimeOffPage() {
                       holiday={b.isZeroHours ? teamHoliday[b.id] : undefined}
                       settingsPath={`/v/${venueSlug}/settings/attendance`}
                       onLogPast={() => setManualEntry(b)}
+                      onOpen={() => setBookingsFor(b)}
                     />
                   ))}
                 </div>
@@ -617,6 +626,19 @@ export default function TimeOffPage() {
         />
       )}
 
+      {/* One person's holiday bookings this year: "that wasn't holiday" */}
+      {bookingsFor && (
+        <HolidayBookingsModal
+          staff={bookingsFor}
+          holiday={teamHoliday[bookingsFor.id]}
+          requests={requests}
+          holidayYear={holidayYear}
+          venueId={venueId}
+          onClose={() => setBookingsFor(null)}
+          onSaved={refreshDependents}
+        />
+      )}
+
       {/* Edit / withdraw an existing request */}
       {editing && (
         <EditRequestModal
@@ -744,7 +766,7 @@ function OwnBalanceCard({ balance, year, holiday }) {
   )
 }
 
-function PendingRequest({ request: r, balance, holiday, rotaHoursByDate, note, onNote, busy, onApprove, onReject }) {
+function PendingRequest({ request: r, balance, holiday, rotaHoursByDate, note, onNote, busy, onApprove, onApproveUnavailable, onReject }) {
   // Zero-hours annual leave is paid in hours, so the manager confirms how many.
   const asksForHours = r.leave_type === 'annual' && balance?.isZeroHours && holiday?.status === 'ok'
   const suggested = asksForHours ? suggestedPaidHours(r, holiday.avgWeekHours, r.staff?.working_days, rotaHoursByDate) : null
@@ -843,6 +865,11 @@ function PendingRequest({ request: r, balance, holiday, rotaHoursByDate, note, o
           Approve
         </Button>
       </div>
+      {r.leave_type === 'annual' && balance?.isZeroHours && (
+        <Button variant="link" size="sm" onClick={onApproveUnavailable} disabled={busy} className="self-center">
+          Not paid holiday? Approve as Not available
+        </Button>
+      )}
     </div>
   )
 }
@@ -850,7 +877,7 @@ function PendingRequest({ request: r, balance, holiday, rotaHoursByDate, note, o
 // One line per person: their name and what they have left. The detail behind
 // the number (allowance, estimates, missing clock-outs) lives elsewhere — this
 // list is for "how much holiday has everyone got?" at a glance.
-function TeamBalanceRow({ balance: b, holiday, settingsPath, onLogPast }) {
+function TeamBalanceRow({ balance: b, holiday, settingsPath, onLogPast, onOpen }) {
   const tone = b.remaining === 0 ? 'text-bad' : b.remaining != null && b.remaining <= 5 ? 'text-warn' : 'text-good dark:text-goodDark'
 
   let left
@@ -875,7 +902,9 @@ function TeamBalanceRow({ balance: b, holiday, settingsPath, onLogPast }) {
   return (
     <div className="flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2.5">
       <div className="flex-1 min-w-0">
-        <p className="text-body font-semibold text-ink dark:text-white truncate">{b.name}</p>
+        <Button variant="link" onClick={onOpen} className="max-w-full" aria-label={`See ${b.name}'s holiday bookings`}>
+          <span className="truncate">{b.name}</span>
+        </Button>
         {b.isZeroHours && holiday?.status === 'ok' && holiday.startDateMissing && (
           <p className="text-body-sm text-ink3 dark:text-white/45 truncate">{startDateNote(holiday)}</p>
         )}
