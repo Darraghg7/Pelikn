@@ -63,7 +63,7 @@ export default function AppIconPicker() {
           >
             <span
               className={[
-                'w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center transition-all',
+                'w-14 h-14 rounded-card overflow-hidden flex items-center justify-center transition-all',
                 active === v.id ? 'ring-2 ring-offset-2 ring-charcoal dark:ring-white scale-105' : 'opacity-75 hover:opacity-100',
               ].join(' ')}
               style={{ backgroundColor: v.bg }}

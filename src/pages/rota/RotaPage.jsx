@@ -494,7 +494,7 @@ export default function RotaPage() {
 
       {/* ── Closure mode banner ── */}
       {closureMode && (
-        <div className="rounded-2xl border border-danger/25 bg-danger/5 px-5 py-4 flex items-start gap-3">
+        <div className="rounded-card border border-danger/25 bg-danger/5 px-5 py-4 flex items-start gap-3">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-danger shrink-0 mt-0.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           <div>
             <p className="text-sm font-semibold text-danger">Marking closed days</p>
@@ -510,19 +510,19 @@ export default function RotaPage() {
       {isManager && (
         <div className="hidden lg:flex items-center gap-4 flex-wrap px-1">
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-success/30 border border-success/30" />
+            <span className="w-2.5 h-2.5 rounded-tag bg-success/30 border border-success/30" />
             <span className="text-micro tracking-wider uppercase text-charcoal/30 dark:text-white/30">Available</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-charcoal/15 dark:bg-white/15 border border-charcoal/20 dark:border-white/20" />
+            <span className="w-2.5 h-2.5 rounded-tag bg-charcoal/15 dark:bg-white/15 border border-charcoal/20 dark:border-white/20" />
             <span className="text-micro tracking-wider uppercase text-charcoal/30 dark:text-white/30">Unavailable</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-danger/20 border border-danger/25" />
+            <span className="w-2.5 h-2.5 rounded-tag bg-danger/20 border border-danger/25" />
             <span className="text-micro tracking-wider uppercase text-charcoal/30 dark:text-white/30">Time Off</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-charcoal/8 dark:bg-white/8 border border-charcoal/15 dark:border-white/15" />
+            <span className="w-2.5 h-2.5 rounded-tag bg-charcoal/8 dark:bg-white/8 border border-charcoal/15 dark:border-white/15" />
             <span className="text-micro tracking-wider uppercase text-charcoal/30 dark:text-white/30">Closed</span>
           </div>
         </div>
@@ -532,7 +532,7 @@ export default function RotaPage() {
       {isManager && pendingCount > 0 && (
         <button
           onClick={() => setShowSwaps((v) => !v)}
-          className="w-full text-left rounded-2xl border border-warning/30 bg-warning/8 px-5 py-4 flex items-center justify-between hover:bg-warning/12 transition-colors"
+          className="w-full text-left rounded-card border border-warning/30 bg-warning/8 px-5 py-4 flex items-center justify-between hover:bg-warning/12 transition-colors"
         >
           <div className="flex items-center gap-3">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-warning shrink-0"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
@@ -574,7 +574,7 @@ export default function RotaPage() {
               key={n}
               onClick={() => setNumWeeks(n)}
               className={[
-                'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
+                'px-3 py-1.5 rounded-control text-xs font-medium border transition-all',
                 numWeeks === n
                   ? 'bg-charcoal text-cream border-charcoal dark:border-white'
                   : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white',
@@ -593,7 +593,7 @@ export default function RotaPage() {
           (sh) => sh.week_start === format(thisWeekStart, 'yyyy-MM-dd')
         )
         return (
-          <div key={format(thisWeekStart, 'yyyy-MM-dd')} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+          <div key={format(thisWeekStart, 'yyyy-MM-dd')} className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 overflow-hidden">
             {wi === 0 && (
               <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal/8 dark:border-white/8">
                 <Button variant="secondary" size="sm" iconOnly aria-label="Previous week" onClick={prevWeek}>‹</Button>

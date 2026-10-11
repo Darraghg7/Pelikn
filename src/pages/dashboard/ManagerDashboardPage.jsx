@@ -45,7 +45,7 @@ const PLAN_CONFIG = {
 function PlanBadge({ plan }) {
   const cfg = PLAN_CONFIG[plan] ?? PLAN_CONFIG.starter
   return (
-    <span className={`text-micro tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cfg.bg} ${cfg.text} ${cfg.border}`}>
+    <span className={`text-micro tracking-widest uppercase font-semibold px-2 py-0.5 rounded-tag border ${cfg.bg} ${cfg.text} ${cfg.border}`}>
       {cfg.label}
     </span>
   )
@@ -55,7 +55,7 @@ function UpgradeButton({ to }) {
   return (
     <Link
       to={to}
-      className="relative inline-flex items-center gap-2 overflow-hidden rounded-xl px-4 py-2 text-xs font-semibold text-white shadow-md shadow-accent/30 transition-all hover:shadow-lg hover:shadow-accent/40 hover:scale-[1.02] active:scale-[0.98]"
+      className="relative inline-flex items-center gap-2 overflow-hidden rounded-control px-4 py-2 text-xs font-semibold text-white shadow-md shadow-accent/30 transition-all hover:shadow-lg hover:shadow-accent/40 hover:scale-[1.02] active:scale-[0.98]"
       style={{
         background: colors.accent,
         backgroundSize: '200% 100%',
@@ -94,13 +94,13 @@ function SortableWidget({ id }) {
         transition,
         opacity: isDragging ? 0.35 : 1,
       }}
-      className="relative group rounded-2xl h-full"
+      className="relative group rounded-card h-full"
     >
       {/* Drag handle — top-right, appears on hover */}
       <div
         {...attributes}
         {...listeners}
-        className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1.5 rounded-lg bg-white/80 backdrop-blur-sm text-charcoal/40 dark:text-white/35 hover:text-charcoal/70 dark:hover:text-white/60 shadow-sm"
+        className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1.5 rounded-control bg-white/80 backdrop-blur-sm text-charcoal/40 dark:text-white/35 hover:text-charcoal/70 dark:hover:text-white/60 shadow-sm"
         title="Drag to reorder"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -118,7 +118,7 @@ function WidgetGridSkeleton({ count }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="h-[180px] rounded-2xl bg-charcoal/5 animate-pulse" />
+        <div key={i} className="h-[180px] rounded-card bg-charcoal/5 animate-pulse" />
       ))}
     </div>
   )
@@ -166,7 +166,7 @@ function DraggableWidgetGrid({ widgetIds, onReorder }) {
       </SortableContext>
       <DragOverlay>
         {ActiveWidget && (
-          <div className="rounded-2xl shadow-2xl scale-[1.03] opacity-95 cursor-grabbing">
+          <div className="rounded-card shadow-2xl scale-[1.03] opacity-95 cursor-grabbing">
             <Suspense fallback={null}>
               <ActiveWidget />
             </Suspense>
@@ -181,7 +181,7 @@ function StatTile({ label, value, variant = 'neutral', to }) {
   const dot = { neutral: 'bg-charcoal/20 dark:bg-white/20', good: 'bg-success', warn: 'bg-warning', danger: 'bg-danger' }
   const num = { neutral: 'text-charcoal dark:text-white', good: 'text-charcoal', warn: 'text-warning', danger: 'text-danger' }
   const inner = (
-    <div className="flex flex-col gap-2 bg-white dark:bg-paperDark rounded-2xl p-4 min-h-[100px]">
+    <div className="flex flex-col gap-2 bg-white dark:bg-paperDark rounded-card p-4 min-h-[100px]">
       <div className="flex items-center gap-1.5">
         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dot[variant]}`} />
         <span className="font-mono text-micro text-charcoal/40 dark:text-white/35 uppercase tracking-[0.08em] leading-none">{label}</span>
@@ -200,7 +200,7 @@ function DesktopStatGrid({ summary, venueSlug, isEnabled, closedToday }) {
   if (!summary) {
     return (
       <div className="grid grid-cols-3 gap-3">
-        {[1,2,3,4,5,6].map(i => <div key={i} className="h-[100px] rounded-2xl bg-charcoal/5 dark:bg-white/5 animate-pulse" />)}
+        {[1,2,3,4,5,6].map(i => <div key={i} className="h-[100px] rounded-card bg-charcoal/5 dark:bg-white/5 animate-pulse" />)}
       </div>
     )
   }
@@ -349,7 +349,7 @@ export default function ManagerDashboardPage() {
         {summary?.overdueClean > 0 && (
           <Link
             to={vp('/cleaning')}
-            className="flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-danger/8 border border-danger/15 text-danger hover:bg-danger/12 transition-colors"
+            className="flex items-center gap-2.5 px-4 py-3 rounded-card bg-danger/8 border border-danger/15 text-danger hover:bg-danger/12 transition-colors"
           >
             <span className="w-5 h-5 rounded-full bg-danger/18 flex items-center justify-center shrink-0">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -365,7 +365,7 @@ export default function ManagerDashboardPage() {
 
         <div className="grid grid-cols-[1fr_280px] gap-4 items-start">
           <DesktopStatGrid summary={summary} venueSlug={venueSlug} isEnabled={isEnabled} closedToday={closedToday} />
-          <div className="bg-white dark:bg-paperDark rounded-2xl p-5">
+          <div className="bg-white dark:bg-paperDark rounded-card p-5">
             <p className="text-micro tracking-widest uppercase font-semibold text-charcoal/40 dark:text-white/35 mb-3">My Clock</p>
             <ClockPanel staffId={session?.staffId} />
           </div>
@@ -378,7 +378,7 @@ export default function ManagerDashboardPage() {
       <div>
         {widgetsLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1,2,3,4,5,6].map(i => <div key={i} className="h-[180px] rounded-2xl bg-charcoal/5 dark:bg-white/5 animate-pulse" />)}
+            {[1,2,3,4,5,6].map(i => <div key={i} className="h-[180px] rounded-card bg-charcoal/5 dark:bg-white/5 animate-pulse" />)}
           </div>
         )}
         {!widgetsLoading && widgetIds.length > 0 && (
@@ -388,7 +388,7 @@ export default function ManagerDashboardPage() {
           />
         )}
         {!widgetsLoading && widgetIds.length === 0 && (
-          <div className="bg-white dark:bg-paperDark rounded-2xl border border-dashed border-charcoal/20 dark:border-white/20 p-10 text-center">
+          <div className="bg-white dark:bg-paperDark rounded-card border border-dashed border-charcoal/20 dark:border-white/20 p-10 text-center">
             <p className="text-charcoal/30 dark:text-white/30 text-sm mb-3">No widgets on your dashboard</p>
             <Button
               onClick={() => setShowPicker(true)}

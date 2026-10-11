@@ -21,7 +21,7 @@ function ItemInput({ value, onChange, onRemove, onKeyDown, autoFocus }) {
         onKeyDown={onKeyDown}
         autoFocus={autoFocus}
         placeholder="Task description…"
-        className="flex-1 px-3 py-1.5 rounded-lg border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/15 dark:focus:ring-white/15"
+        className="flex-1 px-3 py-1.5 rounded-control border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/15 dark:focus:ring-white/15"
       />
       <CloseButton label="Remove item" className="shrink-0" onClick={onRemove} />
     </div>
@@ -52,7 +52,7 @@ function NewDutyForm({ onSave, onCancel }) {
   }
 
   return (
-    <div className="rounded-2xl border border-charcoal/12 dark:border-white/15 bg-charcoal/2 dark:bg-white/3 p-4 flex flex-col gap-3">
+    <div className="rounded-card border border-charcoal/12 dark:border-white/15 bg-charcoal/2 dark:bg-white/3 p-4 flex flex-col gap-3">
       <div>
         <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Duty name</label>
         <input
@@ -62,7 +62,7 @@ function NewDutyForm({ onSave, onCancel }) {
           onKeyDown={e => e.key === 'Enter' && document.activeElement.blur()}
           autoFocus
           placeholder="e.g. Opening Shift"
-          className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+          className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
         />
       </div>
 
@@ -113,7 +113,7 @@ function TemplateRow({ template, onDelete }) {
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <div className="rounded-xl border border-charcoal/10 dark:border-white/10 bg-charcoal/2 dark:bg-white/3 overflow-hidden">
+    <div className="rounded-control border border-charcoal/10 dark:border-white/10 bg-charcoal/2 dark:bg-white/3 overflow-hidden">
       <button
         type="button"
         onClick={() => setExpanded(e => !e)}

@@ -31,7 +31,7 @@ export default function HelpSettingsPage() {
       <div className="pb-24 max-w-[480px] mx-auto">
 
         <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[18px] pb-[7px] px-0.5">Common questions</div>
-        <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
+        <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card overflow-hidden">
           {FAQS.map((faq, i) => (
             <div key={i} className={i < FAQS.length - 1 ? 'border-b border-charcoal/6 dark:border-white/8' : ''}>
               <button
@@ -55,12 +55,12 @@ export default function HelpSettingsPage() {
         <FeatureGuide />
 
         <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[18px] pb-[7px] px-0.5">Get help</div>
-        <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
+        <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card overflow-hidden">
           <a
             href="mailto:hello@get-pelikn.com"
             className="flex items-center gap-[13px] px-[14px] min-h-[58px] no-underline"
           >
-            <span className="w-8 h-8 rounded-[9px] shrink-0 bg-brand/8 text-brand flex items-center justify-center">
+            <span className="w-8 h-8 rounded-control shrink-0 bg-brand/8 text-brand flex items-center justify-center">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               </svg>

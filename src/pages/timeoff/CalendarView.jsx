@@ -29,7 +29,7 @@ export default function CalendarView({ month, requests, selected, onSelect, onPr
   const today = startOfDay(new Date())
 
   return (
-    <div className="bg-white dark:bg-paperDark rounded-2xl border border-line dark:border-white/10 px-3 sm:px-3.5 pt-2.5 pb-2.5">
+    <div className="bg-white dark:bg-paperDark rounded-card border border-line dark:border-white/10 px-3 sm:px-3.5 pt-2.5 pb-2.5">
       <div className="flex items-center justify-between px-1 mb-2">
         <Button variant="secondary" size="sm" iconOnly onClick={onPrev} aria-label="Previous month">
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
@@ -57,7 +57,7 @@ export default function CalendarView({ month, requests, selected, onSelect, onPr
               onClick={() => onSelect(day)}
               aria-pressed={!!isSelected}
               aria-label={`${format(day, 'EEEE d MMMM')}${off.length ? `, ${off.length} off` : ''}`}
-              className={`min-h-[46px] rounded-xl flex flex-col items-center gap-1 pt-1.5 pb-1 transition-colors ${isSelected ? 'bg-brand-tint dark:bg-white/10 ring-1 ring-brand/30' : 'hover:bg-cream dark:hover:bg-white/5'}`}
+              className={`min-h-[46px] rounded-control flex flex-col items-center gap-1 pt-1.5 pb-1 transition-colors ${isSelected ? 'bg-brand-tint dark:bg-white/10 ring-1 ring-brand/30' : 'hover:bg-cream dark:hover:bg-white/5'}`}
             >
               <span className={[
                 'w-8 h-7 rounded-full inline-flex items-center justify-center text-body font-medium',

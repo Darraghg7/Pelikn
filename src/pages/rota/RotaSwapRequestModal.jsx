@@ -24,7 +24,7 @@ export default function RotaSwapRequestModal({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4 bg-charcoal/40 dark:bg-white/40 backdrop-blur-sm" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-md p-6 flex flex-col gap-5 shadow-2xl max-h-[90dvh] overflow-y-auto" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+      <div onClick={(e) => e.stopPropagation()} className="bg-white dark:bg-paperDark rounded-card w-full max-w-md p-6 flex flex-col gap-5 shadow-2xl max-h-[90dvh] overflow-y-auto" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
 
         <div>
           <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Request Shift Swap</p>
@@ -50,7 +50,7 @@ export default function RotaSwapRequestModal({
                   type="button"
                   onClick={() => setSwapForm((f) => ({ ...f, targetStaffId: s.id }))}
                   className={[
-                    'px-4 py-2 rounded-lg border text-sm font-medium transition-all',
+                    'px-4 py-2 rounded-control border text-sm font-medium transition-all',
                     swapForm.targetStaffId === s.id
                       ? 'bg-charcoal text-cream border-charcoal dark:border-white'
                       : 'bg-white dark:bg-paperDark text-charcoal/60 dark:text-white/50 border-charcoal/15 dark:border-white/15 hover:border-charcoal/35 dark:hover:border-white/35',
@@ -72,7 +72,7 @@ export default function RotaSwapRequestModal({
             onChange={(e) => setSwapForm((f) => ({ ...f, message: e.target.value }))}
             placeholder="e.g. I have a dentist appointment that morning…"
             rows={3}
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+            className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>
 

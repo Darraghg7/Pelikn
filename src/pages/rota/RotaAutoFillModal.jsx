@@ -97,7 +97,7 @@ export default function RotaAutoFillModal({
         {/* ── Stage: Confirm ── */}
         {stage === STAGES.CONFIRM && (
           <>
-            <div className="rounded-xl bg-brand/6 border border-brand/12 px-5 py-4">
+            <div className="rounded-control bg-brand/6 border border-brand/12 px-5 py-4">
               <p className="text-xs text-charcoal/60 dark:text-white/50 mb-3">Fills empty shifts from your staffing needs and who's available. You can check every shift before saving.</p>
               <p className="text-sm font-medium text-charcoal dark:text-white mb-1">Week of {weekLabel}</p>
               {reqLoading ? (
@@ -148,7 +148,7 @@ export default function RotaAutoFillModal({
                     key={opt.value}
                     onClick={() => setMode(opt.value)}
                     className={[
-                      'p-3 rounded-xl border text-left transition-all',
+                      'p-3 rounded-control border text-left transition-all',
                       mode === opt.value
                         ? 'bg-charcoal text-cream border-charcoal dark:border-white'
                         : 'bg-white dark:bg-paperDark text-charcoal/60 dark:text-white/50 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
@@ -197,7 +197,7 @@ export default function RotaAutoFillModal({
                 { label: 'Slots filled',   value: `${result.meta?.shiftsFilled ?? 0}/${result.meta?.slotsRequested ?? 0}` },
                 { label: 'Gaps',           value: result.gaps?.length ?? 0, warn: (result.gaps?.length ?? 0) > 0 },
               ].map(s => (
-                <div key={s.label} className={`rounded-xl border p-3 text-center ${s.warn ? 'border-warning/30 bg-warning/6' : 'border-charcoal/10 dark:border-white/10 bg-charcoal/2 dark:bg-white/3'}`}>
+                <div key={s.label} className={`rounded-control border p-3 text-center ${s.warn ? 'border-warning/30 bg-warning/6' : 'border-charcoal/10 dark:border-white/10 bg-charcoal/2 dark:bg-white/3'}`}>
                   <p className={`text-xl font-bold ${s.warn ? 'text-warning' : 'text-charcoal dark:text-white'}`}>{s.value}</p>
                   <p className="text-micro tracking-wider uppercase text-charcoal/35 dark:text-white/30 mt-0.5">{s.label}</p>
                 </div>
@@ -206,7 +206,7 @@ export default function RotaAutoFillModal({
 
             {/* Gaps warning */}
             {result.gaps?.length > 0 && (
-              <div className="rounded-xl border border-warning/30 bg-warning/6 px-4 py-3 flex flex-col gap-1.5">
+              <div className="rounded-control border border-warning/30 bg-warning/6 px-4 py-3 flex flex-col gap-1.5">
                 <p className="text-xs font-semibold text-charcoal dark:text-white">
                   <span className="inline-flex items-center gap-1">
                     <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -232,7 +232,7 @@ export default function RotaAutoFillModal({
                   <p className="text-sm text-charcoal/30 dark:text-white/30 italic text-center py-4">No shifts generated.</p>
                 ) : (
                   result.shifts.map((sh, i) => (
-                    <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg bg-charcoal/3 dark:bg-white/5 border border-charcoal/6 dark:border-white/8">
+                    <div key={i} className="flex items-center justify-between px-3 py-2 rounded-control bg-charcoal/3 dark:bg-white/5 border border-charcoal/6 dark:border-white/8">
                       <div>
                         <p className="text-xs font-medium text-charcoal dark:text-white">{sh.staff_name}</p>
                         <p className="text-caption text-charcoal/45 dark:text-white/40">

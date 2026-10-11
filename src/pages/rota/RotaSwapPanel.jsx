@@ -24,7 +24,7 @@ export default function RotaSwapPanel({
   if (!showSwaps) return null
 
   return (
-    <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+    <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 overflow-hidden">
       <div className="px-5 py-4 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between">
         <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Shift Swap Requests</p>
         <CloseButton label="Close swap requests" onClick={() => setShowSwaps(false)} />
@@ -85,7 +85,7 @@ export default function RotaSwapPanel({
                     placeholder="Optional note for rejection…"
                     value={rejectNote[swap.id] ?? ''}
                     onChange={(e) => setRejectNote((n) => ({ ...n, [swap.id]: e.target.value }))}
-                    className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 placeholder-charcoal/25 dark:placeholder-white/20"
+                    className="w-full px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 placeholder-charcoal/25 dark:placeholder-white/20"
                   />
                   <div className="flex gap-2">
                     <Button

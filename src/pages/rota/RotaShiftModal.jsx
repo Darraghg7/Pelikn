@@ -77,12 +77,12 @@ export default function RotaShiftModal({
 
           {/* Existing shifts for this day */}
           {modal.dayShifts?.length > 0 && (
-            <div className="rounded-xl border border-warning/30 bg-warning/6 p-3 flex flex-col gap-2">
+            <div className="rounded-control border border-warning/30 bg-warning/6 p-3 flex flex-col gap-2">
               <p className="text-micro tracking-widest uppercase text-warning/80 font-semibold flex items-center gap-1.5">
                 <span className="text-warning"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> Already scheduled this day
               </p>
               {modal.dayShifts.map((sh) => (
-                <div key={sh.id} className="flex items-center justify-between bg-white dark:bg-paperDark rounded-lg px-3 py-2.5 border border-charcoal/8 dark:border-white/8">
+                <div key={sh.id} className="flex items-center justify-between bg-white dark:bg-paperDark rounded-control px-3 py-2.5 border border-charcoal/8 dark:border-white/8">
                   <div>
                     <p className="font-semibold text-charcoal dark:text-white text-sm font-mono">
                       {sh.start_time?.slice(0,5) ?? ''} – {sh.end_time?.slice(0,5) ?? ''}
@@ -120,7 +120,7 @@ export default function RotaShiftModal({
                     type="button"
                     onClick={() => applyPreset(p)}
                     className={[
-                      'py-2 px-2 rounded-lg border text-xs font-medium transition-all text-center',
+                      'py-2 px-2 rounded-control border text-xs font-medium transition-all text-center',
                       active
                         ? 'bg-charcoal text-cream border-charcoal dark:border-white'
                         : 'bg-white dark:bg-paperDark text-charcoal/60 dark:text-white/50 border-charcoal/15 dark:border-white/15 hover:border-charcoal/35 dark:hover:border-white/35 hover:text-charcoal dark:hover:text-white',
@@ -158,7 +158,7 @@ export default function RotaShiftModal({
 
             {/* Duration + wage preview */}
             {duration && (
-              <div className="mt-3 rounded-xl bg-charcoal/4 dark:bg-white/5 px-4 py-3 flex flex-col gap-2">
+              <div className="mt-3 rounded-control bg-charcoal/4 dark:bg-white/5 px-4 py-3 flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">⏱</span>
@@ -216,7 +216,7 @@ export default function RotaShiftModal({
                   value={form.roleLabel}
                   onChange={(e) => setForm((f) => ({ ...f, roleLabel: e.target.value }))}
                   placeholder="e.g. Manager, Team Lead…"
-                  className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                  className="w-full px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                 />
                 <p className="text-caption text-charcoal/35 dark:text-white/30">Add roles in Settings → Rota Roles to get quick-select chips here.</p>
               </div>
@@ -258,7 +258,7 @@ export default function RotaShiftModal({
                       type="button"
                       onClick={() => setSelectedDutyId(t.id)}
                       className={[
-                        'text-left px-3 py-2.5 rounded-xl border text-sm transition-all',
+                        'text-left px-3 py-2.5 rounded-control border text-sm transition-all',
                         selectedDutyId === t.id
                           ? 'border-brand bg-brand/5 text-brand font-medium'
                           : 'border-charcoal/12 dark:border-white/15 text-charcoal dark:text-white hover:border-charcoal/30 dark:hover:border-white/30',

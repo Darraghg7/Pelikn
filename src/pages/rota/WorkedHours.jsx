@@ -35,7 +35,7 @@ export function DayWorkedCard({ session, role, req }) {
   const status    = req?.status
   const showReq   = status === 'pending' || status === 'approved'
   return (
-    <div className="bg-white dark:bg-paperDark rounded-2xl p-4 border border-ink/20 dark:border-white/10 shadow-[0_1px_3px_theme(colors.ink/5%)]">
+    <div className="bg-white dark:bg-paperDark rounded-card p-4 border border-ink/20 dark:border-white/10 shadow-[0_1px_3px_theme(colors.ink/5%)]">
       <div className="flex items-center justify-between">
         <span className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.1em] uppercase">Hours worked</span>
         {status ? <EHStatusPill status={status} /> : (
@@ -53,7 +53,7 @@ export function DayWorkedCard({ session, role, req }) {
         {role && <><span className="text-charcoal/25 dark:text-white/25">·</span><span>{role}</span></>}
       </div>
       {showReq && req?.start && (
-        <div className={`mt-2.5 flex items-center justify-between px-3 py-2 rounded-[11px] ${status === 'approved' ? 'bg-goodBg text-good dark:bg-good/20 dark:text-goodDark' : 'bg-warnBg text-warn dark:bg-warn/20 dark:text-warnDark'}`}>
+        <div className={`mt-2.5 flex items-center justify-between px-3 py-2 rounded-control ${status === 'approved' ? 'bg-goodBg text-good dark:bg-good/20 dark:text-goodDark' : 'bg-warnBg text-warn dark:bg-warn/20 dark:text-warnDark'}`}>
           <span className="text-caption font-semibold">
             {status === 'approved' ? 'Updated to' : 'Requested'}
           </span>
@@ -83,7 +83,7 @@ export function WorkedSection({ rows, reqs, hourlyRate, onFix, isDateLocked }) {
         <span className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase font-semibold">This week · worked</span>
         <span className="font-mono text-micro text-charcoal/50 dark:text-white/40">{rows.length} logged · so far</span>
       </div>
-      <div className="rounded-2xl overflow-hidden bg-white dark:bg-paperDark border border-ink/20 dark:border-white/10 shadow-[0_1px_3px_theme(colors.ink/5%)]">
+      <div className="rounded-card overflow-hidden bg-white dark:bg-paperDark border border-ink/20 dark:border-white/10 shadow-[0_1px_3px_theme(colors.ink/5%)]">
         {rows.map((r, i) => {
           const req    = reqs[r.session.clockInId]
           const status = req?.status
@@ -92,7 +92,7 @@ export function WorkedSection({ rows, reqs, hourlyRate, onFix, isDateLocked }) {
             <div key={r.session.clockInId}
               className={`flex items-center gap-3 px-3.5 py-3 ${i === 0 ? '' : 'border-t border-line2 dark:border-white/5'}`}>
               {/* date chip */}
-              <div className="w-11 h-12 rounded-[9px] bg-charcoal/4 dark:bg-white/5 border border-charcoal/10 dark:border-white/10 shrink-0 flex flex-col items-center justify-center gap-0.5">
+              <div className="w-11 h-12 rounded-control bg-charcoal/4 dark:bg-white/5 border border-charcoal/10 dark:border-white/10 shrink-0 flex flex-col items-center justify-center gap-0.5">
                 <span className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.06em] font-semibold">{r.dow}</span>
                 <span className="font-mono text-title-sm font-semibold text-charcoal dark:text-white leading-none">{r.dateNum}</span>
               </div>
@@ -115,7 +115,7 @@ export function WorkedSection({ rows, reqs, hourlyRate, onFix, isDateLocked }) {
                   {req.start}–{req.end}
                 </span>
               ) : isDateLocked?.(r.session.date) ? (
-                <span className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-[9px] border border-charcoal/10 dark:border-white/10 text-charcoal/30 dark:text-white/30 text-caption font-semibold bg-charcoal/4 dark:bg-white/5" title="Locked for payroll">
+                <span className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-control border border-charcoal/10 dark:border-white/10 text-charcoal/30 dark:text-white/30 text-caption font-semibold bg-charcoal/4 dark:bg-white/5" title="Locked for payroll">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                   Locked
                 </span>

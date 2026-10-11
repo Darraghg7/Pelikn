@@ -32,7 +32,7 @@ export default function TermsPage() {
         <h1 className="text-2xl font-bold text-charcoal dark:text-white mb-1">Terms of Service</h1>
         <p className="text-xs text-charcoal/40 dark:text-white/35 mb-6">Effective date: {EFFECTIVE_DATE}</p>
 
-        <div className="bg-warning/10 border border-warning/25 rounded-xl px-4 py-3 mb-10">
+        <div className="bg-warning/10 border border-warning/25 rounded-control px-4 py-3 mb-10">
           <p className="text-xs text-warning font-semibold leading-relaxed">
             Placeholder — this page is a structural draft, not reviewed legal copy.
             Replace the sections below with terms drafted or approved by a solicitor

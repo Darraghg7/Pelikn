@@ -34,7 +34,7 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
       </div>
 
       {/* Email verification nudge */}
-      <div className="w-full bg-charcoal/4 dark:bg-white/5 rounded-xl px-4 py-3 flex items-start gap-3 text-left">
+      <div className="w-full bg-charcoal/4 dark:bg-white/5 rounded-control px-4 py-3 flex items-start gap-3 text-left">
         <svg className="shrink-0 mt-0.5 text-ink3 dark:text-white/50" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
         </svg>
@@ -44,7 +44,7 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
       </div>
 
       {/* Plan badge */}
-      <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border ${
+      <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-control text-xs font-semibold border ${
         plan === 'pro'
           ? 'bg-accent/10 text-accent border-accent/20'
           : 'bg-success/8 text-brand border-success/30'
@@ -55,7 +55,7 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
 
       {/* Venue URL(s) */}
       {allVenues.length > 1 ? (
-        <div className="w-full bg-charcoal/4 dark:bg-white/5 rounded-xl px-4 py-3 flex flex-col gap-2">
+        <div className="w-full bg-charcoal/4 dark:bg-white/5 rounded-control px-4 py-3 flex flex-col gap-2">
           <p className="text-micro text-charcoal/40 dark:text-white/35 tracking-widest uppercase mb-1">Your staff login URLs</p>
           {allVenues.map(v => (
             <div key={v.slug} className="flex items-center justify-between gap-2">
@@ -65,7 +65,7 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
           ))}
         </div>
       ) : (
-        <div className="w-full bg-charcoal/4 dark:bg-white/5 rounded-xl px-4 py-3">
+        <div className="w-full bg-charcoal/4 dark:bg-white/5 rounded-control px-4 py-3">
           <p className="text-micro text-charcoal/40 dark:text-white/35 tracking-widest uppercase mb-1">Your staff login URL</p>
           <p className="text-xs font-mono text-charcoal/60 dark:text-white/50">get-pelikn.com/v/{venueSlug}</p>
         </div>

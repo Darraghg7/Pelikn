@@ -62,7 +62,7 @@ function Row({ label, sub, on, onToggle, last, locked = false }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
           <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">{label}</div>
-          {locked && <span className="font-mono text-micro font-bold text-warn bg-warnBg px-[5px] py-0.5 rounded uppercase tracking-[0.04em]">Pro</span>}
+          {locked && <span className="font-mono text-micro font-bold text-warn bg-warnBg px-[5px] py-0.5 rounded-tag uppercase tracking-[0.04em]">Pro</span>}
         </div>
         {sub && <div className="text-caption text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">{sub}</div>}
       </div>
@@ -79,7 +79,7 @@ function Group({ label, children, foot }) {
       {label && (
         <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">{label}</div>
       )}
-      <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
+      <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card overflow-hidden">
         {children}
       </div>
       {foot && (
@@ -172,15 +172,15 @@ export default function HubTilesPage() {
 
         <div>
           <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">Modules</div>
-          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden py-1">
+          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card overflow-hidden py-1">
             <div className="px-[14px] py-2">
               <VenueTypeIndicator venueId={venueId} venueSlug={venueSlug} />
-              <div className="inline-flex bg-charcoal/6 dark:bg-white/8 rounded-[9px] p-[3px] gap-0.5 mb-3">
+              <div className="inline-flex bg-charcoal/6 dark:bg-white/8 rounded-control p-[3px] gap-0.5 mb-3">
                 {/** @type {const} */ (['all', 'custom']).map(mode => (
                   <button
                     key={mode}
                     onClick={() => saveFeatures({ mode, enabled: mode === 'all' ? ALL_FEATURE_IDS : (featuresConfig.enabled ?? ALL_FEATURE_IDS) })}
-                    className={`px-[14px] py-[5px] rounded-[7px] border-0 cursor-pointer text-xs font-semibold transition-all duration-150 ${featuresConfig.mode === mode ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm' : 'bg-transparent text-charcoal/50 dark:text-white/40'}`}
+                    className={`px-[14px] py-[5px] rounded-tag border-0 cursor-pointer text-xs font-semibold transition-all duration-150 ${featuresConfig.mode === mode ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm' : 'bg-transparent text-charcoal/50 dark:text-white/40'}`}
                   >{mode === 'all' ? 'All modules' : 'Custom'}</button>
                 ))}
               </div>
@@ -190,7 +190,7 @@ export default function HubTilesPage() {
                   {FEATURE_GROUPS.map(group => {
                     const allOn = group.features.every(f => featuresConfig.enabled?.includes(f.id))
                     return (
-                      <div key={group.id} className="border border-charcoal/10 dark:border-white/10 rounded-xl overflow-hidden">
+                      <div key={group.id} className="border border-charcoal/10 dark:border-white/10 rounded-control overflow-hidden">
                         <div className="flex items-center justify-between px-3 py-[9px] bg-charcoal/6 dark:bg-white/8 border-b border-charcoal/10 dark:border-white/10">
                           <div>
                             <div className="text-body-sm font-semibold text-charcoal dark:text-white">{group.label}</div>
@@ -219,7 +219,7 @@ export default function HubTilesPage() {
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1.5">
                                   <div className={`text-body-sm font-medium ${on ? 'text-charcoal dark:text-white' : 'text-charcoal/50 dark:text-white/40'}`}>{feature.label}</div>
-                                  {locked && <span className="font-mono text-micro font-bold text-warn bg-warnBg px-[5px] py-0.5 rounded uppercase tracking-[0.04em]">Pro</span>}
+                                  {locked && <span className="font-mono text-micro font-bold text-warn bg-warnBg px-[5px] py-0.5 rounded-tag uppercase tracking-[0.04em]">Pro</span>}
                                 </div>
                                 <div className="text-micro text-charcoal/50 dark:text-white/40 mt-px">{feature.description}</div>
                               </div>
@@ -255,7 +255,7 @@ export default function HubTilesPage() {
 
         <div>
           <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">Navigation order</div>
-          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden py-1">
+          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card overflow-hidden py-1">
             <NavOrderSection
               isEnabled={isEnabled}
               venuePlan={venuePlan}

@@ -203,11 +203,11 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
   return (
     <>
       <div onClick={onClose} className="fixed inset-0 z-[52] bg-ink/45 [animation:fadeIn_.2s_ease_both]" />
-      <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface dark:bg-paperDark rounded-t-[22px] max-h-[90%] flex flex-col [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both] shadow-[0_-12px_40px_theme(colors.ink/22%)]">
+      <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface dark:bg-paperDark rounded-t-sheet max-h-[90%] flex flex-col [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both] shadow-[0_-12px_40px_theme(colors.ink/22%)]">
 
         {/* Scrollable form body */}
         <div className="overflow-y-auto px-4 pt-[10px] pb-1 flex-1">
-          <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-[14px]" />
+          <div className="w-[38px] h-1 rounded-tag bg-charcoal/10 dark:bg-white/10 mx-auto mb-[14px]" />
 
           {/* Header */}
           <div className="flex items-center gap-3 mb-4">
@@ -220,7 +220,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
           </div>
 
           {/* Closing shift */}
-          <div className="flex items-center justify-between gap-3 rounded-[10px] border border-charcoal/10 dark:border-white/10 px-3 py-2.5 mb-3">
+          <div className="flex items-center justify-between gap-3 rounded-control border border-charcoal/10 dark:border-white/10 px-3 py-2.5 mb-3">
             <div className="min-w-0">
               <div className="text-xs font-semibold text-charcoal dark:text-white">Closing shift</div>
               <div className="text-[10.5px] text-charcoal/50 dark:text-white/40 mt-0.5 leading-snug">
@@ -231,14 +231,14 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
           </div>
 
           {/* Start / End toggle */}
-          <div className="flex gap-2 bg-charcoal/[0.06] dark:bg-white/[0.06] p-1 rounded-xl mb-3">
+          <div className="flex gap-2 bg-charcoal/[0.06] dark:bg-white/[0.06] p-1 rounded-control mb-3">
             {[['start', 'Start', startTime], ['end', 'End', endTime]].map(([k, lbl, val]) => {
               const on = edge === k
               return (
                 <button
                   key={k}
                   onClick={() => setEdge(k)}
-                  className={`flex-1 cursor-pointer border-none rounded-[9px] py-[7px] ${on ? 'bg-paper dark:bg-white/15 shadow-[0_1px_3px_theme(colors.ink/10%)]' : 'bg-transparent'}`}
+                  className={`flex-1 cursor-pointer border-none rounded-control py-[7px] ${on ? 'bg-paper dark:bg-white/15 shadow-[0_1px_3px_theme(colors.ink/10%)]' : 'bg-transparent'}`}
                 >
                   <div className="font-mono text-[9px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{lbl}</div>
                   <div className={`font-mono text-title-sm font-semibold mt-0.5 tabular-nums ${on ? '' : 'text-ink3 dark:text-white/45'}`} style={{ color: on ? col : undefined }}>{val}</div>
@@ -255,7 +255,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
           </div>
 
           {/* Summary */}
-          <div className="px-[13px] py-[11px] rounded-[11px] flex items-center gap-2 justify-center flex-wrap mb-[14px]" style={{ background: col + '14' }}>
+          <div className="px-[13px] py-[11px] rounded-control flex items-center gap-2 justify-center flex-wrap mb-[14px]" style={{ background: col + '14' }}>
             <span className="font-mono text-sm font-semibold text-charcoal dark:text-white tabular-nums">{startTime}–{endTime}</span>
             <span className={`text-body-sm ${hrs > 0 ? 'text-charcoal/50 dark:text-white/40' : 'text-danger'}`}>· {hrs > 0 ? durLabel(startTime, endTime) + (endTime < startTime ? ' · ends next day' : '') : 'start and end are the same'}</span>
             {valid && cost != null && <span className="font-mono text-body-sm text-charcoal/50 dark:text-white/40">· ~£{cost}</span>}
@@ -333,22 +333,22 @@ function SwapSheet({ swaps, onClose, onResolved }) {
   return (
     <>
       <div onClick={onClose} className="fixed inset-0 z-[52] bg-ink/45 [animation:fadeIn_.2s_ease_both]" />
-      <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface dark:bg-paperDark rounded-t-[22px] max-h-[80%] flex flex-col [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both] shadow-[0_-12px_40px_theme(colors.ink/22%)]">
+      <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface dark:bg-paperDark rounded-t-sheet max-h-[80%] flex flex-col [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both] shadow-[0_-12px_40px_theme(colors.ink/22%)]">
         <div className="px-4 pt-[10px]">
-          <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-[14px]" />
+          <div className="w-[38px] h-1 rounded-tag bg-charcoal/10 dark:bg-white/10 mx-auto mb-[14px]" />
           <div className="text-title-sm font-semibold tracking-[-0.015em] text-charcoal dark:text-white">Swap requests</div>
           <div className="text-body-sm text-charcoal/50 dark:text-white/40 mt-0.5 mb-[14px]">{pending.length ? `${pending.length} pending your approval` : 'All caught up'}</div>
         </div>
         <div className="overflow-y-auto flex-1 px-4" style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom, 0px))' }}>
           {pending.length === 0 ? (
             <div className="py-7 text-center">
-              <div className="w-11 h-11 rounded-[13px] bg-success/10 text-success flex items-center justify-center mx-auto mb-3">
+              <div className="w-11 h-11 rounded-control bg-success/10 text-success flex items-center justify-center mx-auto mb-3">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
               <div className="text-charcoal/50 dark:text-white/40 text-body-sm">No swaps waiting.</div>
             </div>
           ) : pending.map(swap => (
-            <div key={swap.id} className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-[14px] py-[13px] mb-[10px]">
+            <div key={swap.id} className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card px-[14px] py-[13px] mb-[10px]">
               <div className="text-body font-semibold text-charcoal dark:text-white">{swap.requester_name ?? 'Staff'} → {swap.target_staff_name ?? 'Staff'}</div>
               {swap.shift && (
                 <div className="font-mono text-[10px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.03em] mt-1">
@@ -412,10 +412,10 @@ function AutoFillSheet({ openShifts, staff, unavailability = {}, venueId, onClos
   return (
     <>
       <div onClick={onClose} className="fixed inset-0 z-[52] bg-ink/45 [animation:fadeIn_.2s_ease_both]" />
-      <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface dark:bg-paperDark rounded-t-[22px] px-4 pb-8 pt-[10px] max-h-[90%] overflow-y-auto [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both] shadow-[0_-12px_40px_theme(colors.ink/22%)]">
-        <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-[14px]" />
+      <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface dark:bg-paperDark rounded-t-sheet px-4 pb-8 pt-[10px] max-h-[90%] overflow-y-auto [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both] shadow-[0_-12px_40px_theme(colors.ink/22%)]">
+        <div className="w-[38px] h-1 rounded-tag bg-charcoal/10 dark:bg-white/10 mx-auto mb-[14px]" />
         <div className="flex items-center gap-[11px]">
-          <span className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-accent/10 text-accent">
+          <span className="w-10 h-10 rounded-control flex items-center justify-center shrink-0 bg-accent/10 text-accent">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/></svg>
           </span>
           <div className="flex-1 min-w-0">
@@ -429,8 +429,8 @@ function AutoFillSheet({ openShifts, staff, unavailability = {}, venueId, onClos
           {openShifts.map((o, idx) => {
             const col = STATION_COLOR[stationFromRole(o.role_label)] || colors.brand.DEFAULT
             return (
-              <div key={o.id ?? idx} className="flex items-center gap-[11px] px-[13px] py-[11px] bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-xl">
-                <span className="w-[9px] h-8 rounded-[4px] shrink-0" style={{ background: col + '26', borderLeft: `3px solid ${col}` }} />
+              <div key={o.id ?? idx} className="flex items-center gap-[11px] px-[13px] py-[11px] bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-control">
+                <span className="w-[9px] h-8 rounded-tag shrink-0" style={{ background: col + '26', borderLeft: `3px solid ${col}` }} />
                 <div className="flex-1 min-w-0">
                   <div className="text-body-sm font-semibold text-charcoal dark:text-white">{o.role_label} · {fmtRange(o.start_time.slice(0,5), o.end_time.slice(0,5))}</div>
                   <div className="font-mono text-[10px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.03em] mt-px">{format(o._day, 'EEE d MMM')}</div>
@@ -457,7 +457,7 @@ function AutoFillSheet({ openShifts, staff, unavailability = {}, venueId, onClos
 }
 
 // ── Shared bits ───────────────────────────────────────────────────────────────
-const CARD = 'bg-white dark:bg-paperDark rounded-2xl border border-line dark:border-white/10'
+const CARD = 'bg-white dark:bg-paperDark rounded-card border border-line dark:border-white/10'
 const SECTION = 'font-mono text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 px-1'
 
 /** 16.1 → "16.1h", 16 → "16h" */
@@ -481,7 +481,7 @@ function Segmented({ options, value, onChange, label }) {
             role="radio"
             aria-checked={on}
             onClick={() => onChange(v)}
-            className={`h-7 px-3 rounded-[9px] text-body-sm font-semibold transition-colors ${on ? 'bg-brand text-white' : 'text-ink2 dark:text-white/65 hover:text-ink dark:hover:text-white'}`}
+            className={`h-7 px-3 rounded-control text-body-sm font-semibold transition-colors ${on ? 'bg-brand text-white' : 'text-ink2 dark:text-white/65 hover:text-ink dark:hover:text-white'}`}
           >
             {text}
           </button>
@@ -502,7 +502,7 @@ function WeekCell({ shift, onLeave, onTap, label }) {
   if (!shift && onLeave) {
     return (
       <div className="flex-1 min-w-0 p-[3px]">
-        <div className="h-[46px] rounded-[10px] bg-line2 dark:bg-white/10 flex items-center justify-center">
+        <div className="h-[46px] rounded-control bg-line2 dark:bg-white/10 flex items-center justify-center">
           <span className="font-mono text-[9px] font-semibold tracking-[0.04em] uppercase text-ink3 dark:text-white/45">Leave</span>
         </div>
       </div>
@@ -512,7 +512,7 @@ function WeekCell({ shift, onLeave, onTap, label }) {
     return (
       <button type="button" onClick={onTap} aria-label={`Add shift, ${label}`} className="flex-1 min-w-0 p-[3px] group">
         <span className="h-[46px] flex items-center justify-center">
-          <span className="w-6 h-6 rounded-[7px] border border-dashed border-ink4/70 dark:border-white/25 text-ink4 dark:text-white/35 flex items-center justify-center group-hover:border-ink3 group-hover:text-ink3">
+          <span className="w-6 h-6 rounded-tag border border-dashed border-ink4/70 dark:border-white/25 text-ink4 dark:text-white/35 flex items-center justify-center group-hover:border-ink3 group-hover:text-ink3">
             {PLUS}
           </span>
         </span>
@@ -524,7 +524,7 @@ function WeekCell({ shift, onLeave, onTap, label }) {
   const end   = fmtT(shift.end_time.slice(0, 5))
   return (
     <button type="button" onClick={onTap} aria-label={`${label}, ${start} to ${end}`} className="flex-1 min-w-0 p-[3px]">
-      <span className="relative h-[46px] rounded-[10px] flex flex-col items-center justify-center leading-none" style={{ background: col + '1f', color: col }}>
+      <span className="relative h-[46px] rounded-control flex flex-col items-center justify-center leading-none" style={{ background: col + '1f', color: col }}>
         <span className="font-mono text-caption font-bold tabular-nums tracking-[-0.03em]">{start}</span>
         <span className="font-mono text-micro font-medium tabular-nums tracking-[-0.03em] opacity-75 mt-[3px]">{end}</span>
         {shift._hasSwap && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-warn" title="Swap requested" />}
@@ -543,7 +543,7 @@ function WeekGrid({ days, staff, shiftMap, unavailability, dayTotals, personTota
           const today = isToday(day)
           return (
             <div key={i} className="flex-1 min-w-0 p-[3px]">
-              <div className={`rounded-[10px] py-1.5 text-center ${today ? 'bg-line2 dark:bg-white/10' : ''}`}>
+              <div className={`rounded-control py-1.5 text-center ${today ? 'bg-line2 dark:bg-white/10' : ''}`}>
                 <div className="font-mono text-[10px] font-semibold tracking-[0.04em] uppercase text-ink3 dark:text-white/45">{format(day, 'EEE')}</div>
                 <div className={`text-body-lg font-bold leading-tight mt-0.5 ${today ? 'text-accent' : 'text-ink dark:text-white'}`}>{format(day, 'd')}</div>
               </div>
@@ -612,7 +612,7 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
               onClick={() => setDayIndex(i)}
               aria-pressed={on}
               aria-label={format(d, 'EEEE d MMMM')}
-              className={`flex-1 min-w-0 rounded-xl border py-2 text-center transition-colors ${on ? 'bg-brand border-brand text-white' : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink dark:text-white'}`}
+              className={`flex-1 min-w-0 rounded-control border py-2 text-center transition-colors ${on ? 'bg-brand border-brand text-white' : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink dark:text-white'}`}
             >
               <div className={`font-mono text-[10px] font-semibold uppercase tracking-[0.04em] ${on ? 'text-white/70' : 'text-ink3 dark:text-white/45'}`}>{format(d, 'EEE')}</div>
               <div className="text-body-lg font-bold leading-tight mt-0.5">{format(d, 'd')}</div>
@@ -643,7 +643,7 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
                   <span className="block text-body-sm font-semibold text-ink dark:text-white truncate">{member.name}</span>
                   <span className="block text-caption text-ink3 dark:text-white/45 mt-0.5 truncate">{s.role_label || member.job_title || '—'}</span>
                 </span>
-                <span className="shrink-0 rounded-[10px] px-2.5 py-1.5 text-right" style={{ background: col + '1f', color: col }}>
+                <span className="shrink-0 rounded-control px-2.5 py-1.5 text-right" style={{ background: col + '1f', color: col }}>
                   <span className="block font-mono text-body-sm font-bold tabular-nums tracking-[-0.02em]">{start}–{end}</span>
                   <span className="block font-mono text-micro opacity-75 mt-0.5">{showCost && member.hourly_rate ? money(paidShiftHours(s.start_time, s.end_time) * member.hourly_rate) : hrs(shiftDurationHours(s.start_time, s.end_time))}</span>
                 </span>
@@ -935,7 +935,7 @@ export default function RotaMobileGrid() {
 
       {/* Swap requests */}
       {pendingCount > 0 && (
-        <button type="button" onClick={() => setShowSwaps(true)} className="w-full flex items-center gap-3 px-3.5 py-2 rounded-2xl bg-warnBg dark:bg-warn/15 text-left">
+        <button type="button" onClick={() => setShowSwaps(true)} className="w-full flex items-center gap-3 px-3.5 py-2 rounded-card bg-warnBg dark:bg-warn/15 text-left">
           <span className="w-2 h-2 rounded-full bg-warn shrink-0" />
           <span className="flex-1 text-body-sm font-semibold text-warn">{pendingCount} swap {pendingCount === 1 ? 'request' : 'requests'} pending</span>
           <span className="text-body-sm font-semibold text-warn inline-flex items-center gap-0.5">Review {CHEVRON_R}</span>

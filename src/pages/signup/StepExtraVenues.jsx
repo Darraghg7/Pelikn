@@ -38,7 +38,7 @@ export default function StepExtraVenues({ count, onBack, onSubmit, loading, erro
 
       <div className="flex flex-col gap-5">
         {venues.map((v, i) => (
-          <div key={i} className="p-4 rounded-2xl bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 flex flex-col gap-3">
+          <div key={i} className="p-4 rounded-card bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 flex flex-col gap-3">
             <p className="text-xs font-semibold text-charcoal/60 dark:text-white/50 tracking-widest uppercase">Venue {i + 2}</p>
             <div>
               <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Venue Name *</label>
@@ -46,12 +46,12 @@ export default function StepExtraVenues({ count, onBack, onSubmit, loading, erro
                 value={v.name}
                 onChange={e => updateVenue(i, 'name', e.target.value)}
                 placeholder="e.g. City Centre Branch"
-                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-brand/20"
+                className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
             </div>
             <div>
               <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">URL Slug *</label>
-              <div className="flex items-center rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark overflow-hidden focus-within:ring-2 focus-within:ring-brand/20">
+              <div className="flex items-center rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark overflow-hidden focus-within:ring-2 focus-within:ring-brand/20">
                 <span className="pl-3 text-xs text-charcoal/30 dark:text-white/30 whitespace-nowrap font-mono">/v/</span>
                 <input
                   value={v.slug}
@@ -66,7 +66,7 @@ export default function StepExtraVenues({ count, onBack, onSubmit, loading, erro
       </div>
 
       {error && (
-        <div className="bg-danger/5 border border-danger/20 rounded-xl px-4 py-3">
+        <div className="bg-danger/5 border border-danger/20 rounded-control px-4 py-3">
           <p className="text-danger text-xs">{error}</p>
         </div>
       )}

@@ -47,7 +47,7 @@ export default function NavOrderSection({ isEnabled, venuePlan, complianceNavOrd
       </p>
       <div className="flex flex-col gap-1.5">
         {orderedItems.map((item, i) => (
-          <div key={item.key} className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-charcoal/3 dark:bg-white/5 border border-charcoal/8 dark:border-white/8">
+          <div key={item.key} className="flex items-center gap-2 px-3 py-2.5 rounded-control bg-charcoal/3 dark:bg-white/5 border border-charcoal/8 dark:border-white/8">
             <span className="flex-1 text-sm font-medium text-charcoal dark:text-white">{item.label}</span>
             <div className="flex flex-col gap-0.5">
               <button

@@ -37,7 +37,7 @@ const CONTRACT_BTNS = [
   { value: 'zero_hours', label: 'Zero hours' },
 ]
 const CONTRACT_LABELS = { full_time: 'Full time', part_time: 'Part time', zero_hours: 'Zero hours', fixed_term: 'Fixed term' }
-const INPUT = 'w-full h-12 px-4 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-base text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
+const INPUT = 'w-full h-12 px-4 rounded-control border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-base text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
 
 const EMPTY_FORM = {
   name: '', role: 'staff', job_role: '', permission_title_id: null, pin: '', email: '', hourly_rate: '',
@@ -473,7 +473,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
             onChange={e => setSearch(e.target.value)}
             placeholder="Search staff"
             aria-label="Search staff"
-            className="w-full h-10 pl-12 pr-4 rounded-2xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
+            className="w-full h-10 pl-12 pr-4 rounded-card border border-line dark:border-white/10 bg-white dark:bg-paperDark text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
           />
         </div>
 
@@ -625,7 +625,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
                     const next = cur.includes(dow) ? cur.filter(d => d !== dow) : [...cur, dow].sort((a, b) => a - b)
                     set('working_days', next.length === 7 ? [] : next)
                   }}
-                  className={`h-8 min-w-[48px] px-2 rounded-xl border text-body-sm font-semibold transition-colors ${on ? 'bg-brand border-brand text-white' : 'bg-cream dark:bg-white/5 border-line dark:border-white/10 text-ink3 dark:text-white/45'}`}
+                  className={`h-8 min-w-[48px] px-2 rounded-control border text-body-sm font-semibold transition-colors ${on ? 'bg-brand border-brand text-white' : 'bg-cream dark:bg-white/5 border-line dark:border-white/10 text-ink3 dark:text-white/45'}`}
                 >
                   {day}
                 </button>
@@ -942,7 +942,7 @@ function Chip({ active, disabled, onClick, children }) {
 
 function Segmented({ options, value, onChange }) {
   return (
-    <div className="flex p-1 gap-1 rounded-2xl bg-cream dark:bg-white/5 border border-line dark:border-white/10" role="radiogroup">
+    <div className="flex p-1 gap-1 rounded-card bg-cream dark:bg-white/5 border border-line dark:border-white/10" role="radiogroup">
       {options.map(o => (
         <button
           key={o.value}
@@ -950,7 +950,7 @@ function Segmented({ options, value, onChange }) {
           role="radio"
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
-          className={`flex-1 h-8 px-2 rounded-xl text-body-sm font-semibold whitespace-nowrap transition-colors ${value === o.value ? 'bg-brand text-white' : 'text-ink2 dark:text-white/70 hover:text-ink dark:hover:text-white'}`}
+          className={`flex-1 h-8 px-2 rounded-control text-body-sm font-semibold whitespace-nowrap transition-colors ${value === o.value ? 'bg-brand text-white' : 'text-ink2 dark:text-white/70 hover:text-ink dark:hover:text-white'}`}
         >
           {o.label}
         </button>

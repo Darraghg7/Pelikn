@@ -33,7 +33,7 @@ export default function ResetPasswordPage() {
         <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1">Choose a strong password for your Pelikn account</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white dark:bg-paperDark rounded-2xl shadow-sm border border-charcoal/8 dark:border-white/8 p-6 flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white dark:bg-paperDark rounded-card shadow-sm border border-charcoal/8 dark:border-white/8 p-6 flex flex-col gap-4">
         <input
           type="password"
           required
@@ -41,7 +41,7 @@ export default function ResetPasswordPage() {
           placeholder="New password (min 6 chars)"
           value={password}
           onChange={e => { setPassword(e.target.value); setError('') }}
-          className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-charcoal/40 dark:focus:border-white/40"
+          className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-charcoal/40 dark:focus:border-white/40"
         />
         <input
           type="password"
@@ -49,7 +49,7 @@ export default function ResetPasswordPage() {
           placeholder="Confirm new password"
           value={confirm}
           onChange={e => { setConfirm(e.target.value); setError('') }}
-          className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-charcoal/40 dark:focus:border-white/40"
+          className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-charcoal/40 dark:focus:border-white/40"
         />
 
         {error && <p className="text-danger text-xs">{error}</p>}

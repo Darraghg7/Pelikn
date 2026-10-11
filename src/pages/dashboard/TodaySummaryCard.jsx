@@ -31,7 +31,7 @@ export default function TodaySummaryCard({ venueId, closedDays, itemIds, actionS
 
   if (!loading && closedToday) {
     return (
-      <div className="bg-white dark:bg-paperDark rounded-2xl overflow-hidden">
+      <div className="bg-white dark:bg-paperDark rounded-card overflow-hidden">
         <div className="px-5 py-6 text-center">
           <span className="text-charcoal/25 dark:text-white/25 mb-3 flex justify-center"><svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></span>
           <p className="text-xl font-bold text-charcoal dark:text-white">Venue closed today</p>
@@ -53,19 +53,19 @@ export default function TodaySummaryCard({ venueId, closedDays, itemIds, actionS
   }
 
   return (
-    <div className="bg-white dark:bg-paperDark rounded-2xl overflow-hidden">
+    <div className="bg-white dark:bg-paperDark rounded-card overflow-hidden">
       <div className="px-4 pt-4 pb-3">
         <p className="font-mono text-micro tracking-[0.08em] uppercase text-charcoal/40 dark:text-white/35 mb-3">Today</p>
         {loading || !summary ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="h-[100px] rounded-xl bg-charcoal/5 dark:bg-white/5 animate-pulse" />
+              <div key={i} className="h-[100px] rounded-control bg-charcoal/5 dark:bg-white/5 animate-pulse" />
             ))}
           </div>
         ) : (
           <>
             {summary.overdueClean > 0 && (
-              <Link to={vp('/cleaning')} className="flex items-center gap-2.5 px-3.5 py-2.5 mb-3 rounded-xl bg-danger/8 border border-danger/15 text-danger hover:bg-danger/12 transition-colors">
+              <Link to={vp('/cleaning')} className="flex items-center gap-2.5 px-3.5 py-2.5 mb-3 rounded-control bg-danger/8 border border-danger/15 text-danger hover:bg-danger/12 transition-colors">
                 <span className="w-5 h-5 rounded-full bg-danger/18 flex items-center justify-center shrink-0">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 </span>
@@ -75,7 +75,7 @@ export default function TodaySummaryCard({ venueId, closedDays, itemIds, actionS
             )}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {activeItems.length === 0 ? (
-                <div className="col-span-full rounded-xl border border-dashed border-charcoal/15 dark:border-white/15 py-6 px-3 text-center">
+                <div className="col-span-full rounded-control border border-dashed border-charcoal/15 dark:border-white/15 py-6 px-3 text-center">
                   <p className="text-sm text-charcoal/35 dark:text-white/30">No Today items selected</p>
                 </div>
               ) : activeItems.map(item => {
@@ -85,7 +85,7 @@ export default function TodaySummaryCard({ venueId, closedDays, itemIds, actionS
                 const Tag      = item.route ? Link : 'div'
                 const tagProps = item.route ? { to: vp(item.route) } : {}
                 return (
-                  <Tag key={item.id} {...tagProps} className="flex flex-col gap-2 border border-charcoal/10 dark:border-white/10 rounded-xl p-4 min-h-[100px] no-underline hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors">
+                  <Tag key={item.id} {...tagProps} className="flex flex-col gap-2 border border-charcoal/10 dark:border-white/10 rounded-control p-4 min-h-[100px] no-underline hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors">
                     <div className="flex items-center gap-1.5">
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isDanger ? 'bg-danger' : isGood ? 'bg-success' : 'bg-charcoal/20 dark:bg-white/20'}`} />
                       <span className="font-mono text-micro text-charcoal/40 dark:text-white/35 uppercase tracking-[0.08em] leading-none">{item.metricLabel}</span>

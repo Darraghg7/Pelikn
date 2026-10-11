@@ -11,7 +11,7 @@ const steps = [
           supabase.com
         </a>
         , create a free project, then open the <strong>SQL Editor</strong> and run the contents of{' '}
-        <code className="font-mono text-sm bg-charcoal/10 dark:bg-white/10 px-1 rounded">supabase/migrations/001_initial_schema.sql</code>.
+        <code className="font-mono text-sm bg-charcoal/10 dark:bg-white/10 px-1 rounded-tag">supabase/migrations/001_initial_schema.sql</code>.
       </>
     ),
   },
@@ -20,10 +20,10 @@ const steps = [
     title: 'Add your .env file',
     body: (
       <>
-        Copy <code className="font-mono text-sm bg-charcoal/10 dark:bg-white/10 px-1 rounded">.env.example</code> to{' '}
-        <code className="font-mono text-sm bg-charcoal/10 dark:bg-white/10 px-1 rounded">.env</code> and fill in your project URL and
+        Copy <code className="font-mono text-sm bg-charcoal/10 dark:bg-white/10 px-1 rounded-tag">.env.example</code> to{' '}
+        <code className="font-mono text-sm bg-charcoal/10 dark:bg-white/10 px-1 rounded-tag">.env</code> and fill in your project URL and
         anon key from <strong>Supabase → Settings → API</strong>.
-        <pre className="mt-3 text-xs bg-charcoal text-cream rounded-xl p-4 overflow-x-auto leading-relaxed">{`VITE_SUPABASE_URL=https://xxxx.supabase.co\nVITE_SUPABASE_ANON_KEY=eyJ...`}</pre>
+        <pre className="mt-3 text-xs bg-charcoal text-cream rounded-control p-4 overflow-x-auto leading-relaxed">{`VITE_SUPABASE_URL=https://xxxx.supabase.co\nVITE_SUPABASE_ANON_KEY=eyJ...`}</pre>
       </>
     ),
   },
@@ -33,7 +33,7 @@ const steps = [
     body: (
       <>
         Stop the server, then run{' '}
-        <code className="font-mono text-sm bg-charcoal/10 dark:bg-white/10 px-1 rounded">npm run dev</code> again. The app will load
+        <code className="font-mono text-sm bg-charcoal/10 dark:bg-white/10 px-1 rounded-tag">npm run dev</code> again. The app will load
         normally once the environment variables are detected.
       </>
     ),
@@ -50,7 +50,7 @@ export default function SetupPage() {
           <p className="text-charcoal/50 dark:text-white/40 text-sm">Setup required</p>
         </div>
 
-        <div className="bg-white/70 rounded-3xl p-6 shadow-sm border border-charcoal/10 dark:border-white/10 mb-6">
+        <div className="bg-white/70 rounded-sheet p-6 shadow-sm border border-charcoal/10 dark:border-white/10 mb-6">
           <p className="text-sm text-charcoal/70 dark:text-white/60 mb-5">
             Supabase credentials are not configured yet. Follow these steps to get the app running:
           </p>

@@ -29,7 +29,7 @@ function VenuePicker({ venues, onSelect }) {
           <button
             key={v.id}
             onClick={() => onSelect(v.slug)}
-            className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark hover:bg-cream hover:border-brand/30 transition-all text-left group"
+            className="flex items-center justify-between w-full px-4 py-3.5 rounded-control border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark hover:bg-cream hover:border-brand/30 transition-all text-left group"
           >
             <div>
               <p className="text-sm font-semibold text-charcoal dark:text-white group-hover:text-brand transition-colors">
@@ -57,7 +57,7 @@ function AppIconSvg({ size = 36, iconColor = white() }) {
 
 function AppIcon({ size = 36, bgClass = 'bg-white/10 border border-white/15', iconColor = white() }) {
   return (
-    <div className={`rounded-3xl ${bgClass} flex items-center justify-center`}
+    <div className={`rounded-sheet ${bgClass} flex items-center justify-center`}
          style={{ width: size * 1.6, height: size * 1.6 }}>
       <AppIconSvg size={size} iconColor={iconColor} />
     </div>

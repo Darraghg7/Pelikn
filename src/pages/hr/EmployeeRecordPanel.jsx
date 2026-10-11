@@ -35,6 +35,7 @@ import {
   revokeStaffSessionRpc,
 } from '../../lib/api/hr'
 import Button from '../../components/ui/Button'
+import { radius } from '../../lib/tokens'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 export const TABS = ['Profile', 'Documents', 'Disciplinary', 'Leave', 'Training', 'Security']
@@ -113,7 +114,7 @@ export function Badge({ tone, children, dot }) {
 
 function SectionCard({ children, className }) {
   return (
-    <div className={`bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden shadow-sm ${className ?? ''}`}>
+    <div className={`bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card overflow-hidden shadow-sm ${className ?? ''}`}>
       {children}
     </div>
   )
@@ -150,7 +151,7 @@ function EmptyState({ icon, text }) {
 
 function MiniStat({ k, v, tone }) {
   return (
-    <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[13px] px-[11px] py-[10px] lg:px-3.5 lg:py-[11px] shadow-sm flex-1 min-w-0">
+    <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-control px-[11px] py-[10px] lg:px-3.5 lg:py-[11px] shadow-sm flex-1 min-w-0">
       <div className="font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
         {k}
       </div>
@@ -353,7 +354,7 @@ function DocumentsTab({ staffId, venueId }) {
             const daysLeft = doc.expiry_date ? differenceInDays(parseISO(doc.expiry_date), new Date()) : null
             return (
               <div key={doc.id} className={`flex items-center gap-3.5 px-[18px] py-3.5 ${i < docs.length - 1 ? 'border-b border-charcoal/6 dark:border-white/8' : ''}`}>
-                <span className="w-[38px] h-[38px] rounded-[10px] bg-charcoal/6 dark:bg-white/8 text-charcoal/50 dark:text-white/40 flex items-center justify-center shrink-0">
+                <span className="w-[38px] h-[38px] rounded-control bg-charcoal/6 dark:bg-white/8 text-charcoal/50 dark:text-white/40 flex items-center justify-center shrink-0">
                   {Ico.docSm}
                 </span>
                 <div className="flex-1 min-w-0">
@@ -399,7 +400,7 @@ function DocumentsTab({ staffId, venueId }) {
               value={form.title}
               onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               placeholder="e.g. Employment Contract 2024"
-              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border"
+              className="w-full px-3 py-2.5 rounded-control border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border"
             />
           </div>
           <div>
@@ -407,7 +408,7 @@ function DocumentsTab({ staffId, venueId }) {
             <div className="flex gap-2">
               {Object.entries(DOC_CAT_LABELS).map(([k, v]) => (
                 <button key={k} type="button" onClick={() => setForm(f => ({ ...f, category: k }))}
-                  className={`flex-1 py-2 rounded-[9px] cursor-pointer font-mono text-micro font-bold tracking-[0.04em] border transition-colors ${
+                  className={`flex-1 py-2 rounded-control cursor-pointer font-mono text-micro font-bold tracking-[0.04em] border transition-colors ${
                     form.category === k
                       ? 'bg-brand text-white border-brand'
                       : 'bg-transparent text-charcoal/50 dark:text-white/40 border-charcoal/10 dark:border-white/10'
@@ -423,11 +424,11 @@ function DocumentsTab({ staffId, venueId }) {
           </div>
           <div>
             <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Expiry date (optional)</label>
-            <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))} className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border" />
+            <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))} className="w-full px-3 py-2.5 rounded-control border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border" />
           </div>
           <div>
             <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Notes (optional)</label>
-            <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 resize-none box-border" />
+            <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className="w-full px-3 py-2.5 rounded-control border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 resize-none box-border" />
           </div>
           <Button size="lg" loading={saving} onClick={upload} disabled={saving}>
             {saving ? 'Uploading…' : 'Upload Document'}
@@ -446,7 +447,7 @@ function AttendanceStat({ label, total, active, dates, tone }) {
   const lblClr = isWarn ? 'text-warn dark:text-warnDark' : 'text-ink3 dark:text-white/50'
 
   return (
-    <div className={bg} style={{ borderRadius: 12, padding: '14px 16px' }}>
+    <div className={bg} style={{ borderRadius: radius.control, padding: '14px 16px' }}>
       <p className={`font-mono text-micro uppercase tracking-[0.07em] font-semibold mb-1 ${lblClr}`}>
         {label}
       </p>
@@ -613,7 +614,7 @@ function DisciplinaryTab({ staffId, venueId }) {
           <SectionCard>
             {lateHistory.map((item, i) => (
               <div key={item.id} className={`flex items-center gap-3 px-[18px] py-[13px] ${i < lateHistory.length - 1 ? 'border-b border-charcoal/6 dark:border-white/8' : ''}`}>
-                <div className="w-7 h-7 rounded-lg bg-warning/10 flex items-center justify-center font-mono text-micro font-bold text-warning shrink-0">
+                <div className="w-7 h-7 rounded-control bg-warning/10 flex items-center justify-center font-mono text-micro font-bold text-warning shrink-0">
                   {i + 1}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -699,7 +700,7 @@ function DisciplinaryTab({ staffId, venueId }) {
             if (item.dismissed_at) {
               return (
                 <div key={`s-${item.id}`} className={`flex items-start gap-3 px-[18px] py-[13px] opacity-40 ${isLast ? '' : 'border-b border-charcoal/6 dark:border-white/8'}`}>
-                  <div className="w-7 h-7 rounded-lg bg-charcoal/6 dark:bg-white/8 text-charcoal/40 dark:text-white/35 flex items-center justify-center font-mono text-micro font-bold shrink-0 line-through">
+                  <div className="w-7 h-7 rounded-control bg-charcoal/6 dark:bg-white/8 text-charcoal/40 dark:text-white/35 flex items-center justify-center font-mono text-micro font-bold shrink-0 line-through">
                     {item.strike_number}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -722,7 +723,7 @@ function DisciplinaryTab({ staffId, venueId }) {
             }
             return (
               <div key={`s-${item.id}`} className={`flex items-start gap-3 px-[18px] py-[13px] ${isLast ? '' : 'border-b border-charcoal/6 dark:border-white/8'}`}>
-                <div className="w-7 h-7 rounded-lg bg-charcoal/6 dark:bg-white/8 text-charcoal/50 dark:text-white/40 flex items-center justify-center font-mono text-micro font-bold shrink-0">
+                <div className="w-7 h-7 rounded-control bg-charcoal/6 dark:bg-white/8 text-charcoal/50 dark:text-white/40 flex items-center justify-center font-mono text-micro font-bold shrink-0">
                   {item.strike_number}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -761,20 +762,20 @@ function DisciplinaryTab({ staffId, venueId }) {
           <div>
             <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Action type</label>
             <select value={form.action_type} onChange={e => setForm(f => ({ ...f, action_type: e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 bg-white dark:bg-paperDark box-border">
+              className="w-full px-3 py-2.5 rounded-control border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 bg-white dark:bg-paperDark box-border">
               {Object.entries(FORMAL_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </div>
           <div>
             <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Date</label>
             <input type="date" value={form.occurred_at} onChange={e => setForm(f => ({ ...f, occurred_at: e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border" />
+              className="w-full px-3 py-2.5 rounded-control border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border" />
           </div>
           <div>
             <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Notes</label>
             <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={3}
               placeholder="Details, outcome, follow-up actions…"
-              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 resize-none box-border" />
+              className="w-full px-3 py-2.5 rounded-control border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 resize-none box-border" />
           </div>
           <div>
             <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Attachment (optional)</label>
@@ -841,7 +842,7 @@ function LeaveTab({ staffId, venueSlug, staff }) {
     <div className="flex flex-col gap-3.5">
       <div className="grid grid-cols-3 gap-[13px]">
         {tiles.map(x => (
-          <div key={x.k} className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[13px]">
+          <div key={x.k} className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card px-4 py-[13px]">
             <div className="font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">{x.k}</div>
             <div className="text-xl font-semibold text-charcoal dark:text-white mt-[3px] font-mono tracking-[-0.02em]">{x.v}</div>
           </div>
@@ -1127,10 +1128,10 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
       </div>
 
       {/* Tab bar */}
-      <div className="flex gap-0.5 lg:mb-5 bg-charcoal/6 dark:bg-white/8 rounded-[11px] p-[3px]">
+      <div className="flex gap-0.5 lg:mb-5 bg-charcoal/6 dark:bg-white/8 rounded-control p-[3px]">
         {TABS.map(t => (
           <button key={t} data-testid={`record-tab-${t}`} onClick={() => setTab(t)}
-            className={`flex-1 py-[7px] lg:py-2 px-0 border-0 cursor-pointer rounded-[8px] font-mono text-micro tracking-[0] transition-all duration-150 ${
+            className={`flex-1 py-[7px] lg:py-2 px-0 border-0 cursor-pointer rounded-control font-mono text-micro tracking-[0] transition-all duration-150 ${
               tab === t
                 ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white font-bold shadow-[0_1px_3px_theme(colors.ink/10%)]'
                 : 'bg-transparent text-charcoal/50 dark:text-white/40 font-semibold'

@@ -17,7 +17,7 @@ function PostCard({ notice, isManager, onDelete }) {
   const [deleting, setDeleting] = useState(false)
 
   return (
-    <div className={`bg-white dark:bg-paperDark rounded-2xl p-5 flex flex-col gap-3 ${notice.pinned ? 'border-accent/30' : 'border-charcoal/10 dark:border-white/10'}`}>
+    <div className={`bg-white dark:bg-paperDark rounded-card p-5 flex flex-col gap-3 ${notice.pinned ? 'border-accent/30' : 'border-charcoal/10 dark:border-white/10'}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
           {notice.pinned && (
@@ -109,7 +109,7 @@ function NewPostForm({ venueId, staffName, onPosted, onCancel }) {
   }
 
   return (
-    <form onSubmit={submit} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
+    <form onSubmit={submit} className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
       <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">New Notice</p>
 
       <div className="flex flex-col gap-1.5">
@@ -119,7 +119,7 @@ function NewPostForm({ venueId, staffName, onPosted, onCancel }) {
           value={form.title}
           onChange={(e) => set('title', e.target.value)}
           placeholder="e.g. Staff meeting this Friday"
-          className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 placeholder-charcoal/25 dark:placeholder-white/20"
+          className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 placeholder-charcoal/25 dark:placeholder-white/20"
         />
       </div>
 
@@ -130,7 +130,7 @@ function NewPostForm({ venueId, staffName, onPosted, onCancel }) {
           onChange={(e) => set('body', e.target.value)}
           placeholder="Add more detail here…"
           rows={4}
-          className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 placeholder-charcoal/25 dark:placeholder-white/20"
+          className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 placeholder-charcoal/25 dark:placeholder-white/20"
         />
       </div>
 

@@ -96,7 +96,7 @@ function ManagerTaskRow({ item, isTemplate, completions, onDelete, deleting }) {
   return (
     <div className="py-2.5 first:pt-0 last:pb-0 flex items-center justify-between gap-2">
       <div className="flex items-center gap-2.5 min-w-0">
-        <span className={`w-3.5 h-3.5 rounded border shrink-0 flex items-center justify-center text-micro ${comp ? 'bg-success border-success text-white' : 'border-charcoal/20 dark:border-white/20'}`}>
+        <span className={`w-3.5 h-3.5 rounded-tag border shrink-0 flex items-center justify-center text-micro ${comp ? 'bg-success border-success text-white' : 'border-charcoal/20 dark:border-white/20'}`}>
           {comp ? <svg className="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> : ''}
         </span>
         <div className="min-w-0">
@@ -130,7 +130,7 @@ function DeptColumn({ departmentId, label, templates, oneOffs, completions, onDe
     // mobile, cross-axis alignment is "start" (shrink-to-fit), so each column
     // ends up sized to its own content — w-full forces the full row width
     // regardless of direction.
-    <div className="flex-1 w-full min-w-0 bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 overflow-hidden">
+    <div className="flex-1 w-full min-w-0 bg-white dark:bg-paperDark rounded-card border border-charcoal/10 dark:border-white/10 overflow-hidden">
       {/* Column header — tap to collapse */}
       <button
         type="button"
@@ -312,13 +312,13 @@ function ManagerTasksView() {
       </div>
 
       {showAddTemplate && (
-        <div className="p-4 rounded-2xl bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 flex flex-col gap-3">
+        <div className="p-4 rounded-card bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 flex flex-col gap-3">
           <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">New Recurring Task</p>
           <input
             value={tForm.title}
             onChange={(e) => setTForm((f) => ({ ...f, title: e.target.value }))}
             placeholder="e.g. Complete daily checklist"
-            className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+            className="px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
           <div className="flex gap-2 flex-wrap">
             {departmentOptions.map((r) => (
@@ -343,19 +343,19 @@ function ManagerTasksView() {
       )}
 
       {showAddOneOff && (
-        <div className="p-4 rounded-2xl bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 flex flex-col gap-3">
+        <div className="p-4 rounded-card bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 flex flex-col gap-3">
           <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">New One-Off Task</p>
           <input
             value={oForm.title}
             onChange={(e) => setOForm((f) => ({ ...f, title: e.target.value }))}
             placeholder="e.g. Check delivery from supplier"
-            className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+            className="px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
           <div className="flex items-center gap-2 flex-wrap">
             <label className="text-micro text-charcoal/50 dark:text-white/40 whitespace-nowrap">Due date:</label>
             <input type="date" value={oForm.due_date}
               onChange={(e) => setOForm(f => ({ ...f, due_date: e.target.value }))}
-              className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
           <div>
@@ -363,7 +363,7 @@ function ManagerTasksView() {
             <div className="flex flex-col gap-2">
               <select value={oForm.assigned_to_staff_id}
                 onChange={(e) => setOForm(f => ({ ...f, assigned_to_staff_id: e.target.value }))}
-                className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20">
+                className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20">
                 <option value="">Specific person (optional)</option>
                 {staffList.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
@@ -420,7 +420,7 @@ function ManagerTasksView() {
 
       {/* ── Everyone tasks ────────────────────────────────────────────────── */}
       {(everyoneTemplates.length > 0 || everyoneOneOffs.length > 0) && (
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+        <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 overflow-hidden">
           <div className="px-4 py-3 border-b border-charcoal/8 dark:border-white/8 bg-charcoal/3 dark:bg-white/5">
             <p className="text-sm font-semibold text-charcoal dark:text-white">Everyone</p>
           </div>
@@ -473,7 +473,7 @@ function TaskItemRow({ item, assignmentId, toggleItem }) {
       className="min-h-11 flex items-center gap-3 w-full text-left py-2.5 px-4 group disabled:opacity-70 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors border-t border-charcoal/5 dark:border-white/5 first:border-t-0"
     >
       <span className={[
-        'w-[22px] h-[22px] rounded-md border-[1.5px] shrink-0 flex items-center justify-center transition-all',
+        'w-[22px] h-[22px] rounded-tag border-[1.5px] shrink-0 flex items-center justify-center transition-all',
         item.completed ? 'bg-success border-success' : 'border-charcoal/25 dark:border-white/25 group-hover:border-charcoal/45 dark:group-hover:border-white/45',
       ].join(' ')}>
         {item.completed && (
@@ -500,7 +500,7 @@ function StaffDutyCard({ duty, toggleItem }) {
   const pct     = total > 0 ? Math.round((done / total) * 100) : 0
   const allDone = done === total && total > 0
   return (
-    <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
+    <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 overflow-hidden">
       <div className="flex items-center justify-between px-4 pt-3.5 pb-3 border-b border-charcoal/6 dark:border-white/8">
         <div className="flex items-center gap-2 min-w-0">
           <span className="font-mono text-micro text-charcoal/40 dark:text-white/35 tracking-widest uppercase font-semibold shrink-0">Duty</span>
@@ -528,7 +528,7 @@ function StaffDutyCard({ duty, toggleItem }) {
 function DutiesTab({ duties, loading, toggleItem }) {
   if (loading) return <SkeletonList rows={3} />
   if (!duties.length) return (
-    <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 p-8 text-center">
+    <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 p-8 text-center">
       <p className="text-sm text-charcoal/40 dark:text-white/35">No duties assigned for today</p>
     </div>
   )
@@ -574,7 +574,7 @@ function CleaningTaskRow({ task, onComplete, isFirst, departmentLabel }) {
         onClick={handleTap}
         disabled={busy}
         aria-label="Mark done"
-        className="w-[22px] h-[22px] rounded-md border-[1.5px] border-charcoal/25 dark:border-white/25 shrink-0 grid place-items-center hover:border-success hover:bg-success/10 transition-colors disabled:opacity-50"
+        className="w-[22px] h-[22px] rounded-tag border-[1.5px] border-charcoal/25 dark:border-white/25 shrink-0 grid place-items-center hover:border-success hover:bg-success/10 transition-colors disabled:opacity-50"
       >
         {busy && <span className="w-2.5 h-2.5 rounded-full border-2 border-success/25 border-t-success animate-spin" />}
       </button>
@@ -583,7 +583,7 @@ function CleaningTaskRow({ task, onComplete, isFirst, departmentLabel }) {
         {task.due && <DueLabel due={task.due} className="mt-0.5 block" />}
         {departmentLabel && <span className="text-micro text-charcoal/40 dark:text-white/35 mt-0.5 block">{departmentLabel}</span>}
       </div>
-      <span className="text-micro font-mono font-semibold px-2 py-0.5 rounded bg-charcoal/6 dark:bg-white/8 text-charcoal/40 dark:text-white/35 uppercase tracking-wide">
+      <span className="text-micro font-mono font-semibold px-2 py-0.5 rounded-tag bg-charcoal/6 dark:bg-white/8 text-charcoal/40 dark:text-white/35 uppercase tracking-wide">
         {task.frequency}
       </span>
     </div>
@@ -593,7 +593,7 @@ function CleaningTaskRow({ task, onComplete, isFirst, departmentLabel }) {
 function DoneCleaningRow({ task, isFirst }) {
   return (
     <div className={`px-4 py-3 flex items-center gap-3 ${!isFirst ? 'border-t border-charcoal/5 dark:border-white/5' : ''}`}>
-      <span className="w-[22px] h-[22px] rounded-md bg-success border-success border-[1.5px] flex items-center justify-center shrink-0">
+      <span className="w-[22px] h-[22px] rounded-tag bg-success border-success border-[1.5px] flex items-center justify-center shrink-0">
         <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
       </span>
       <div className="flex-1 min-w-0">
@@ -623,13 +623,13 @@ function CleaningTab({ tasks, loading, error, session, reload, departmentFor }) 
 
   if (loading) return <SkeletonList rows={4} />
   if (error) return (
-    <div className="bg-white dark:bg-paperDark rounded-[14px] border border-danger/20 p-8 text-center">
+    <div className="bg-white dark:bg-paperDark rounded-card border border-danger/20 p-8 text-center">
       <p className="text-sm text-danger/80">Could not load the cleaning schedule</p>
       <p className="text-caption text-charcoal/40 dark:text-white/35 mt-1">Pull to refresh, or tell your manager if it keeps happening.</p>
     </div>
   )
   if (!tasks.length) return (
-    <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 p-8 text-center">
+    <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 p-8 text-center">
       <p className="text-sm text-charcoal/40 dark:text-white/35">No cleaning tasks configured</p>
     </div>
   )
@@ -666,7 +666,7 @@ function CleaningTab({ tasks, loading, error, session, reload, departmentFor }) 
             <span className="text-micro font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">Pending</span>
             <span className="text-micro font-mono text-charcoal/35 dark:text-white/30">{done.length} / {tasks.length}</span>
           </div>
-          <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
+          <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 overflow-hidden">
             <div className="h-[3px] bg-charcoal/6 dark:bg-white/8">
               <div className="h-full bg-warning transition-all" style={{ width: `${Math.max(pct, 2)}%` }} />
             </div>
@@ -681,7 +681,7 @@ function CleaningTab({ tasks, loading, error, session, reload, departmentFor }) 
       {done.length > 0 && (
         <div>
           <span className="text-micro font-mono tracking-widest uppercase text-charcoal/35 dark:text-white/30 font-semibold px-1 mb-2 block">Completed</span>
-          <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
+          <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 overflow-hidden">
             {done.map((t, i) => <DoneCleaningRow key={t.id} task={t} isFirst={i === 0} />)}
           </div>
         </div>
@@ -712,7 +712,7 @@ function StaffTaskRow({ item, completion, onComplete, canTick, isFirst }) {
       className={`min-h-11 w-full text-left px-4 py-3 flex items-center gap-3 disabled:cursor-default ${!isFirst ? 'border-t border-charcoal/5 dark:border-white/5' : ''}`}
     >
       <span className={[
-        'w-[22px] h-[22px] rounded-md border-[1.5px] shrink-0 grid place-items-center transition-colors',
+        'w-[22px] h-[22px] rounded-tag border-[1.5px] shrink-0 grid place-items-center transition-colors',
         done ? 'bg-success border-success' : 'border-charcoal/25 dark:border-white/25',
       ].join(' ')}>
         {done && <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}
@@ -725,7 +725,7 @@ function StaffTaskRow({ item, completion, onComplete, canTick, isFirst }) {
         )}
       </span>
       {item.assigned_to_staff_id && (
-        <span className="text-micro font-mono font-semibold px-2 py-0.5 rounded bg-accent/10 text-accent uppercase tracking-wide shrink-0">For you</span>
+        <span className="text-micro font-mono font-semibold px-2 py-0.5 rounded-tag bg-accent/10 text-accent uppercase tracking-wide shrink-0">For you</span>
       )}
     </button>
   )
@@ -735,7 +735,7 @@ function TasksTab({ templates, oneOffs, completions, loading, canTick, session, 
   if (loading) return <SkeletonList rows={3} />
   const items = [...templates, ...oneOffs]
   if (!items.length) return (
-    <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 p-8 text-center">
+    <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 p-8 text-center">
       <p className="text-sm text-charcoal/40 dark:text-white/35">No tasks for this day</p>
     </div>
   )
@@ -763,7 +763,7 @@ function TasksTab({ templates, oneOffs, completions, loading, canTick, session, 
         </span>
         <span className="text-micro font-mono text-charcoal/35 dark:text-white/30">{doneCount} / {items.length}</span>
       </div>
-      <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
+      <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 overflow-hidden">
         <div className="h-[3px] bg-charcoal/6 dark:bg-white/8">
           <div className={`h-full transition-all ${doneCount === items.length ? 'bg-success' : 'bg-warning'}`} style={{ width: `${Math.max(pct, 2)}%` }} />
         </div>
@@ -778,7 +778,7 @@ function TasksTab({ templates, oneOffs, completions, loading, canTick, session, 
 function AllergensTab({ venueSlug }) {
   return (
     <div className="flex flex-col gap-2.5">
-      <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
+      <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 overflow-hidden">
         <div className="px-4 pt-3.5 pb-3 border-b border-charcoal/6 dark:border-white/8">
           <p className="text-micro font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">Today's acknowledgement</p>
         </div>
@@ -786,7 +786,7 @@ function AllergensTab({ venueSlug }) {
           to={`/v/${venueSlug}/allergens`}
           className="flex items-center gap-3 px-4 py-3.5 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors"
         >
-          <span className="w-[22px] h-[22px] rounded-md border-[1.5px] border-charcoal/25 dark:border-white/25 shrink-0" />
+          <span className="w-[22px] h-[22px] rounded-tag border-[1.5px] border-charcoal/25 dark:border-white/25 shrink-0" />
           <p className="text-body font-medium text-charcoal dark:text-white flex-1">View and confirm today's allergen sheet</p>
           <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 dark:text-white/25 shrink-0">
             <path d="M1 1l4 4-4 4"/>
@@ -794,7 +794,7 @@ function AllergensTab({ venueSlug }) {
         </Link>
       </div>
 
-      <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
+      <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 overflow-hidden">
         <div className="px-4 pt-3.5 pb-3 border-b border-charcoal/6 dark:border-white/8">
           <p className="text-micro font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">Reference</p>
         </div>
@@ -861,7 +861,7 @@ function StaffTasksView({ session }) {
       {pendingSignOffs > 0 && (
         <Link
           to={`/v/${venueSlug}/training`}
-          className="flex items-center justify-between gap-4 bg-accent/10 border border-accent/20 rounded-xl px-4 py-3"
+          className="flex items-center justify-between gap-4 bg-accent/10 border border-accent/20 rounded-control px-4 py-3"
         >
           <div>
             <p className="text-sm font-semibold text-accent">Training record awaiting your signature</p>
@@ -878,13 +878,13 @@ function StaffTasksView({ session }) {
           <h1 className="text-display font-bold text-charcoal dark:text-white leading-tight mt-0.5">{TAB_TITLE[activeTab]}</h1>
         </div>
         {/* Day selector */}
-        <div className="flex p-[3px] bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-xl mt-1 shrink-0">
+        <div className="flex p-[3px] bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-control mt-1 shrink-0">
           {[-1, 0, 1].map((offset) => (
             <button
               key={offset}
               onClick={() => setDayOffset(offset)}
               className={[
-                'px-3 py-1.5 rounded-lg text-caption font-semibold transition-all',
+                'px-3 py-1.5 rounded-control text-caption font-semibold transition-all',
                 dayOffset === offset
                   ? 'bg-charcoal text-cream shadow-sm'
                   : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal/75 dark:hover:text-white/60',
@@ -897,13 +897,13 @@ function StaffTasksView({ session }) {
       </div>
 
       {/* Tab switcher with counts */}
-      <div className="flex gap-1 p-[3px] bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[12px]">
+      <div className="flex gap-1 p-[3px] bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-control">
         {TABS.map(t => (
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
             className={[
-              'flex-1 py-2 rounded-[9px] text-body-sm font-semibold transition-all flex items-center justify-center gap-1.5',
+              'flex-1 py-2 rounded-control text-body-sm font-semibold transition-all flex items-center justify-center gap-1.5',
               activeTab === t.id
                 ? 'bg-charcoal text-cream shadow-sm'
                 : 'text-charcoal/55 dark:text-white/45 hover:text-charcoal/80 dark:hover:text-white/68',

@@ -32,11 +32,11 @@ export default function AnalyticsSettingsPage() {
         {loading ? (
           <SkeletonList rows={5} />
         ) : rows.length === 0 ? (
-          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-[15px] py-6 text-center">
+          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card px-[15px] py-6 text-center">
             <p className="text-sm text-charcoal/40 dark:text-white/35">No staff on this venue yet</p>
           </div>
         ) : (
-          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
+          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card overflow-hidden">
             {rows.map((r, i) => (
               <div
                 key={r.staff_id}

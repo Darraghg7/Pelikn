@@ -9,7 +9,7 @@ import {
 import { STARTER_FEATURES, PRO_FEATURES, PLAN_ORDER, PLAN_DETAILS, STARTER_STAFF_LIMIT } from '../../lib/plans'
 import { PLANS } from '../../lib/constants'
 import DesktopDashboardMock, { BrowserFrame, ScaledCanvas } from './DesktopDashboardMock'
-import { colors, alpha, white, black } from '../../lib/tokens'
+import { colors, alpha, white, black, radius } from '../../lib/tokens'
 
 /* ─── Keyframes ─────────────────────────────────────────────────────────── */
 function GlobalCSS() {
@@ -94,7 +94,7 @@ function IPhoneFrame({ children }) {
       {/* Screen — fixed height for realistic iPhone 15 proportions */}
       <div style={{ borderRadius:40, overflow:'hidden', background:colors.surface, position:'relative', height:572 }}>
         {/* Dynamic island */}
-        <div style={{ position:'absolute', top:12, left:'50%', transform:'translateX(-50%)', width:100, height:28, background:colors.charcoal, borderRadius:14, zIndex:10 }}/>
+        <div style={{ position:'absolute', top:12, left:'50%', transform:'translateX(-50%)', width:100, height:28, background:colors.charcoal, borderRadius:radius.card, zIndex:10 }}/>
         {children}
       </div>
     </div>
@@ -130,8 +130,8 @@ function FadeUp({ children, delay = 0, className = '', dir = 'up' }) {
 function PeliknLogo({ light = false }) {
   return (
     <div className="flex items-center gap-2.5">
-      <div className={light ? 'ring-2 ring-white/30 rounded-xl shadow-lg' : ''}>
-        <img src="/icons/icon.svg" className="w-7 h-7 rounded-xl" alt="" />
+      <div className={light ? 'ring-2 ring-white/30 rounded-control shadow-lg' : ''}>
+        <img src="/icons/icon.svg" className="w-7 h-7 rounded-control" alt="" />
       </div>
       <span className={`text-sm tracking-[0.18em] uppercase ${light ? 'text-white font-bold drop-shadow-[0_1px_3px_theme(colors.black/40%)]' : 'text-charcoal font-bold'}`}>Pelikn</span>
     </div>
@@ -155,7 +155,7 @@ function MockDashboard() {
     <div aria-hidden="true" className="flex bg-surface" style={{ minHeight: 360, fontSize: 10 }}>
       {/* Icon rail */}
       <div className="bg-brand flex flex-col items-center pt-3 pb-3 gap-3.5 shrink-0" style={{ width: 50 }}>
-        <div className="w-7 h-7 rounded-lg bg-cream/15 flex items-center justify-center mb-1">
+        <div className="w-7 h-7 rounded-control bg-cream/15 flex items-center justify-center mb-1">
           <span className="text-[9px] font-bold text-cream">C</span>
         </div>
         {[
@@ -166,7 +166,7 @@ function MockDashboard() {
           { d:'M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09', a:false, badge:null },
         ].map(({ d, a, badge }, i) => (
           <div key={i} className="relative">
-            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${a ? 'bg-cream/15' : ''}`}>
+            <div className={`w-7 h-7 rounded-control flex items-center justify-center ${a ? 'bg-cream/15' : ''}`}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={a ? 'text-cream' : 'text-cream/28'}><path d={d}/></svg>
             </div>
             {badge && <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-accent rounded-full text-[6px] font-bold text-white flex items-center justify-center">{badge > 9 ? '9+' : badge}</span>}
@@ -199,14 +199,14 @@ function MockDashboard() {
             <h3 className="text-body-lg font-bold text-charcoal mt-0.5">Good afternoon, Sarah</h3>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="text-[7px] text-charcoal/45">THE FORGE</span>
-              <span className="text-[7px] font-bold bg-brand text-cream px-1.5 py-0.5 rounded tracking-wide">PRO</span>
+              <span className="text-[7px] font-bold bg-brand text-cream px-1.5 py-0.5 rounded-tag tracking-wide">PRO</span>
               <span className="text-[7px] text-charcoal/30">· 0 of 14 daily checks complete</span>
             </div>
           </div>
-          <span className="text-center text-[7px] font-medium text-charcoal/40 border border-charcoal/15 px-2 py-1 rounded">Export</span>
+          <span className="text-center text-[7px] font-medium text-charcoal/40 border border-charcoal/15 px-2 py-1 rounded-tag">Export</span>
         </div>
         {/* Alert */}
-        <div className="flex items-center gap-1.5 bg-accentBg border border-accent/20 rounded-lg px-2.5 py-1.5 mb-2.5">
+        <div className="flex items-center gap-1.5 bg-accentBg border border-accent/20 rounded-control px-2.5 py-1.5 mb-2.5">
           <div className="w-1.5 h-1.5 rounded-full bg-accent" style={{ animation:'pkPulse 2s infinite' }} />
           <span className="text-[8px] font-semibold text-accent">13 overdue cleans</span>
         </div>
@@ -218,11 +218,11 @@ function MockDashboard() {
             { l:'FRIDGES DUE', v:'—', c:'text-charcoal/30' },
             { l:'MY CLOCK', v:null },
           ].map(({ l, v, c }) => (
-            <div key={l} className="bg-white border border-charcoal/8 rounded-lg p-2">
+            <div key={l} className="bg-white border border-charcoal/8 rounded-control p-2">
               <p className="text-[6px] tracking-widest uppercase text-charcoal/28 mb-1">{l}</p>
               {v !== null
                 ? <p className={`text-lg font-bold ${c} tabular-nums leading-none`}>{v}</p>
-                : <div><p className="text-[7px] text-charcoal/35 mb-1">Not Clocked In</p><span className="inline-block text-center w-full bg-charcoal text-cream text-[7px] font-semibold py-0.5 rounded">Clock In</span></div>
+                : <div><p className="text-[7px] text-charcoal/35 mb-1">Not Clocked In</p><span className="inline-block text-center w-full bg-charcoal text-cream text-[7px] font-semibold py-0.5 rounded-tag">Clock In</span></div>
               }
             </div>
           ))}
@@ -234,7 +234,7 @@ function MockDashboard() {
             { l:'CRITICAL', v:'0', c:'text-charcoal', dot:'bg-charcoal/20' },
             { l:'TIME OFF', v:'1', c:'text-warn', dot:'bg-warn' },
           ].map(({ l, v, c, dot }) => (
-            <div key={l} className="bg-white border border-charcoal/8 rounded-lg p-2">
+            <div key={l} className="bg-white border border-charcoal/8 rounded-control p-2">
               <div className="flex items-center gap-1 mb-1"><div className={`w-1 h-1 rounded-full ${dot}`}/><p className="text-[6px] tracking-widest uppercase text-charcoal/28">{l}</p></div>
               <p className={`text-lg font-bold ${c} tabular-nums leading-none`}>{v}</p>
             </div>
@@ -242,19 +242,19 @@ function MockDashboard() {
         </div>
         {/* Widgets */}
         <div className="grid grid-cols-3 gap-1.5">
-          <div className="bg-white border border-charcoal/8 rounded-lg p-2">
+          <div className="bg-white border border-charcoal/8 rounded-control p-2">
             <div className="flex items-center justify-between mb-1"><div className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-good"/><p className="text-[6px] tracking-widest uppercase text-charcoal/28">COMPLIANCE SCORE</p></div><span className="text-[6px] text-brand/40">VIEW ›</span></div>
             <p className="text-2xl font-bold text-good tabular-nums">100%</p>
             <div className="flex items-center gap-1 mt-0.5"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke={colors.good} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span className="text-[7px] text-good font-semibold">All checks on track</span></div>
             <p className="text-[6px] text-charcoal/22 mt-1">30-DAY AVERAGE</p>
           </div>
-          <div className="bg-white border border-charcoal/8 rounded-lg p-2">
+          <div className="bg-white border border-charcoal/8 rounded-control p-2">
             <div className="flex items-center justify-between mb-1.5"><div className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-warn"/><p className="text-[6px] tracking-widest uppercase text-charcoal/28">FRIDGE STATUS</p></div><span className="text-[6px] text-brand/40">VIEW ›</span></div>
             {[['Readings today','4'],['Out of range','0'],['Not yet checked','0']].map(([l,v])=>(
               <div key={l} className="flex justify-between py-0.5"><span className="text-[7px] text-charcoal/45">{l}</span><span className="text-[7px] font-semibold text-charcoal">{v}</span></div>
             ))}
           </div>
-          <div className="bg-white border border-charcoal/8 rounded-lg p-2">
+          <div className="bg-white border border-charcoal/8 rounded-control p-2">
             <div className="flex items-center gap-1 mb-1.5"><div className="w-1 h-1 rounded-full bg-accent"/><p className="text-[6px] tracking-widest uppercase text-charcoal/28">STAFF NOTIFICATIONS</p></div>
             {[
               ['Claire: Leave Request','23 Jul – 24 Jul 2026'],
@@ -288,7 +288,7 @@ function MockAppHeader() {
             </div>
           </div>
         </div>
-        <span className="text-[9px] text-cream/40 border border-cream/20 px-2 py-0.5 rounded">Sign Out</span>
+        <span className="text-[9px] text-cream/40 border border-cream/20 px-2 py-0.5 rounded-tag">Sign Out</span>
       </div>
     </div>
   )
@@ -348,7 +348,7 @@ function MockChecksHub() {
         <p className="text-title-sm font-semibold tracking-[-0.028em] text-charcoal leading-tight mt-0.5 mb-2">Today's checks</p>
 
         {/* Today banner */}
-        <div className="bg-brand rounded-xl px-3 py-2.5 mb-2.5 flex items-center gap-2">
+        <div className="bg-brand rounded-control px-3 py-2.5 mb-2.5 flex items-center gap-2">
           <div className="flex-1 min-w-0">
             <p className="font-mono text-[7px] tracking-[0.1em] uppercase text-white/55 font-semibold">Today</p>
             <p className="text-caption font-semibold text-white tracking-[-0.015em] mt-0.5">6 checks need doing</p>
@@ -365,9 +365,9 @@ function MockChecksHub() {
           {tiles.map(({ label, status, sub, count, d }) => {
             const t = MOCK_CHECK_TONE[status]
             return (
-              <div key={label} className={`bg-paper border rounded-lg p-2 flex flex-col gap-1.5 min-h-[60px] ${status==='overdue'?'border-danger/30':'border-charcoal/10'}`}>
+              <div key={label} className={`bg-paper border rounded-control p-2 flex flex-col gap-1.5 min-h-[60px] ${status==='overdue'?'border-danger/30':'border-charcoal/10'}`}>
                 <div className="flex items-start justify-between">
-                  <span className={`w-[22px] h-[22px] rounded-md flex items-center justify-center ${t.icon}`}>
+                  <span className={`w-[22px] h-[22px] rounded-tag flex items-center justify-center ${t.icon}`}>
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={d}/></svg>
                   </span>
                   {count ? (
@@ -386,8 +386,8 @@ function MockChecksHub() {
         </div>
 
         {/* EHO audit */}
-        <div className="mt-2 bg-paper border border-charcoal/10 rounded-lg px-2.5 py-2 flex items-center gap-2">
-          <span className="w-[22px] h-[22px] rounded-md bg-surface text-charcoal/75 flex items-center justify-center shrink-0">
+        <div className="mt-2 bg-paper border border-charcoal/10 rounded-control px-2.5 py-2 flex items-center gap-2">
+          <span className="w-[22px] h-[22px] rounded-tag bg-surface text-charcoal/75 flex items-center justify-center shrink-0">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg>
           </span>
           <div className="flex-1 min-w-0">
@@ -415,11 +415,11 @@ function MockMobileHome() {
         <div className="px-4 pt-3 pb-2">
           <p className="text-[9px] tracking-widest uppercase text-charcoal/35 mb-0.5">SATURDAY, 28 JUNE · 09:14</p>
           <p className="text-title-sm font-bold text-charcoal leading-tight">Good morning, James.</p>
-          <p className="text-[9px] text-charcoal/40 mt-0.5">DEPOT <span className="inline-flex items-center gap-0.5 bg-accent/15 text-accent px-1 py-px rounded text-[8px] font-semibold">PRO</span> · 9 of 22 daily checks complete</p>
+          <p className="text-[9px] text-charcoal/40 mt-0.5">DEPOT <span className="inline-flex items-center gap-0.5 bg-accent/15 text-accent px-1 py-px rounded-tag text-[8px] font-semibold">PRO</span> · 9 of 22 daily checks complete</p>
         </div>
 
         {/* Needs You */}
-        <div className="mx-3 mb-3 bg-white border border-charcoal/8 rounded-2xl overflow-hidden">
+        <div className="mx-3 mb-3 bg-white border border-charcoal/8 rounded-card overflow-hidden">
           <div className="px-3 py-2 border-b border-charcoal/6 flex items-center justify-between">
             <span className="text-[9px] font-bold tracking-widest text-charcoal/50 uppercase">NEEDS YOU</span>
             <span className="bg-accent text-white text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center">3</span>
@@ -459,7 +459,7 @@ function MockMobileHome() {
               { label:'CRITICAL',      val:'0',  sub:'all clear',  col:'text-charcoal' },
               { label:'LEAVE',         val:'2',  sub:'pending',    col:'text-charcoal' },
             ].map(({ label, val, sub, col }) => (
-              <div key={label} className="bg-white border border-charcoal/8 rounded-xl p-2">
+              <div key={label} className="bg-white border border-charcoal/8 rounded-control p-2">
                 <p className="text-[7px] tracking-wide uppercase text-charcoal/35 leading-tight mb-1">{label}</p>
                 <p className={`text-title-sm font-bold leading-none ${col}`}>{val}</p>
                 <p className="text-[7px] text-charcoal/40 mt-0.5">{sub}</p>
@@ -469,7 +469,7 @@ function MockMobileHome() {
         </div>
 
         {/* My Clock */}
-        <div className="mx-3 mb-3 bg-brand rounded-2xl p-3">
+        <div className="mx-3 mb-3 bg-brand rounded-card p-3">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[9px] tracking-widest uppercase text-cream/40">MY CLOCK</span>
             <div className="flex items-center gap-1">
@@ -521,7 +521,7 @@ function MockTeamHub() {
         </div>
 
         {/* On shift banner */}
-        <div className="bg-brand rounded-2xl px-3.5 py-3 mb-3 flex items-center justify-between">
+        <div className="bg-brand rounded-card px-3.5 py-3 mb-3 flex items-center justify-between">
           <div>
             <p className="text-[8px] tracking-widest uppercase text-cream/40 mb-0.5">ON SHIFT NOW</p>
             <p className="text-caption font-bold text-cream">5 staff clocked in</p>
@@ -535,14 +535,14 @@ function MockTeamHub() {
         {/* Tile grid */}
         <div className="grid grid-cols-2 gap-2">
           {tiles.map(({ iBg, iCol, icon, label, sub, sCol, badge, bCol, check }) => (
-            <div key={label} className="bg-white border border-charcoal/8 rounded-2xl p-3 relative">
+            <div key={label} className="bg-white border border-charcoal/8 rounded-card p-3 relative">
               {badge && (
                 <span className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white" style={{ background: bCol }}>{badge}</span>
               )}
               {check && !badge && (
                 <svg className="absolute top-3 right-3" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={colors.good} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
               )}
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2" style={{ background: iBg }}>
+              <div className="w-8 h-8 rounded-control flex items-center justify-center mb-2" style={{ background: iBg }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={iCol} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d={icon}/></svg>
               </div>
               <p className="text-caption font-bold text-charcoal leading-tight">{label}</p>
@@ -576,7 +576,7 @@ function MockRota() {
     { n:'Dan',    r:'FOH',     cost:'—',        shifts:[null, null, null, { t:'TIME OFF', c:'off' }, { t:'TIME OFF', c:'off' }, { t:'TIME OFF', c:'off' }, null] },
   ]
   return (
-    <div aria-hidden="true" className="bg-white rounded-2xl overflow-hidden shadow-[0_32px_80px_theme(colors.black/22%)] ring-1 ring-charcoal/8">
+    <div aria-hidden="true" className="bg-white rounded-card overflow-hidden shadow-[0_32px_80px_theme(colors.black/22%)] ring-1 ring-charcoal/8">
       {/* Header */}
       <div className="bg-surface border-b border-charcoal/8 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -587,8 +587,8 @@ function MockRota() {
           <span className="text-[8px] font-semibold bg-accent/10 text-accent px-2 py-0.5 rounded-full">3 shift swap requests pending</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="text-center text-[8px] font-semibold text-charcoal/45 border border-charcoal/15 px-2 py-1 rounded">AUTO-FILL</span>
-          <span className="text-center text-[8px] font-semibold bg-brand text-cream px-2.5 py-1 rounded">Send notification</span>
+          <span className="text-center text-[8px] font-semibold text-charcoal/45 border border-charcoal/15 px-2 py-1 rounded-tag">AUTO-FILL</span>
+          <span className="text-center text-[8px] font-semibold bg-brand text-cream px-2.5 py-1 rounded-tag">Send notification</span>
         </div>
       </div>
       {/* Legend */}
@@ -603,7 +603,7 @@ function MockRota() {
         <div className="grid mb-1.5" style={{ gridTemplateColumns:'72px repeat(7,1fr) 72px' }}>
           <div className="text-[6px] tracking-widest uppercase text-charcoal/25 flex items-end pb-1">STAFF</div>
           {days.map(({ d, dt, today, closed }) => (
-            <div key={d} className={`text-center py-1.5 rounded-md ${today?'bg-brand/8':''}`}>
+            <div key={d} className={`text-center py-1.5 rounded-tag ${today?'bg-brand/8':''}`}>
               <p className={`text-[7px] font-bold tracking-wide ${today?'text-brand':closed?'text-charcoal/20':'text-charcoal/40'}`}>{d}</p>
               <p className={`text-[7px] ${today?'text-brand font-semibold':closed?'text-charcoal/20':'text-charcoal/30'}`}>{dt}</p>
               {closed && <p className="text-[6px] text-charcoal/25">CLOSED</p>}
@@ -621,7 +621,7 @@ function MockRota() {
             {shifts.map((s, i) => (
               <div
                 key={i}
-                className="rounded-md mx-0.5 flex flex-col items-center justify-center py-1.5 min-h-[34px]"
+                className="rounded-tag mx-0.5 flex flex-col items-center justify-center py-1.5 min-h-[34px]"
                 style={{
                   backgroundColor: s ? (s.c==='off' ? alpha(colors.warn, 0.12) : s.c+'20') : 'transparent',
                   border: s ? `1px solid ${s.c==='off'?alpha(colors.warn, 0.3):s.c+'44'}` : `1px dashed ${alpha(colors.charcoal, 0.06)}`,
@@ -683,9 +683,9 @@ function Pricing() {
           <p className="text-charcoal/45 text-base mb-8 max-w-xs leading-relaxed">Priced per venue, not per head. No hidden charges. Cancel any time.</p>
         </FadeUp>
         <FadeUp delay={50}>
-          <div className="inline-flex items-center bg-white rounded-xl p-1 gap-1 mb-8 shadow-sm border border-charcoal/8">
+          <div className="inline-flex items-center bg-white rounded-control p-1 gap-1 mb-8 shadow-sm border border-charcoal/8">
             {[['Monthly',false],['Annual',true]].map(([label,val])=>(
-              <button key={label} onClick={()=>setAnnual(val)} className={`text-sm font-medium px-5 py-2.5 rounded-lg transition-all cursor-pointer flex items-center gap-2 ${annual===val?'bg-brand text-cream shadow-sm':'text-charcoal/45 hover:text-charcoal'}`}>
+              <button key={label} onClick={()=>setAnnual(val)} className={`text-sm font-medium px-5 py-2.5 rounded-control transition-all cursor-pointer flex items-center gap-2 ${annual===val?'bg-brand text-cream shadow-sm':'text-charcoal/45 hover:text-charcoal'}`}>
                 {label}
                 {label==='Annual' && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${annual?'bg-white/20 text-cream':'bg-accent/10 text-accent'}`}>2 mo. free</span>}
               </button>
@@ -696,7 +696,7 @@ function Pricing() {
           {PLAN_ORDER.map((id, idx) => (
             <FadeUp key={id} delay={70 + idx * 60}>
               {id === PLANS.PRO ? (
-                <div className="bg-white rounded-xl border-2 border-brand shadow-[0_8px_24px_theme(colors.brand/10%)] p-7 flex flex-col h-full">
+                <div className="bg-white rounded-control border-2 border-brand shadow-[0_8px_24px_theme(colors.brand/10%)] p-7 flex flex-col h-full">
                   <p className="text-[10px] tracking-widest uppercase text-brand font-semibold mb-4">{PLAN_DETAILS.pro.name}</p>
                   <div className="flex items-baseline gap-1 mb-1">
                     <span className="text-4xl font-bold text-charcoal">{pp}</span>
@@ -704,7 +704,7 @@ function Pricing() {
                   </div>
                   <p className="text-xs text-charcoal/35 mb-1">{PLAN_DETAILS.pro.venueNote} · {ep}{sfx} each extra</p>
                   {annual && <p className="text-xs font-medium text-brand mb-1">Save £50 vs monthly</p>}
-                  <div className="bg-cream rounded-xl p-4 my-5">
+                  <div className="bg-cream rounded-control p-4 my-5">
                     <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-3">As you grow</p>
                     {[1,2,3,5].map(n=>(
                       <div key={n} className="flex justify-between py-1">
@@ -721,12 +721,12 @@ function Pricing() {
                       </li>
                     ))}
                   </ul>
-                  <Link to="/signup?plan=pro" className="block text-center bg-accent text-cream py-3.5 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all cursor-pointer">
+                  <Link to="/signup?plan=pro" className="block text-center bg-accent text-cream py-3.5 rounded-control text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all cursor-pointer">
                     Start free trial
                   </Link>
                 </div>
               ) : (
-                <div className="bg-white rounded-xl border border-charcoal/12 shadow-[0_4px_12px_theme(colors.black/4%)] p-7 flex flex-col h-full">
+                <div className="bg-white rounded-control border border-charcoal/12 shadow-[0_4px_12px_theme(colors.black/4%)] p-7 flex flex-col h-full">
                   <p className="text-[10px] tracking-widest uppercase text-brand font-semibold mb-4">{PLAN_DETAILS.starter.name}</p>
                   <div className="flex items-baseline gap-1 mb-1">
                     <span className="text-4xl font-bold text-charcoal">{sp}</span>
@@ -743,7 +743,7 @@ function Pricing() {
                       </li>
                     ))}
                   </ul>
-                  <Link to="/signup?plan=starter" className="block text-center border-2 border-brand/25 text-brand py-3.5 rounded-xl text-sm font-semibold hover:bg-brand hover:text-cream transition-all cursor-pointer">
+                  <Link to="/signup?plan=starter" className="block text-center border-2 border-brand/25 text-brand py-3.5 rounded-control text-sm font-semibold hover:bg-brand hover:text-cream transition-all cursor-pointer">
                     Start free trial
                   </Link>
                 </div>
@@ -778,12 +778,12 @@ export default function MarketingPage() {
           <PeliknLogo light={!navScrolled} />
           <nav className="hidden sm:flex items-center gap-1">
             {[['Compliance','#compliance'],['Team','#team'],['Pricing','#pricing']].map(([l,h])=>(
-              <a key={l} href={h} className={`text-sm px-3 py-2 rounded-lg transition-colors duration-200 cursor-pointer ${navScrolled?'text-charcoal/40 hover:text-charcoal':'text-cream/45 hover:text-cream/80'}`}>{l}</a>
+              <a key={l} href={h} className={`text-sm px-3 py-2 rounded-control transition-colors duration-200 cursor-pointer ${navScrolled?'text-charcoal/40 hover:text-charcoal':'text-cream/45 hover:text-cream/80'}`}>{l}</a>
             ))}
           </nav>
           <div className="flex items-center gap-1.5">
-            <Link to="/login" className={`text-sm font-medium transition-colors duration-200 px-4 py-2 rounded-lg cursor-pointer ${navScrolled?'text-charcoal/40 hover:text-charcoal':'text-cream/45 hover:text-cream/80'}`}>Sign in</Link>
-            <Link to="/signup" className="relative overflow-hidden text-sm font-semibold text-cream bg-accent hover:brightness-95 transition-colors duration-200 px-4 py-2 rounded-xl cursor-pointer shadow-[0_2px_8px_theme(colors.accent/35%)] hover:shadow-[0_4px_14px_theme(colors.accent/45%)]">
+            <Link to="/login" className={`text-sm font-medium transition-colors duration-200 px-4 py-2 rounded-control cursor-pointer ${navScrolled?'text-charcoal/40 hover:text-charcoal':'text-cream/45 hover:text-cream/80'}`}>Sign in</Link>
+            <Link to="/signup" className="relative overflow-hidden text-sm font-semibold text-cream bg-accent hover:brightness-95 transition-colors duration-200 px-4 py-2 rounded-control cursor-pointer shadow-[0_2px_8px_theme(colors.accent/35%)] hover:shadow-[0_4px_14px_theme(colors.accent/45%)]">
               Free trial
             </Link>
           </div>
@@ -839,7 +839,7 @@ export default function MarketingPage() {
           </p>
           {/* CTAs */}
           <div className="flex flex-wrap justify-center lg:justify-start items-center gap-4 mb-7 lg:mb-6" style={{ animation:'pkIn 0.65s 210ms cubic-bezier(.16,1,.3,1) both' }}>
-            <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-xl text-body-lg font-semibold hover:brightness-95 hover:shadow-[0_10px_32px_theme(colors.accent/55%)] active:scale-[0.97] transition-all duration-200 cursor-pointer shadow-[0_4px_20px_theme(colors.accent/45%)]">
+            <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-control text-body-lg font-semibold hover:brightness-95 hover:shadow-[0_10px_32px_theme(colors.accent/55%)] active:scale-[0.97] transition-all duration-200 cursor-pointer shadow-[0_4px_20px_theme(colors.accent/45%)]">
               Start free for 7 days
             </Link>
             <a href="#compliance" className="flex items-center gap-2 text-cream/45 text-body-lg hover:text-cream/70 transition-colors duration-200 cursor-pointer">
@@ -921,7 +921,7 @@ export default function MarketingPage() {
                 ))}
               </div>
               <FadeUp delay={250}>
-                <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3.5 rounded-xl text-body-lg font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_theme(colors.brand/25%)] hover:-translate-y-0.5 transition-all duration-200 mt-10 cursor-pointer">
+                <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3.5 rounded-control text-body-lg font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_theme(colors.brand/25%)] hover:-translate-y-0.5 transition-all duration-200 mt-10 cursor-pointer">
                   Start free trial
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </Link>
@@ -973,7 +973,7 @@ export default function MarketingPage() {
               { n:'Multi-venue',   d:'One login for every site you run' },
             ].map(({ n, d }, i) => (
               <FadeUp key={n} delay={i * 40}>
-                <div className="border border-cream/8 rounded-2xl p-5 hover:border-cream/18 hover:bg-cream/5 hover:-translate-y-0.5 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)] cursor-default">
+                <div className="border border-cream/8 rounded-card p-5 hover:border-cream/18 hover:bg-cream/5 hover:-translate-y-0.5 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)] cursor-default">
                   <p className="text-body-lg font-semibold text-cream mb-1.5">{n}</p>
                   <p className="text-body-sm text-cream/50 leading-[1.65]">{d}</p>
                 </div>
@@ -1018,8 +1018,8 @@ export default function MarketingPage() {
               { icon:'M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z', title:'Document vault', desc:'Certificates, policies and insurance in one organised place.' },
             ].map(({ icon, title, desc }, i) => (
               <FadeUp key={title} delay={i * 30}>
-                <div className="bg-white rounded-2xl border border-charcoal/8 p-6 hover:border-brand/20 hover:shadow-[0_12px_40px_theme(colors.brand/9%)] hover:-translate-y-1.5 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)] h-full group cursor-default">
-                  <div className="w-10 h-10 rounded-xl bg-brand/7 text-brand flex items-center justify-center mb-5 group-hover:bg-brand group-hover:text-cream transition-all duration-300">
+                <div className="bg-white rounded-card border border-charcoal/8 p-6 hover:border-brand/20 hover:shadow-[0_12px_40px_theme(colors.brand/9%)] hover:-translate-y-1.5 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)] h-full group cursor-default">
+                  <div className="w-10 h-10 rounded-control bg-brand/7 text-brand flex items-center justify-center mb-5 group-hover:bg-brand group-hover:text-cream transition-all duration-300">
                     <Ico d={icon} size={18} />
                   </div>
                   <p className="text-body-lg font-semibold text-charcoal mb-2">{title}</p>
@@ -1041,7 +1041,7 @@ export default function MarketingPage() {
               <p className="text-charcoal/55 text-title-sm leading-[1.75] mb-8 max-w-sm">
                 No IT department needed. Open Pelikn in your browser, add it to your home screen and it works like any other app. Offline included.
               </p>
-              <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3.5 rounded-xl text-body-lg font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_theme(colors.brand/25%)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
+              <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3.5 rounded-control text-body-lg font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_theme(colors.brand/25%)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
                 Get started free
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </Link>
@@ -1108,10 +1108,10 @@ export default function MarketingPage() {
               7 days free. No card. Set up in an afternoon.
             </p>
             <div className="flex flex-col sm:flex-row items-start gap-4">
-              <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-xl text-body-lg font-semibold hover:brightness-95 hover:shadow-[0_10px_36px_theme(colors.accent/55%)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 text-center cursor-pointer shadow-[0_4px_24px_theme(colors.accent/42%)]">
+              <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-control text-body-lg font-semibold hover:brightness-95 hover:shadow-[0_10px_36px_theme(colors.accent/55%)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 text-center cursor-pointer shadow-[0_4px_24px_theme(colors.accent/42%)]">
                 Start free trial
               </Link>
-              <a href="mailto:hello@get-pelikn.com" className="border border-cream/14 text-cream/45 hover:text-cream/65 hover:border-cream/28 hover:-translate-y-0.5 px-8 py-4 rounded-xl text-body-lg font-medium transition-all duration-200 text-center cursor-pointer">
+              <a href="mailto:hello@get-pelikn.com" className="border border-cream/14 text-cream/45 hover:text-cream/65 hover:border-cream/28 hover:-translate-y-0.5 px-8 py-4 rounded-control text-body-lg font-medium transition-all duration-200 text-center cursor-pointer">
                 Get in touch
               </a>
             </div>

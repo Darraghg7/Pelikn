@@ -51,14 +51,14 @@ export default function IntegrationsSettingsPage() {
         <div className="text-xs text-charcoal/50 dark:text-white/40 mt-1">Connect Pelikn to your other tools</div>
       </div>
 
-      <div className="bg-brand/8 border border-brand/[0.13] rounded-[14px] px-4 py-[14px] mb-4">
+      <div className="bg-brand/8 border border-brand/[0.13] rounded-card px-4 py-[14px] mb-4">
         <div className="text-sm font-semibold text-brand mb-1">Integrations launching soon</div>
         <div className="text-body-sm text-charcoal/50 dark:text-white/40 leading-[1.5]">
           We're building native connections to payroll, rota, and comms tools. Want to vote on what comes first?
         </div>
         <a
           href="mailto:hello@get-pelikn.com?subject=Integration request"
-          className="inline-flex items-center gap-1.5 mt-3 h-[34px] px-[14px] rounded-lg bg-brand text-white no-underline text-body-sm font-semibold"
+          className="inline-flex items-center gap-1.5 mt-3 h-[34px] px-[14px] rounded-control bg-brand text-white no-underline text-body-sm font-semibold"
         >
           Request an integration →
         </a>
@@ -68,7 +68,7 @@ export default function IntegrationsSettingsPage() {
         {INTEGRATIONS.map(item => (
           <div
             key={item.id}
-            className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-[15px] py-[14px] flex items-center gap-[13px] opacity-65"
+            className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card px-[15px] py-[14px] flex items-center gap-[13px] opacity-65"
           >
             <span className="text-display shrink-0 leading-none">{item.icon}</span>
             <div className="flex-1 min-w-0">

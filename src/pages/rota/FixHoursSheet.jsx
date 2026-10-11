@@ -4,6 +4,7 @@ import {
   ehWorkedMins, ehDurLabel, ehSignedLabel, fmtHM, timeDiffMins,
 } from './rotaTimeHelpers'
 import Button from '../../components/ui/Button'
+import { radius } from '../../lib/tokens'
 
 const EDIT_REASONS  = ['Forgot to clock out', 'Clocked in early', 'Wrong times', 'Other']
 
@@ -152,13 +153,13 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
     <div className="z-[60]" style={{ position:'fixed', inset:0, display:'flex', flexDirection:'column', justifyContent:'flex-end' }}>
       <div onClick={onClose} className="bg-ink/45" style={{ position:'absolute', inset:0 }} />
       <div className="bg-surface dark:bg-paperDark text-ink dark:text-white" style={{
-        position:'relative', borderRadius:'22px 22px 0 0',
+        position:'relative', borderRadius:`${radius.sheet}px ${radius.sheet}px 0 0`,
         padding:'10px 16px env(safe-area-inset-bottom,24px)', maxHeight:'92dvh', overflowY:'auto',
         animation:'ehSlideUp 0.32s cubic-bezier(0.16,1,0.3,1) both',
       }}>
         <style>{`@keyframes ehSlideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}`}</style>
         {/* grab handle */}
-        <div className="bg-line dark:bg-white/15" style={{ width:38, height:4, borderRadius:2, margin:'0 auto 16px' }} />
+        <div className="bg-line dark:bg-white/15" style={{ width:38, height:4, borderRadius:radius.tag, margin:'0 auto 16px' }} />
 
         {/* header */}
         <div className="flex items-center gap-3">
@@ -170,7 +171,7 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
         </div>
 
         {/* recorded reference strip */}
-        <div className="mt-3 flex items-center justify-between bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[11px] px-3 py-2.5">
+        <div className="mt-3 flex items-center justify-between bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-control px-3 py-2.5">
           <span className="text-caption text-charcoal/50 dark:text-white/40">On the clock</span>
           <span className="font-mono text-body-sm font-semibold tabular-nums text-charcoal/70 dark:text-white/60">
             {origStart}–{origEnd} · {ehDurLabel(recMins)}
@@ -178,11 +179,11 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
         </div>
 
         {/* start/end toggle */}
-        <div className="flex gap-2 mt-3.5 bg-charcoal/8 dark:bg-white/8 p-1 rounded-xl">
+        <div className="flex gap-2 mt-3.5 bg-charcoal/8 dark:bg-white/8 p-1 rounded-control">
           {[['start','Clock in', start], ['end','Clock out', end]].map(([k, label, val]) => {
             const on = edge === k
             return (
-              <button key={k} onClick={() => setEdge(k)} className={`flex-1 rounded-[9px] py-2 transition-all ${on ? SEG_ON : 'bg-transparent'}`}
+              <button key={k} onClick={() => setEdge(k)} className={`flex-1 rounded-control py-2 transition-all ${on ? SEG_ON : 'bg-transparent'}`}
                 style={{ border:'none', cursor:'pointer' }}>
                 <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{label}</div>
                 <div className={`font-mono text-title-sm font-semibold tabular-nums mt-0.5 ${on ? SEG_VAL_ON : SEG_VAL_OFF}`}>{val}</div>
@@ -234,11 +235,11 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
           </div>
           {hasBreak && (
             <>
-              <div className="flex gap-2 bg-charcoal/8 dark:bg-white/8 p-1 rounded-xl">
+              <div className="flex gap-2 bg-charcoal/8 dark:bg-white/8 p-1 rounded-control">
                 {[['brkStart', 'Break start', brkStart], ['brkEnd', 'Break end', brkEnd]].map(([k, label, val]) => {
                   const on = edge === k
                   return (
-                    <button key={k} onClick={() => setEdge(k)} className={`flex-1 rounded-[9px] py-2 transition-all ${on ? SEG_ON : 'bg-transparent'}`}
+                    <button key={k} onClick={() => setEdge(k)} className={`flex-1 rounded-control py-2 transition-all ${on ? SEG_ON : 'bg-transparent'}`}
                       style={{ border: 'none', cursor: 'pointer' }}>
                       <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{label}</div>
                       <div className={`font-mono text-title-sm font-semibold tabular-nums mt-0.5 ${on ? SEG_VAL_ON : SEG_VAL_OFF}`}>{val || '--:--'}</div>
@@ -264,7 +265,7 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
         </div>
 
         {/* live delta strip */}
-        <div className={`mt-3 flex items-center justify-between px-3 py-2.5 rounded-xl border ${invalid
+        <div className={`mt-3 flex items-center justify-between px-3 py-2.5 rounded-control border ${invalid
           ? 'bg-badBg border-bad/25 dark:bg-bad/25'
           : changed ? 'bg-brand-tint border-line dark:bg-white/10 dark:border-white/10' : 'bg-paper border-line dark:bg-white/5 dark:border-white/10'}`}>
           <div className="flex items-baseline gap-2">
@@ -301,7 +302,7 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
             <input
               value={note} onChange={e => setNote(e.target.value)}
               placeholder="Add a note for your manager (optional)"
-              className="w-full mt-2.5 px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-body-sm text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20"
+              className="w-full mt-2.5 px-3 py-2.5 rounded-control border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-body-sm text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20"
             />
           </div>
         )}
@@ -333,8 +334,8 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
         {confirming && (
           <div style={{ position:'absolute', inset:0, zIndex:10, display:'flex', flexDirection:'column', justifyContent:'flex-end' }}>
             <div onClick={() => setConfirming(false)} className="bg-ink/45" style={{ position:'absolute', inset:0 }} />
-            <div className="bg-paper dark:bg-paperDark" style={{ position:'relative', borderRadius:'20px 20px 0 0', padding:'24px 22px 28px', animation:'ehSlideUp 0.28s cubic-bezier(0.16,1,0.3,1) both' }}>
-              <div className="w-11 h-11 rounded-[13px] bg-warning/10 grid place-items-center mb-3.5">
+            <div className="bg-paper dark:bg-paperDark" style={{ position:'relative', borderRadius:`${radius.sheet}px ${radius.sheet}px 0 0`, padding:'24px 22px 28px', animation:'ehSlideUp 0.28s cubic-bezier(0.16,1,0.3,1) both' }}>
+              <div className="w-11 h-11 rounded-control bg-warning/10 grid place-items-center mb-3.5">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-warn dark:text-warnDark" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
               </div>
               <div className="text-title-sm font-bold tracking-[-0.015em]">Send to your manager</div>

@@ -120,7 +120,7 @@ export default function TeamAttendanceTodayPage() {
       {loading ? (
         <div className="flex flex-col gap-2">
           {[0, 1, 2].map(i => (
-            <div key={i} className="h-[60px] rounded-xl bg-charcoal/6 dark:bg-white/8 animate-pulse" />
+            <div key={i} className="h-[60px] rounded-control bg-charcoal/6 dark:bg-white/8 animate-pulse" />
           ))}
         </div>
       ) : error ? (
@@ -132,11 +132,11 @@ export default function TeamAttendanceTodayPage() {
               Working today
             </h2>
             {ordered.length === 0 ? (
-              <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-xl px-3.5 py-6 text-center text-sm text-charcoal/40 dark:text-white/35">
+              <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-control px-3.5 py-6 text-center text-sm text-charcoal/40 dark:text-white/35">
                 No shifts scheduled today
               </div>
             ) : (
-              <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-xl divide-y divide-charcoal/6 dark:divide-white/8">
+              <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-control divide-y divide-charcoal/6 dark:divide-white/8">
                 {ordered.map(person => (
                   <StaffRow key={person.shiftId} person={person} />
                 ))}
@@ -149,11 +149,11 @@ export default function TeamAttendanceTodayPage() {
               Late arrivals
             </h2>
             {late.length === 0 ? (
-              <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-xl px-3.5 py-6 text-center text-sm text-charcoal/40 dark:text-white/35">
+              <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-control px-3.5 py-6 text-center text-sm text-charcoal/40 dark:text-white/35">
                 No late arrivals today
               </div>
             ) : (
-              <div className="bg-white dark:bg-paperDark border border-danger/20 rounded-xl divide-y divide-charcoal/6 dark:divide-white/8">
+              <div className="bg-white dark:bg-paperDark border border-danger/20 rounded-control divide-y divide-charcoal/6 dark:divide-white/8">
                 {late.map(entry => (
                   <LateRow
                     key={entry.clockEventId ?? entry.staffId}

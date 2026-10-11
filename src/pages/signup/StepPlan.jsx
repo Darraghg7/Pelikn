@@ -20,7 +20,7 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
         {/* Starter */}
         <button
           onClick={() => onSelect('starter')}
-          className={`relative rounded-2xl border-2 p-6 text-left transition-all duration-200 ${
+          className={`relative rounded-card border-2 p-6 text-left transition-all duration-200 ${
             selected === 'starter'
               ? 'border-brand bg-brand/5 shadow-md shadow-brand/10'
               : 'border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark hover:border-charcoal/25 dark:hover:border-white/25 hover:shadow-sm'
@@ -53,7 +53,7 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
         {/* Pro */}
         <button
           onClick={() => onSelect('pro')}
-          className={`relative rounded-2xl border-2 p-6 text-left transition-all duration-200 ${
+          className={`relative rounded-card border-2 p-6 text-left transition-all duration-200 ${
             selected === 'pro'
               ? 'border-accent bg-accent/5 shadow-md shadow-accent/15'
               : 'border-accent/30 bg-white dark:bg-paperDark hover:border-accent/50 hover:shadow-sm'
@@ -100,7 +100,7 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
                   <button
                     type="button"
                     onClick={() => onExtraVenues(Math.max(0, extraVenues - 1))}
-                    className="w-7 h-7 rounded-lg border border-accent/25 text-accent/60 hover:border-accent/50 hover:text-accent flex items-center justify-center text-sm font-bold transition-colors"
+                    className="w-7 h-7 rounded-control border border-accent/25 text-accent/60 hover:border-accent/50 hover:text-accent flex items-center justify-center text-sm font-bold transition-colors"
                     aria-label="Remove venue"
                   >−</button>
                   <span className="w-6 text-center text-sm font-semibold text-accent tabular-nums">
@@ -109,7 +109,7 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
                   <button
                     type="button"
                     onClick={() => onExtraVenues(Math.min(9, extraVenues + 1))}
-                    className="w-7 h-7 rounded-lg border border-accent/25 text-accent/60 hover:border-accent/50 hover:text-accent flex items-center justify-center text-sm font-bold transition-colors"
+                    className="w-7 h-7 rounded-control border border-accent/25 text-accent/60 hover:border-accent/50 hover:text-accent flex items-center justify-center text-sm font-bold transition-colors"
                     aria-label="Add venue"
                   >+</button>
                 </div>
@@ -122,7 +122,7 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
       {/* QR Add-on */}
       <div
         onClick={() => onQrAddon(!qrAddon)}
-        className={`rounded-xl border-2 p-5 cursor-pointer transition-all duration-200 ${
+        className={`rounded-control border-2 p-5 cursor-pointer transition-all duration-200 ${
           qrAddon
             ? 'border-brand bg-brand/5 shadow-sm'
             : 'border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark hover:border-charcoal/25 dark:hover:border-white/25'
@@ -130,7 +130,7 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${qrAddon ? 'bg-brand/10 text-brand' : 'bg-charcoal/6 dark:bg-white/8 text-charcoal/40 dark:text-white/35'}`}>
+            <div className={`w-10 h-10 rounded-control flex items-center justify-center shrink-0 ${qrAddon ? 'bg-brand/10 text-brand' : 'bg-charcoal/6 dark:bg-white/8 text-charcoal/40 dark:text-white/35'}`}>
               <IconQR />
             </div>
             <div>

@@ -33,7 +33,7 @@ import Button from '../../components/ui/Button'
 const NO_STAFF = []
 
 const FIELD_LABEL = 'block text-body-sm font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
-const TEXT_FIELD  = 'w-full h-12 px-4 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-lg text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
+const TEXT_FIELD  = 'w-full h-12 px-4 rounded-control border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-lg text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
 
 /* ── Main page ─────────────────────────────────────────────────────────── */
 export default function TimeOffPage() {
@@ -499,7 +499,7 @@ export default function TimeOffPage() {
 
           {/* Balance for annual leave */}
           {form.leaveType === 'annual' && ownBalance && !ownBalance.isZeroHours && ownBalance.entitlement != null && (
-            <div className="rounded-xl bg-cream dark:bg-white/5 px-3.5 py-2.5 flex items-center justify-between">
+            <div className="rounded-control bg-cream dark:bg-white/5 px-3.5 py-2.5 flex items-center justify-between">
               <div>
                 <p className="text-body-sm font-semibold text-ink dark:text-white">{holidayYear.label} annual leave</p>
                 <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">{ownBalance.used} of {ownBalance.entitlement} days used</p>
@@ -510,7 +510,7 @@ export default function TimeOffPage() {
             </div>
           )}
           {form.leaveType === 'annual' && ownBalance?.isZeroHours && ownHoliday?.status === 'ok' && (
-            <div className="rounded-xl bg-cream dark:bg-white/5 px-3.5 py-2.5 flex items-center justify-between">
+            <div className="rounded-control bg-cream dark:bg-white/5 px-3.5 py-2.5 flex items-center justify-between">
               <p className="text-body-sm font-semibold text-ink dark:text-white">Holiday left</p>
               <p className={`font-mono text-body font-semibold ${balanceTone(ownHoliday.balance)}`}>
                 {fmtHours(ownHoliday.balance)}
@@ -547,7 +547,7 @@ export default function TimeOffPage() {
 
           {/* Staffing limit warning — informational only, submit is never blocked */}
           {overStaffOffLimit && (
-            <div className="rounded-xl bg-badBg dark:bg-bad/20 px-3.5 py-2.5">
+            <div className="rounded-control bg-badBg dark:bg-bad/20 px-3.5 py-2.5">
               <p className="text-body-sm font-semibold text-bad dark:text-badDark">Maximum number of staff already off</p>
               <p className="text-body-sm text-ink2 dark:text-white/70 mt-1">
                 {staffAlreadyOff} staff {staffAlreadyOff === 1 ? 'is' : 'are'} already off on at least one of these days (limit: {maxStaffOffCount}). You can still submit if this has been pre-cleared with your manager.
@@ -577,7 +577,7 @@ export default function TimeOffPage() {
             if (reqHours == null) return null
             const after = Math.round((ownHoliday.balance - reqHours) * 10) / 10
             return (
-              <div className={`-mt-2 rounded-xl px-3.5 py-2.5 text-body-sm ${after < 0 ? 'bg-warnBg dark:bg-warn/20' : 'bg-cream dark:bg-white/5'}`}>
+              <div className={`-mt-2 rounded-control px-3.5 py-2.5 text-body-sm ${after < 0 ? 'bg-warnBg dark:bg-warn/20' : 'bg-cream dark:bg-white/5'}`}>
                 <p className="text-ink2 dark:text-white/70">
                   About <span className="font-semibold text-ink dark:text-white">{fmtHours(reqHours)}</span> of holiday — your manager confirms the exact hours.
                 </p>
@@ -599,7 +599,7 @@ export default function TimeOffPage() {
               onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
               rows={2}
               placeholder="e.g. Holiday, family event, appointment"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 resize-none focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
+              className="w-full px-3.5 py-2.5 rounded-control border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 resize-none focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
             />
           </label>
 

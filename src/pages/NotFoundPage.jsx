@@ -32,7 +32,7 @@ export default function NotFoundPage() {
         <span className="block font-bold text-brand dark:text-white text-3xl tracking-tight">Pelikn</span>
       </Link>
 
-      <main className="w-full max-w-sm bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 dark:border-white/8 shadow-sm p-6 text-center">
+      <main className="w-full max-w-sm bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 shadow-sm p-6 text-center">
         <p className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-accent mb-2">
           Error 404
         </p>
@@ -42,20 +42,20 @@ export default function NotFoundPage() {
         <p className="text-sm text-charcoal/60 dark:text-white/55 leading-relaxed mb-3">
           The link may be mistyped, or the page may have moved.
         </p>
-        <p className="font-mono text-xs text-charcoal/70 dark:text-white/65 bg-charcoal/[0.04] dark:bg-white/5 rounded-lg px-3 py-2 mb-5 break-all">
+        <p className="font-mono text-xs text-charcoal/70 dark:text-white/65 bg-charcoal/[0.04] dark:bg-white/5 rounded-control px-3 py-2 mb-5 break-all">
           {pathname}
         </p>
 
         <Link
           to={primary.to}
-          className="block w-full bg-brand text-cream py-3 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors"
+          className="block w-full bg-brand text-cream py-3 rounded-control text-sm font-semibold hover:bg-brand/90 transition-colors"
         >
           {primary.label}
         </Link>
         {secondary && (
           <Link
             to={secondary.to}
-            className="block w-full mt-2 py-3 rounded-xl text-sm font-semibold text-charcoal dark:text-white border border-charcoal/12 dark:border-white/15 hover:bg-charcoal/[0.03] dark:hover:bg-white/5 transition-colors"
+            className="block w-full mt-2 py-3 rounded-control text-sm font-semibold text-charcoal dark:text-white border border-charcoal/12 dark:border-white/15 hover:bg-charcoal/[0.03] dark:hover:bg-white/5 transition-colors"
           >
             {secondary.label}
           </Link>

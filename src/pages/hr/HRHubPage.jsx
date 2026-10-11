@@ -32,7 +32,7 @@ function StatTile({ label, value, sub, tone, icon }) {
     tone === 'good' ? 'text-success' : 'text-charcoal/30 dark:text-white/30'
 
   return (
-    <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-2xl px-[17px] py-[15px] flex flex-col gap-0.5 relative overflow-hidden shadow-sm">
+    <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card px-[17px] py-[15px] flex flex-col gap-0.5 relative overflow-hidden shadow-sm">
       {tone && (
         <span className={`absolute left-0 top-[14px] bottom-[14px] w-[3px] rounded-r-full ${accentClass}`} />
       )}
@@ -105,7 +105,7 @@ function ListRow({ s, selected, actionIds, expiringIds, onClick }) {
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className={`flex items-center gap-[11px] w-full text-left cursor-pointer px-[13px] py-2.5 rounded-xl border border-transparent transition-colors duration-[120ms] ${
+      className={`flex items-center gap-[11px] w-full text-left cursor-pointer px-[13px] py-2.5 rounded-control border border-transparent transition-colors duration-[120ms] ${
         isSel ? 'bg-brand/8' : hovered ? 'bg-charcoal/6 dark:bg-white/8' : 'bg-transparent'
       }`}
     >
@@ -215,12 +215,12 @@ export default function HRHubPage() {
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Search staff…"
-                className="w-full py-[10px] pl-9 pr-3 rounded-[12px] border border-charcoal/10 dark:border-white/10 text-body outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 bg-white dark:bg-paperDark text-charcoal dark:text-white box-border"
+                className="w-full py-[10px] pl-9 pr-3 rounded-control border border-charcoal/10 dark:border-white/10 text-body outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 bg-white dark:bg-paperDark text-charcoal dark:text-white box-border"
               />
             </div>
 
             {filtered.length === 0 ? (
-              <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden px-4 py-8 text-center text-charcoal/30 dark:text-white/30 text-body-sm">
+              <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card overflow-hidden px-4 py-8 text-center text-charcoal/30 dark:text-white/30 text-body-sm">
                 No staff match your search
               </div>
             ) : (
@@ -230,7 +230,7 @@ export default function HRHubPage() {
                     <div className="font-mono text-micro text-danger tracking-[0.08em] uppercase font-semibold pb-[7px] px-0.5">
                       Needs attention · {attentionRows.length}
                     </div>
-                    <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
+                    <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card overflow-hidden">
                       {attentionRows.map(s => (
                         <MobileRow key={s.id} s={s} actionIds={actionIds} expiringIds={expiringIds} onClick={() => navigate(vp('/hr/' + s.id))} />
                       ))}
@@ -241,7 +241,7 @@ export default function HRHubPage() {
                   <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase font-semibold pb-[7px] px-0.5">
                     All staff · {regularRows.length}
                   </div>
-                  <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
+                  <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card overflow-hidden">
                     {regularRows.map(s => (
                       <MobileRow key={s.id} s={s} actionIds={actionIds} expiringIds={expiringIds} onClick={() => navigate(vp('/hr/' + s.id))} />
                     ))}
@@ -272,7 +272,7 @@ export default function HRHubPage() {
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                   placeholder="Search staff…"
-                  className="w-full py-[9px] pl-9 pr-3 rounded-[11px] border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 bg-white dark:bg-paperDark text-charcoal dark:text-white box-border"
+                  className="w-full py-[9px] pl-9 pr-3 rounded-control border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 bg-white dark:bg-paperDark text-charcoal dark:text-white box-border"
                 />
               </div>
 
