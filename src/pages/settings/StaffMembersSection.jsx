@@ -25,6 +25,9 @@ import { reportError } from '../../lib/reportError'
 import RestrictedFieldsNotice from '../../components/ui/RestrictedFieldsNotice'
 import Avatar from '../../components/ui/Avatar'
 import Button from '../../components/ui/Button'
+import StaffLeavingCard from './StaffLeavingCard'
+import { useStaffLeaving } from '../../hooks/useStaffLeaving'
+import { format, parseISO } from 'date-fns'
 
 const PERMISSION_ROLES  = ['staff', 'manager', 'owner']
 const PERMISSION_LABELS = { staff: 'Staff', manager: 'Manager', owner: 'Owner' }
@@ -59,6 +62,7 @@ function buildLinkMap(rows) {
 export default function StaffMembersSection({ detailId = null, onOpen, onClose, backLabel = 'Staff' }) {
   const { staff, loading: staffLoading, reload: reloadStaff, applySaved: applySavedStaff } = useStaffManagement()
   const { roles: venueRoles } = useVenueRoles()
+  const { byId: leavingById } = useStaffLeaving()
   const { session } = useSession()
   const [deleteTarget, setDeleteTarget] = useState(null)
   const { venueId } = useVenue()
@@ -438,6 +442,9 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
                 <span className="text-body font-semibold text-ink dark:text-white truncate">{s.name}</span>
                 {isLocked && <Tag tone="bad">PIN locked</Tag>}
                 {s.is_restricted && <Tag tone="warn">Restricted</Tag>}
+                {s.is_active && leavingById[s.id] && !leavingById[s.id].finished_at && (
+                  <Tag tone="warn">Leaving {format(parseISO(leavingById[s.id].last_day), 'd MMM')}</Tag>
+                )}
               </span>
               {subline.length > 0 && (
                 <span className="block text-body-sm text-ink3 dark:text-white/45 mt-0.5 truncate">{subline.join(' · ')}</span>
@@ -794,6 +801,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
       {/* Account access */}
       {current && (
         <>
+          <StaffLeavingCard staff={current} onChanged={() => { reloadStaff(); reloadBilling() }} />
           <p className="px-1 -mb-1 text-caption font-semibold tracking-[0.08em] uppercase text-bad dark:text-badDark">Account access</p>
           <div className={`${CARD} overflow-hidden divide-y divide-line dark:divide-white/10`}>
             {isLocked && (

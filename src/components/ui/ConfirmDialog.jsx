@@ -26,13 +26,14 @@ export default function ConfirmDialog({
   message,
   confirmLabel = 'Confirm',
   danger = false,
+  loading = false,   // the confirm is running: spinner, and a second tap can't send it twice
 }) {
   return (
     <Modal open={open} onClose={onClose} title={title}>
       <p className="text-sm text-charcoal/70 dark:text-white/60 mb-6">{message}</p>
       <div className="flex gap-3 justify-end">
         <Button variant="secondary" onClick={onClose}>Cancel</Button>
-        <Button variant={danger ? 'danger' : 'primary'} onClick={onConfirm}>{confirmLabel}</Button>
+        <Button variant={danger ? 'danger' : 'primary'} loading={loading} onClick={onConfirm}>{confirmLabel}</Button>
       </div>
     </Modal>
   )
