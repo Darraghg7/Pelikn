@@ -3,7 +3,7 @@ import { format, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
-import { LEAVE_TYPES } from './timeOffConstants'
+import { leaveTypeChoices } from './timeOffConstants'
 import { suggestedPaidHours } from '../../lib/holiday'
 import { addPaidOut, removePaidOut, addCarryOver, removeCarryOver } from '../../lib/api/holidayData'
 import { previousHolidayYear } from '../../lib/holidayYear'
@@ -103,7 +103,7 @@ function PastLeaveForm({ staff, holiday, venueId, managerId, onClose, onSaved })
       <div>
         <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Leave Type</label>
         <div className="flex gap-2 flex-wrap">
-          {LEAVE_TYPES.map(t => (
+          {leaveTypeChoices({ isManager: true }).map(t => (
             <button
               key={t.value}
               type="button"

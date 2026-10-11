@@ -66,10 +66,10 @@ export default function AttendanceSettingsPage() {
   const {
     lateGraceMins, breakDurationMins, breakOverrunGraceMins, cleanupMinutes,
     requireLateReason, requireManagerApprovalForLate, notifyManagerAtStrike, disciplinaryAtStrike,
-    countingWindowDays, pushToManager, maxStaffOffEnabled, maxStaffOffCount, holidayRegion, holidayYearStartMonth,
+    countingWindowDays, pushToManager, maxStaffOffEnabled, maxStaffOffCount, holidayRegion, holidayYearStartMonth, allowUnpaidLeave,
     saveLateGraceMins, saveBreakDuration, saveBreakOverrunGraceMins, saveCleanupMinutes,
     saveRequireLateReason, saveRequireManagerApprovalForLate, saveNotifyManagerAtStrike, saveDisciplinaryAtStrike,
-    saveCountingWindowDays, savePushToManager, saveMaxStaffOffEnabled, saveMaxStaffOffCount, saveHolidayRegion, saveHolidayYearStartMonth,
+    saveCountingWindowDays, savePushToManager, saveMaxStaffOffEnabled, saveMaxStaffOffCount, saveHolidayRegion, saveHolidayYearStartMonth, saveAllowUnpaidLeave,
   } = settings
 
   const vp = (path) => `/v/${venueSlug}${path}`
@@ -173,6 +173,19 @@ export default function AttendanceSettingsPage() {
             sub="Send a notification on escalation"
             last={false}
             control={<Toggle checked={pushToManager} onChange={savePushToManager} />}
+          />
+        </Group>
+
+        <Group
+          label="Unpaid leave"
+          foot={allowUnpaidLeave
+            ? 'Staff choose annual leave or unpaid leave when they ask for time off. Unpaid leave never needs holiday pay.'
+            : 'Staff ask for time off as annual leave. On the timesheet you choose for each booking: pay it as holiday, or mark it unpaid.'}
+        >
+          <Row
+            label="Staff can request unpaid leave"
+            sub="Off: you decide on the timesheet"
+            control={<Toggle checked={allowUnpaidLeave} onChange={saveAllowUnpaidLeave} />}
           />
         </Group>
 
