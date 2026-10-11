@@ -2,19 +2,32 @@ import { useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useVenue } from '../contexts/VenueContext'
 import { useAppSettings } from './useSettings'
-import { fetchClockEvents, fetchAnnualLeave, fetchRotaHours, fetchPaidOut } from '../lib/api/holidayData'
+import {
+  fetchClockEvents, fetchAnnualLeave, fetchRotaHours, fetchPaidOut, fetchCarryOver, fetchEntitlementOverride,
+} from '../lib/api/holidayData'
 import { fetchStaffPrivateFields } from '../lib/api/staffRestricted'
 import { zeroHoursHoliday, NI_LOOKBACK_WEEKS } from '../lib/holiday'
+import { holidayYearContaining, previousHolidayYear } from '../lib/holidayYear'
 import { londonToday } from '../lib/time'
+import { calculateEntitlementDays, daysUsedInHolidayYear } from './useLeaveBalance'
 
 export const HOLIDAY_BALANCES_KEY = 'holiday-balances'
 
-/** Earliest date needed: the start of the year, or the NI look-back if that reaches further. */
-function earliestNeeded(year, today) {
+/**
+ * The holiday year containing today, from the venue's "holiday year starts in"
+ * setting. Stable between renders, so it can sit in query keys and deps.
+ */
+export function useHolidayYear() {
+  const { holidayYearStartMonth } = useAppSettings()
+  const today = londonToday()
+  return useMemo(() => holidayYearContaining(today, holidayYearStartMonth), [today, holidayYearStartMonth])
+}
+
+/** Earliest date needed: the start of the holiday year, or the NI look-back if that reaches further. */
+function earliestNeeded(holidayYear, today) {
   const [y, m, d] = today.split('-').map(Number)
   const lookback = new Date(Date.UTC(y, m - 1, d - 7 * (NI_LOOKBACK_WEEKS + 1))).toISOString().slice(0, 10)
-  const yearStart = `${year}-01-01`
-  return lookback < yearStart ? lookback : yearStart
+  return lookback < holidayYear.start ? lookback : holidayYear.start
 }
 
 /**
@@ -25,9 +38,9 @@ function earliestNeeded(year, today) {
  * ('ok' | 'needs_region' | 'self_employed') before reading figures.
  *
  * @param {{id: string, employment_type?: string, working_days?: number[], holiday_pay_eligible?: boolean, start_date?: string|null}[]} staffList
- * @param {number} year
+ * @param {import('../lib/holidayYear').HolidayYear} holidayYear
  */
-export function useHolidayBalances(staffList, year) {
+export function useHolidayBalances(staffList, holidayYear) {
   const { venueId } = useVenue()
   const { holidayRegion } = useAppSettings()
   const queryClient = useQueryClient()
@@ -40,27 +53,29 @@ export function useHolidayBalances(staffList, year) {
   const today = londonToday()
 
   const query = useQuery({
-    queryKey: [HOLIDAY_BALANCES_KEY, venueId, idsKey, year],
+    queryKey: [HOLIDAY_BALANCES_KEY, venueId, idsKey, holidayYear.start],
     enabled: !!venueId && idsKey.length > 0,
     staleTime: 60_000,
     queryFn: async () => {
       const ids = idsKey.split(',')
-      const [events, leave, priv, paidOut] = await Promise.all([
-        fetchClockEvents(ids, earliestNeeded(year, today)),
-        fetchAnnualLeave(ids, year),
+      const [events, leave, priv, paidOut, carriedOver] = await Promise.all([
+        fetchClockEvents(ids, earliestNeeded(holidayYear, today)),
+        fetchAnnualLeave(ids, holidayYear),
         fetchStaffPrivateFields(),
-        fetchPaidOut(ids, year),
+        fetchPaidOut(ids, holidayYear.startYear),
+        fetchCarryOver(ids, holidayYear.startYear),
       ])
-      return { events, leave, priv, paidOut }
+      return { events, leave, priv, paidOut, carriedOver }
     },
   })
 
   const byId = useMemo(() => {
     if (!query.data) return {}
-    const { events, leave, priv, paidOut } = query.data
+    const { events, leave, priv, paidOut, carriedOver } = query.data
     const eventsBy = groupBy(events, 'staff_id')
     const leaveBy  = groupBy(leave, 'staff_id')
     const paidBy   = groupBy(paidOut, 'staff_id')
+    const carryBy  = groupBy(carriedOver, 'staff_id')
     const now = new Date()
     const out = {}
     for (const s of zero) {
@@ -70,13 +85,14 @@ export function useHolidayBalances(staffList, year) {
         events: eventsBy[s.id] ?? [],
         requests: leaveBy[s.id] ?? [],
         paidOut: paidBy[s.id] ?? [],
-        year,
+        carriedOver: carryBy[s.id] ?? [],
+        holidayYear,
         today,
         now,
       })
     }
     return out
-  }, [query.data, zero, holidayRegion, year, today])
+  }, [query.data, zero, holidayRegion, holidayYear, today])
 
   return {
     byId,
@@ -114,18 +130,31 @@ export function useRotaHours(staffIds, from, to) {
 const NO_PAID_OUT = {}
 
 /**
- * Holiday already paid outside dated bookings, per person, for `year`:
- * `{ [staffId]: { hours, days, rows } }`. Shares the balances' query-key prefix,
- * so invalidating HOLIDAY_BALANCES_KEY refreshes both.
+ * Holiday already paid outside dated bookings, per person, for the holiday
+ * year starting in `leaveYear`: `{ [staffId]: { hours, days, rows } }`. Shares
+ * the balances' query-key prefix, so invalidating HOLIDAY_BALANCES_KEY
+ * refreshes both.
  */
-export function usePaidOut(staffIds, year) {
+export function usePaidOut(staffIds, leaveYear) {
+  return useLeaveYearAmounts('paid-out', fetchPaidOut, staffIds, leaveYear)
+}
+
+/**
+ * Holiday carried over into the holiday year starting in `leaveYear`
+ * (migration 153), per person, shaped like usePaidOut.
+ */
+export function useCarryOver(staffIds, leaveYear) {
+  return useLeaveYearAmounts('carry-over', fetchCarryOver, staffIds, leaveYear)
+}
+
+function useLeaveYearAmounts(kind, fetchRows, staffIds, leaveYear) {
   const { venueId } = useVenue()
   const idsKey = [...new Set(staffIds.filter(Boolean))].sort().join(',')
   const query = useQuery({
-    queryKey: [HOLIDAY_BALANCES_KEY, 'paid-out', venueId, idsKey, year],
+    queryKey: [HOLIDAY_BALANCES_KEY, kind, venueId, idsKey, leaveYear],
     enabled: !!venueId && idsKey.length > 0,
     staleTime: 60_000,
-    queryFn: () => fetchPaidOut(idsKey.split(','), year),
+    queryFn: () => fetchRows(idsKey.split(','), leaveYear),
   })
   return useMemo(() => {
     if (!query.data) return NO_PAID_OUT
@@ -139,3 +168,54 @@ export function usePaidOut(staffIds, year) {
     return out
   }, [query.data])
 }
+
+/**
+ * What one person had left at the end of last holiday year — the suggestion
+ * when a manager carries holiday over. Hours for zero-hours staff (`hours`),
+ * days for everyone else (`days`); null while loading or when there is nothing
+ * to suggest. Only fetched while `enabled`, as it reads up to two years of
+ * clock-ins.
+ */
+export function useLastYearLeft(staff, holidayYear, enabled) {
+  const { venueId } = useVenue()
+  const { holidayRegion } = useAppSettings()
+  const last = useMemo(() => previousHolidayYear(holidayYear), [holidayYear])
+  const isZeroHours = staff?.employment_type === 'zero_hours'
+  const query = useQuery({
+    queryKey: [HOLIDAY_BALANCES_KEY, 'last-year-left', venueId, staff?.id, last.start, isZeroHours],
+    enabled: !!venueId && !!staff?.id && enabled,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const ids = [staff.id]
+      const [leave, paidOut, carriedOver, events, priv, entitlement] = await Promise.all([
+        fetchAnnualLeave(ids, last),
+        fetchPaidOut(ids, last.startYear),
+        fetchCarryOver(ids, last.startYear),
+        isZeroHours ? fetchClockEvents(ids, earliestNeeded(last, last.end)) : [],
+        isZeroHours ? fetchStaffPrivateFields() : null,
+        isZeroHours ? null : fetchEntitlementOverride(staff.id, last.startYear),
+      ])
+      return { leave, paidOut, carriedOver, events, priv, entitlement }
+    },
+  })
+  return useMemo(() => {
+    if (!query.data || !staff) return null
+    const { leave, paidOut, carriedOver, events, priv, entitlement } = query.data
+    if (isZeroHours) {
+      const h = zeroHoursHoliday({
+        region: holidayRegion,
+        staff: { ...staff, start_date: priv?.get(staff.id)?.start_date ?? staff.start_date ?? null },
+        events, requests: leave, paidOut, carriedOver,
+        holidayYear: last, today: last.end, now: new Date(),
+      })
+      return h.status === 'ok' ? { hours: Math.max(0, h.balance), yearLabel: last.label } : null
+    }
+    if (staff.holiday_pay_eligible === false) return null
+    const allowance = entitlement ?? calculateEntitlementDays(staff.employment_type, staff.working_days)
+    if (allowance == null) return null
+    const used = daysUsedInHolidayYear(leave, last, staff.working_days) + sumOf(paidOut, 'days')
+    return { days: Math.max(0, allowance + sumOf(carriedOver, 'days') - used), yearLabel: last.label }
+  }, [query.data, staff, isZeroHours, holidayRegion, last])
+}
+
+const sumOf = (rows, key) => rows.reduce((sum, r) => sum + (Number(r[key]) || 0), 0)

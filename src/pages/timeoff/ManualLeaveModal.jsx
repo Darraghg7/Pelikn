@@ -5,26 +5,34 @@ import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
 import { LEAVE_TYPES } from './timeOffConstants'
 import { suggestedPaidHours } from '../../lib/holiday'
-import { addPaidOut, removePaidOut } from '../../lib/api/holidayData'
+import { addPaidOut, removePaidOut, addCarryOver, removeCarryOver } from '../../lib/api/holidayData'
+import { previousHolidayYear } from '../../lib/holidayYear'
+import { useLastYearLeft } from '../../hooks/useHolidayBalances'
 import Button from '../../components/ui/Button'
 
 const INPUT = 'w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20'
 const LABEL = 'text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1'
 
+const MODES = [['leave', 'Past leave'], ['paid', 'Holiday already paid'], ['carry', 'Carry over']]
+
 /**
- * From the "+" on a team holiday row. Two jobs:
+ * From the "+" on a team holiday row. Three jobs:
  *   - Past leave: a dated booking that already happened (recorded as approved).
  *   - Holiday already paid: an amount payroll paid with no dates in Pelikn,
  *     e.g. before the venue started tracking here (migration 150). It comes
  *     off the remaining balance and never touches the rota.
+ *   - Carry over: unused holiday from last holiday year brought into this one
+ *     (migration 153). It adds to the balance.
+ *
+ * `holidayYear` is the current holiday year (lib/holidayYear).
  */
-export default function ManualLeaveModal({ staff, holiday, paidOut = [], year, venueId, managerId, onClose, onSaved }) {
+export default function ManualLeaveModal({ staff, holiday, paidOut = [], carryOver = [], holidayYear, venueId, managerId, onClose, onSaved }) {
   const [mode, setMode] = useState('leave')
   return (
     <Modal open onClose={onClose} title={staff.name}>
       <div className="flex flex-col gap-4">
-        <div className="flex gap-2" role="radiogroup" aria-label="What are you recording?">
-          {[['leave', 'Past leave'], ['paid', 'Holiday already paid']].map(([value, label]) => (
+        <div className="flex gap-2 flex-wrap" role="radiogroup" aria-label="What are you recording?">
+          {MODES.map(([value, label]) => (
             <Button
               key={value}
               size="sm"
@@ -37,9 +45,9 @@ export default function ManualLeaveModal({ staff, holiday, paidOut = [], year, v
             </Button>
           ))}
         </div>
-        {mode === 'leave'
-          ? <PastLeaveForm staff={staff} holiday={holiday} venueId={venueId} managerId={managerId} onClose={onClose} onSaved={onSaved} />
-          : <PaidOutForm staff={staff} paidOut={paidOut} year={year} venueId={venueId} managerId={managerId} onSaved={onSaved} />}
+        {mode === 'leave' && <PastLeaveForm staff={staff} holiday={holiday} venueId={venueId} managerId={managerId} onClose={onClose} onSaved={onSaved} />}
+        {mode === 'paid'  && <PaidOutForm staff={staff} paidOut={paidOut} holidayYear={holidayYear} venueId={venueId} managerId={managerId} onSaved={onSaved} />}
+        {mode === 'carry' && <CarryOverForm staff={staff} carryOver={carryOver} holidayYear={holidayYear} venueId={venueId} managerId={managerId} onSaved={onSaved} />}
       </div>
     </Modal>
   )
@@ -186,7 +194,7 @@ function PastLeaveForm({ staff, holiday, venueId, managerId, onClose, onSaved })
   )
 }
 
-function PaidOutForm({ staff, paidOut, year, venueId, managerId, onSaved }) {
+function PaidOutForm({ staff, paidOut, holidayYear, venueId, managerId, onSaved }) {
   const toast = useToast()
   const inHours = staff.employment_type === 'zero_hours'
   const unit = inHours ? 'hours' : 'days'
@@ -205,7 +213,7 @@ function PaidOutForm({ staff, paidOut, year, venueId, managerId, onSaved }) {
     const { error } = await addPaidOut({
       venue_id:   venueId,
       staff_id:   staff.id,
-      leave_year: year,
+      leave_year: holidayYear.startYear,
       [unit]:     inHours ? Math.round(value * 100) / 100 : Math.round(value * 10) / 10,
       paid_on:    paidOn || null,
       note:       note.trim() || null,
@@ -233,7 +241,7 @@ function PaidOutForm({ staff, paidOut, year, venueId, managerId, onSaved }) {
   return (
     <>
       <p className="text-caption text-charcoal/50 dark:text-white/45 -mt-1">
-        Holiday {staff.name} has already been paid for in {year} that isn't booked in Pelikn — for example, paid through payroll before you started tracking holiday here. It comes off their remaining balance.
+        Holiday {staff.name} has already been paid for in {holidayYear.label} that isn't booked in Pelikn — for example, paid through payroll before you started tracking holiday here. It comes off their remaining balance.
       </p>
 
       <div className="grid grid-cols-2 gap-3">
@@ -275,7 +283,7 @@ function PaidOutForm({ staff, paidOut, year, venueId, managerId, onSaved }) {
 
       {paidOut.length > 0 && (
         <div className="border-t border-charcoal/10 dark:border-white/10 pt-3">
-          <p className={LABEL}>Already recorded for {year}</p>
+          <p className={LABEL}>Already recorded for {holidayYear.label}</p>
           <div className="flex flex-col gap-2 mt-1">
             {paidOut.map(p => (
               <div key={p.id} className="flex items-center gap-2.5">
@@ -290,6 +298,134 @@ function PaidOutForm({ staff, paidOut, year, venueId, managerId, onSaved }) {
           </div>
         </div>
       )}
+    </>
+  )
+}
+
+/**
+ * Carry unused holiday from last holiday year into this one. One amount per
+ * person per year (153's unique constraint): to change it, remove it and add
+ * the new figure. Suggests what they had left at the end of last year.
+ */
+function CarryOverForm({ staff, carryOver, holidayYear, venueId, managerId, onSaved }) {
+  const toast = useToast()
+  const inHours = staff.employment_type === 'zero_hours'
+  const unit = inHours ? 'hours' : 'days'
+  const lastYear = previousHolidayYear(holidayYear)
+  const existing = carryOver[0] ?? null
+  const left = useLastYearLeft(staff, holidayYear, !existing)
+  const suggested = left ? (inHours ? left.hours : left.days) : null
+
+  const [typed, setAmount]  = useState(null)   // null until the manager types: shows the suggestion
+  const [note, setNote]     = useState('')
+  const [saving, setSaving] = useState(false)
+  const [removing, setRemoving] = useState(false)
+
+  const amount = typed ?? (suggested ? String(suggested) : '')
+  const value = amount.trim() === '' ? null : Number(amount)
+  const valid = value != null && value > 0 && value <= (inHours ? 999 : 99)
+
+  const save = async () => {
+    if (!valid) { toast(`Enter the ${unit} to carry over`, 'error'); return }
+    setSaving(true)
+    const { error } = await addCarryOver({
+      venue_id:   venueId,
+      staff_id:   staff.id,
+      leave_year: holidayYear.startYear,
+      [unit]:     inHours ? Math.round(value * 100) / 100 : Math.round(value * 10) / 10,
+      note:       note.trim() || null,
+      created_by: managerId ?? null,
+    })
+    setSaving(false)
+    if (error) {
+      toast(
+        error.code === 'PGRST205' ? 'This needs a database update (migration 153) before it can be saved'
+          : error.code === '23505' ? 'Holiday has already been carried over for this year — remove it first to change it'
+            : error.message,
+        'error',
+      )
+      return
+    }
+    toast(`Carried over for ${staff.name}`)
+    setAmount(null); setNote('')
+    onSaved()
+  }
+
+  const remove = async () => {
+    setRemoving(true)
+    const { error } = await removeCarryOver(existing.id)
+    setRemoving(false)
+    if (error) { toast(error.message, 'error'); return }
+    toast('Removed')
+    onSaved()
+  }
+
+  if (existing) {
+    const amountText = existing.hours != null
+      ? `${Number(existing.hours)} h`
+      : `${Number(existing.days)} ${Number(existing.days) === 1 ? 'day' : 'days'}`
+    return (
+      <>
+        <p className="text-caption text-charcoal/50 dark:text-white/45 -mt-1">
+          Carried over from {lastYear.label} into {holidayYear.label}. It's added to {staff.name}'s holiday left.
+        </p>
+        <div className="flex items-center gap-2.5">
+          <div className="flex-1 min-w-0 text-sm text-charcoal dark:text-white">
+            <span className="font-mono font-semibold">{amountText}</span>
+            <span className="text-charcoal/50 dark:text-white/45">
+              {' '}· {existing.creator?.name ? `by ${existing.creator.name}, ` : ''}{format(parseISO(existing.created_at), 'd MMM yyyy')}
+            </span>
+            {existing.note && <span className="block text-caption text-charcoal/50 dark:text-white/45 truncate">{existing.note}</span>}
+          </div>
+          <Button variant="danger-ghost" size="sm" loading={removing} onClick={remove}>Remove</Button>
+        </div>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <p className="text-caption text-charcoal/50 dark:text-white/45 -mt-1">
+        Unused holiday from {lastYear.label} that {staff.name} can still take in {holidayYear.label}. It's added to their holiday left.
+      </p>
+
+      <div>
+        <label htmlFor="carry-over-amount" className={LABEL}>{inHours ? 'Hours to carry over' : 'Days to carry over'}</label>
+        <input
+          id="carry-over-amount"
+          type="number"
+          inputMode="decimal"
+          min="0"
+          step="0.5"
+          value={amount}
+          onChange={e => setAmount(e.target.value)}
+          placeholder={inHours ? 'e.g. 8' : 'e.g. 2'}
+          className={INPUT}
+        />
+        {left && (
+          <p className="text-caption text-charcoal/45 dark:text-white/40 mt-1">
+            {suggested
+              ? `${inHours ? `${suggested} h` : `${suggested} ${suggested === 1 ? 'day' : 'days'}`} left at the end of ${lastYear.label}. Change it if you're carrying over less.`
+              : `Nothing was left at the end of ${lastYear.label}.`}
+          </p>
+        )}
+      </div>
+
+      <div>
+        <label htmlFor="carry-over-note" className={LABEL}>Note (optional)</label>
+        <input
+          id="carry-over-note"
+          type="text"
+          value={note}
+          onChange={e => setNote(e.target.value)}
+          placeholder="e.g. Agreed in their review"
+          className={INPUT}
+        />
+      </div>
+
+      <Button fullWidth loading={saving} onClick={save} disabled={saving || !valid}>
+        {saving ? 'Saving…' : 'Carry over'}
+      </Button>
     </>
   )
 }

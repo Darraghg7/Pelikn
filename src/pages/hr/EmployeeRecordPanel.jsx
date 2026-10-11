@@ -15,8 +15,8 @@
 import React, { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format, parseISO, differenceInDays } from 'date-fns'
-import { calculateEntitlementDays, countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
-import { useHolidayBalances, usePaidOut } from '../../hooks/useHolidayBalances'
+import { calculateEntitlementDays, daysUsedInHolidayYear } from '../../hooks/useLeaveBalance'
+import { useHolidayBalances, useHolidayYear, usePaidOut, useCarryOver } from '../../hooks/useHolidayBalances'
 import { HR_BUCKET, hrAttachmentPath, openHrAttachment } from '../../lib/hrDocuments'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
@@ -793,7 +793,7 @@ function DisciplinaryTab({ staffId, venueId }) {
 function LeaveTab({ staffId, venueSlug, staff }) {
   const navigate = useNavigate()
   const { requests, loading } = useLeaveRequests(staffId)
-  const currentYear = new Date().getFullYear()
+  const holidayYear = useHolidayYear()
 
   const STATUS_TONE = {
     approved:  'good',
@@ -805,18 +805,18 @@ function LeaveTab({ staffId, venueSlug, staff }) {
 
   const eligible   = staff?.holiday_pay_eligible !== false
   const isZeroHrs  = staff?.employment_type === 'zero_hours'
-  const allowance  = eligible ? calculateEntitlementDays(staff?.employment_type, staff?.working_days) : null
-  // Days already paid outside dated bookings (150) count as taken for days-based staff
-  const paidOutDays = usePaidOut([staffId], currentYear)[staffId]?.days ?? 0
-  const taken      = requests
-    .filter(r => r.status === 'approved' && r.leave_type === 'annual' && r.start_date?.startsWith(String(currentYear)))
-    .reduce((sum, r) => sum + countWorkingDaysInRequest(r.start_date, r.end_date, staff?.working_days), 0) +
-    (isZeroHrs ? 0 : paidOutDays)
+  // Days already paid outside dated bookings (150) count as taken, and days
+  // carried over from last year (153) add to the allowance, for days-based staff
+  const paidOutDays = usePaidOut([staffId], holidayYear.startYear)[staffId]?.days ?? 0
+  const carriedDays = useCarryOver([staffId], holidayYear.startYear)[staffId]?.days ?? 0
+  const calculated = eligible ? calculateEntitlementDays(staff?.employment_type, staff?.working_days) : null
+  const allowance  = calculated != null ? calculated + carriedDays : null
+  const taken      = daysUsedInHolidayYear(requests, holidayYear, staff?.working_days) + (isZeroHrs ? 0 : paidOutDays)
   const remaining  = allowance != null ? Math.max(0, allowance - taken) : null
 
   // Zero-hours holiday is in hours — same calculation as the Time Off page.
   const holidayList = useMemo(() => (staff && staffId ? [{ ...staff, id: staffId }] : []), [staff, staffId])
-  const holiday = useHolidayBalances(holidayList, currentYear).byId[staffId]
+  const holiday = useHolidayBalances(holidayList, holidayYear).byId[staffId]
   const hrs = (n) => (n == null ? '—' : `${n < 0 ? '−' : ''}${Math.abs(Math.round(n * 10) / 10)} h`)
 
   const tiles = !isZeroHrs
@@ -827,7 +827,7 @@ function LeaveTab({ staffId, venueSlug, staff }) {
       ]
     : holiday?.status === 'ok'
       ? [
-          { k: 'Allowance', v: hrs(holiday.allowance) },
+          { k: 'Allowance', v: hrs(holiday.allowance + holiday.carriedOverHours) },
           { k: 'Used',      v: hrs(holiday.used) },
           { k: 'Remaining', v: hrs(holiday.balance) },
         ]

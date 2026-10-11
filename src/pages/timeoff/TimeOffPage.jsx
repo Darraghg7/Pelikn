@@ -8,8 +8,8 @@ import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import { SkeletonList, PageSkeleton } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
-import { calculateEntitlementDays, countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
-import { useHolidayBalances, useRotaHours, usePaidOut, HOLIDAY_BALANCES_KEY } from '../../hooks/useHolidayBalances'
+import { calculateEntitlementDays, countWorkingDaysInRequest, daysUsedInHolidayYear } from '../../hooks/useLeaveBalance'
+import { useHolidayBalances, useHolidayYear, useRotaHours, usePaidOut, useCarryOver, HOLIDAY_BALANCES_KEY } from '../../hooks/useHolidayBalances'
 import { suggestedPaidHours } from '../../lib/holiday'
 import { invalidateSummaryCache } from '../../hooks/useTodaySummary'
 import { timeOffPermissions, isBlocking } from '../../lib/api/timeOff'
@@ -46,31 +46,33 @@ export default function TimeOffPage() {
   const staff      = useActiveStaff(venueId)
   const ownProfile = useOwnProfile(session?.staffId)
 
-  const currentYear = new Date().getFullYear()
+  // The holiday year containing today — January to December unless the venue
+  // changed it in Settings → Attendance (lib/holidayYear.js).
+  const holidayYear = useHolidayYear()
   const { balances: teamBalancesRaw, loading: balancesLoading, failed: balancesFailed, reloadBalances } = useTeamLeaveBalances(
-    isManager ? staff : [],
-    currentYear
+    isManager ? staff : NO_STAFF,
+    holidayYear
   )
 
   // Zero-hours holiday is in hours, not days — see lib/holiday.js.
-  const { byId: teamHoliday } = useHolidayBalances(isManager ? staff : NO_STAFF, currentYear)
+  const { byId: teamHoliday } = useHolidayBalances(isManager ? staff : NO_STAFF, holidayYear)
   const ownList = useMemo(() => (ownProfile ? [ownProfile] : NO_STAFF), [ownProfile])
-  const { byId: ownHolidayById } = useHolidayBalances(ownList, currentYear)
+  const { byId: ownHolidayById } = useHolidayBalances(ownList, holidayYear)
   const ownHoliday = ownHolidayById[session?.staffId] ?? null
 
-  // Holiday already paid outside a dated booking (migration 150). Zero-hours
-  // balances include it already; days-based ones take it off here.
+  // Holiday already paid outside a dated booking (migration 150) and holiday
+  // carried over from last year (153). Zero-hours balances include both
+  // already; days-based ones add them here.
   const paidOutIds = useMemo(
     () => [session?.staffId, ...(isManager ? staff.map(s => s.id) : [])],
     [session?.staffId, isManager, staff],
   )
-  const paidOut = usePaidOut(paidOutIds, currentYear)
-  const teamBalances = useMemo(() => teamBalancesRaw.map(b => {
-    const days = paidOut[b.id]?.days ?? 0
-    if (b.isZeroHours || !days || b.entitlement == null) return { ...b, paidOutDays: days }
-    const used = b.used + days
-    return { ...b, used, paidOutDays: days, remaining: Math.max(0, b.entitlement - used) }
-  }), [teamBalancesRaw, paidOut])
+  const paidOut   = usePaidOut(paidOutIds, holidayYear.startYear)
+  const carryOver = useCarryOver(paidOutIds, holidayYear.startYear)
+  const teamBalances = useMemo(
+    () => teamBalancesRaw.map(b => withPaidOutAndCarryOver(b, paidOut[b.id]?.days, carryOver[b.id]?.days)),
+    [teamBalancesRaw, paidOut, carryOver],
+  )
 
   /**
    * Time off drives availability everywhere else in the app, so any write here
@@ -95,20 +97,17 @@ export default function TimeOffPage() {
   // Own balance (staff view)
   const ownBalance = useMemo(() => {
     if (!ownProfile) return null
-    const calculated  = calculateEntitlementDays(ownProfile.employment_type, ownProfile.working_days)
-    // This year's leave only — this used to count every approved request the
-    // person had ever made, so last year's holiday came off this year's balance.
-    const myApproved  = requests.filter(r =>
-      r.staff_id === session?.staffId && r.status === 'approved' && r.leave_type === 'annual' &&
-      r.start_date?.startsWith(String(currentYear))
-    )
-    const used = myApproved.reduce((sum, r) =>
-      sum + countWorkingDaysInRequest(r.start_date, r.end_date, ownProfile.working_days), 0) +
-      (ownProfile.employment_type === 'zero_hours' ? 0 : paidOut[session?.staffId]?.days ?? 0)
-    const entitlement = calculated
-    const remaining   = entitlement != null ? Math.max(0, entitlement - used) : null
-    return { entitlement, used, remaining, isZeroHours: ownProfile.employment_type === 'zero_hours' }
-  }, [ownProfile, requests, session?.staffId, currentYear, paidOut])
+    const isZeroHours = ownProfile.employment_type === 'zero_hours'
+    const entitlement = calculateEntitlementDays(ownProfile.employment_type, ownProfile.working_days)
+    // This holiday year's leave only — this used to count every approved
+    // request the person had ever made, so last year's holiday came off this
+    // year's balance.
+    const mine = requests.filter(r => r.staff_id === session?.staffId)
+    const used = daysUsedInHolidayYear(mine, holidayYear, ownProfile.working_days)
+    const remaining = entitlement != null ? Math.max(0, entitlement - used) : null
+    const own = { entitlement, used, remaining, isZeroHours }
+    return isZeroHours ? own : withPaidOutAndCarryOver(own, paidOut[session?.staffId]?.days, carryOver[session?.staffId]?.days)
+  }, [ownProfile, requests, session?.staffId, holidayYear, paidOut, carryOver])
 
   const [month, setMonth]           = useState(new Date())
   const [showRequest, setShowRequest] = useState(false)
@@ -289,7 +288,7 @@ export default function TimeOffPage() {
       {ownBalance && (
         <OwnBalanceCard
           balance={ownBalance}
-          year={currentYear}
+          year={holidayYear.label}
           holiday={ownHoliday}
         />
       )}
@@ -391,7 +390,7 @@ export default function TimeOffPage() {
             aria-expanded={showTeamBalances}
             className="w-full flex items-center justify-between px-3.5 sm:px-3.5 py-2.5 text-left"
           >
-            <span className="text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Team annual leave · {currentYear}</span>
+            <span className="text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Team annual leave · {holidayYear.label}</span>
             <svg className={`w-5 h-5 text-ink3 dark:text-white/45 transition-transform ${showTeamBalances ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           {showTeamBalances && (
@@ -490,7 +489,7 @@ export default function TimeOffPage() {
           {form.leaveType === 'annual' && ownBalance && !ownBalance.isZeroHours && ownBalance.entitlement != null && (
             <div className="rounded-xl bg-cream dark:bg-white/5 px-3.5 py-2.5 flex items-center justify-between">
               <div>
-                <p className="text-body-sm font-semibold text-ink dark:text-white">{currentYear} annual leave</p>
+                <p className="text-body-sm font-semibold text-ink dark:text-white">{holidayYear.label} annual leave</p>
                 <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">{ownBalance.used} of {ownBalance.entitlement} days used</p>
               </div>
               <p className={`font-mono text-body font-semibold ${ownBalance.remaining === 0 ? 'text-bad' : ownBalance.remaining <= 5 ? 'text-warn' : 'text-good'}`}>
@@ -609,7 +608,8 @@ export default function TimeOffPage() {
           staff={manualEntry}
           holiday={teamHoliday[manualEntry.id]}
           paidOut={paidOut[manualEntry.id]?.rows ?? []}
-          year={currentYear}
+          carryOver={carryOver[manualEntry.id]?.rows ?? []}
+          holidayYear={holidayYear}
           venueId={venueId}
           managerId={session?.staffId}
           onClose={() => setManualEntry(null)}
@@ -638,6 +638,20 @@ function fmtHours(n) {
   if (n == null) return '—'
   const v = Math.round(n * 10) / 10
   return `${v < 0 ? '−' : ''}${Math.abs(v)} h`
+}
+
+/**
+ * A days-based balance with holiday already paid (comes off) and holiday
+ * carried over from last year (adds to the allowance). Zero-hours balances are
+ * returned as they are — lib/holiday counts both in hours already.
+ */
+function withPaidOutAndCarryOver(b, paidOutDays = 0, carriedOverDays = 0) {
+  if (b.isZeroHours || b.entitlement == null || (!paidOutDays && !carriedOverDays)) {
+    return { ...b, paidOutDays, carriedOverDays }
+  }
+  const entitlement = b.entitlement + carriedOverDays
+  const used = b.used + paidOutDays
+  return { ...b, entitlement, used, paidOutDays, carriedOverDays, remaining: Math.max(0, entitlement - used) }
 }
 
 function balanceTone(balance) {
@@ -855,8 +869,8 @@ function TeamBalanceRow({ balance: b, holiday, settingsPath, onLogPast }) {
         size="sm"
         iconOnly
         onClick={onLogPast}
-        aria-label={`Log past leave or holiday already paid for ${b.name}`}
-        title="Log past leave or holiday already paid"
+        aria-label={`Log past leave, holiday already paid or carry-over for ${b.name}`}
+        title="Log past leave, holiday already paid or carry-over"
         className="shrink-0"
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>

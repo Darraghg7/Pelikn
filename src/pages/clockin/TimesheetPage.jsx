@@ -12,8 +12,9 @@ import { formatMinutes, getWeekStart, downloadCsv } from '../../lib/utils'
 import { buildPdfReport } from '../../lib/pdfUtils'
 import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
 import { withPaidHoursColumns } from '../../lib/api/holidayData'
-import { useHolidayBalances, useRotaHours, HOLIDAY_BALANCES_KEY } from '../../hooks/useHolidayBalances'
+import { useHolidayBalances, useHolidayYear, useRotaHours, HOLIDAY_BALANCES_KEY } from '../../hooks/useHolidayBalances'
 import { suggestedPaidHours } from '../../lib/holiday'
+import { holidayYearContaining } from '../../lib/holidayYear'
 import { useQueryClient } from '@tanstack/react-query'
 import HolidayPayModal from './HolidayPayModal'
 import { SkeletonList } from '../../components/ui/Skeleton'
@@ -439,7 +440,7 @@ export default function TimesheetPage() {
   const { isManager } = useSession()
   const toast         = useToast()
   const { staff: staffList } = useStaffList()
-  const { breakDurationMins } = useAppSettings()
+  const { breakDurationMins, holidayYearStartMonth } = useAppSettings()
 
   const { dateFrom, dateTo, label: periodLabel } = useMemo(
     () => periodToDates(period, customFrom, customTo),
@@ -510,7 +511,12 @@ export default function TimesheetPage() {
     const ids = [...new Set(holidayItems.map(r => r.staff_id))]
     return ids.map(id => ({ id, employment_type: 'zero_hours', working_days: staffProfiles[id]?.workingDays ?? [], holiday_pay_eligible: true }))
   }, [holidayItems, staffProfiles])
-  const holidayYear = periodFrom ? Number(periodFrom.slice(0, 4)) : new Date().getFullYear()
+  // The holiday year the pay period starts in (Settings → Attendance sets when it begins)
+  const currentHolidayYear = useHolidayYear()
+  const holidayYear = useMemo(
+    () => (periodFrom ? holidayYearContaining(periodFrom, holidayYearStartMonth) : currentHolidayYear),
+    [periodFrom, holidayYearStartMonth, currentHolidayYear],
+  )
   const { byId: holidayById } = useHolidayBalances(holidayStaff, holidayYear)
   const rotaFrom = holidayItems.reduce((m, r) => (!m || r.start_date < m ? r.start_date : m), '')
   const rotaTo   = holidayItems.reduce((m, r) => (!m || r.end_date > m ? r.end_date : m), '')

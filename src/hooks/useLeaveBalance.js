@@ -24,6 +24,24 @@ export function countWorkingDaysInRequest(startDate, endDate, workingDays) {
   }
 }
 
+/**
+ * Working days of approved annual leave inside a holiday year
+ * (lib/holidayYear). A request crossing the start or end of the year counts
+ * only its days inside it.
+ */
+export function daysUsedInHolidayYear(requests, holidayYear, workingDays) {
+  let used = 0
+  for (const r of requests) {
+    if (r.status && r.status !== 'approved') continue
+    if (r.leave_type && r.leave_type !== 'annual') continue
+    if (r.end_date < holidayYear.start || r.start_date > holidayYear.end) continue
+    const from = r.start_date < holidayYear.start ? holidayYear.start : r.start_date
+    const to   = r.end_date   > holidayYear.end   ? holidayYear.end   : r.end_date
+    used += countWorkingDaysInRequest(from, to, workingDays)
+  }
+  return used
+}
+
 // Calculate statutory annual leave entitlement in days (UK: 5.6 weeks).
 // Returns null for zero-hours workers (accrual-based, tracked separately).
 export function calculateEntitlementDays(employment_type, working_days) {

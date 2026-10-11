@@ -21,10 +21,15 @@
  * recorded — an estimate from the person's average week, flagged as such.
  * Only approved 'annual' leave counts. 'unavailable' is never holiday.
  *
+ * Everything is per holiday year (lib/holidayYear.js), which starts in the
+ * month the venue chose — January unless they changed it. Holiday a manager
+ * carried over from last year (migration 153) adds to the balance.
+ *
  * Everything here is pure so it can be tested without a database; the hook
  * that feeds it is useHolidayBalances.
  */
 import { londonDateStr } from './time'
+import { inHolidayYear } from './holidayYear'
 
 export const HOLIDAY_WEEKS        = 5.6
 export const GB_ACCRUAL_RATE      = 0.1207
@@ -167,24 +172,31 @@ function monthsStarted(fromStr, toStr) {
   return Math.max(0, months) + 1
 }
 
+/** Months from the one `fromStr` is in to the one `toStr` is in, counting both. */
+function monthsTouched(fromStr, toStr) {
+  const [fy, fm] = fromStr.split('-').map(Number)
+  const [ty, tm] = toStr.split('-').map(Number)
+  return (ty - fy) * 12 + (tm - fm) + 1
+}
+
 /**
- * Holiday hours available this leave year (calendar year).
+ * Holiday hours available this holiday year.
  *
  * @param {object} p
  * @param {'gb'|'ni'} p.region
  * @param {{start: string, hours: number}[]} p.shifts
- * @param {number} p.year
+ * @param {import('./holidayYear').HolidayYear} p.holidayYear
  * @param {string} p.today         "yyyy-MM-dd", London
  * @param {string|null} [p.startDate]  staff.start_date
  */
-export function holidayAllowance({ region, shifts, year, today, startDate }) {
+export function holidayAllowance({ region, shifts, holidayYear, today, startDate }) {
   const weeks = hoursByWeek(shifts)
   const { avgWeekHours, weeksUsed } = averageWeek(weeks, today)
-  const yearStart = `${year}-01-01`
+  const yearStart = holidayYear.start
 
   if (region === 'gb') {
     const hoursThisYear = shifts
-      .filter(s => londonDateStr(s.start).startsWith(String(year)))
+      .filter(s => inHolidayYear(londonDateStr(s.start), holidayYear))
       .reduce((sum, s) => sum + s.hours, 0)
     return {
       allowance: round1(Math.min(hoursThisYear * GB_ACCRUAL_RATE, GB_CAP_HOURS)),
@@ -203,12 +215,13 @@ export function holidayAllowance({ region, shifts, year, today, startDate }) {
   // of it (NI: the twelfths rule is for the first year of employment only), so
   // they can book ahead. Someone who joined this year gets their share of the
   // year, built up a twelfth a month from their start date: on 10 Oct a 25 Sep
-  // starter has 1/12, capped at their share (Sep–Dec = 4/12).
+  // starter has 1/12, capped at their share (Sep–Dec = 4/12 in a January
+  // holiday year, Sep–Mar = 7/12 in an April one).
   // Not handled: a first employment year that began late last year and runs
   // into this one — they are treated as here all year.
   const yearAllowance = HOLIDAY_WEEKS * avgWeekHours
   const joinedThisYear = !!startDate && startDate > yearStart && startDate <= today
-  const share   = joinedThisYear ? (13 - Number(startDate.slice(5, 7))) / 12 : 1
+  const share   = joinedThisYear ? monthsTouched(startDate, holidayYear.end) / 12 : 1
   const accrued = joinedThisYear ? Math.min(12, monthsStarted(startDate, today)) / 12 : 1
   return {
     allowance: round1(yearAllowance * Math.min(share, accrued)),
@@ -248,15 +261,16 @@ export function estimateLeaveHours(fromStr, toStr, avgWeekHours, workingDays) {
 }
 
 /**
- * Holiday hours used this year by approved annual leave (taken or booked).
- * A request crossing the year boundary counts only its days in `year`; a
- * recorded paid_hours is split by the share of days that fall in the year.
+ * Holiday hours used this holiday year by approved annual leave (taken or
+ * booked). A request crossing the year boundary counts only its days inside
+ * `holidayYear`; a recorded paid_hours is split by the share of days that fall
+ * in it.
  *
  * @returns {{ used: number, estimated: boolean }}
  */
-export function holidayUsed(requests, { year, avgWeekHours, workingDays }) {
-  const yStart = `${year}-01-01`
-  const yEnd   = `${year}-12-31`
+export function holidayUsed(requests, { holidayYear, avgWeekHours, workingDays }) {
+  const yStart = holidayYear.start
+  const yEnd   = holidayYear.end
   let used = 0
   let estimated = false
   for (const r of requests) {
@@ -283,9 +297,10 @@ export function holidayUsed(requests, { year, avgWeekHours, workingDays }) {
  * shown, not hidden.
  *
  * `paidOut` is holiday already paid outside a dated booking (migration 150);
- * its hours count as used.
+ * its hours count as used. `carriedOver` is holiday a manager brought forward
+ * from last holiday year (migration 153); its hours add to the balance.
  */
-export function zeroHoursHoliday({ region, staff, events, requests, paidOut = [], year, today, now }) {
+export function zeroHoursHoliday({ region, staff, events, requests, paidOut = [], carriedOver = [], holidayYear, today, now }) {
   if (staff?.holiday_pay_eligible === false) return { status: 'self_employed' }
   if (region !== 'gb' && region !== 'ni') return { status: 'needs_region' }
 
@@ -295,14 +310,15 @@ export function zeroHoursHoliday({ region, staff, events, requests, paidOut = []
   // anyone here before this year has an earlier clock-in and isn't affected.)
   const firstClockIn = shifts.length ? londonDateStr(shifts[0].start) : null
   const startDate = staff?.start_date ?? firstClockIn
-  const a = holidayAllowance({ region, shifts, year, today, startDate })
+  const a = holidayAllowance({ region, shifts, holidayYear, today, startDate })
   const { used, estimated } = holidayUsed(requests, {
-    year,
+    holidayYear,
     avgWeekHours: a.avgWeekHours,
     workingDays: staff?.working_days ?? [],
   })
   const paidOutHours = round1(paidOut.reduce((sum, p) => sum + (Number(p.hours) || 0), 0))
   const usedTotal = round1(used + paidOutHours)
+  const carriedOverHours = round1(carriedOver.reduce((sum, c) => sum + (Number(c.hours) || 0), 0))
 
   return {
     status: 'ok',
@@ -310,14 +326,15 @@ export function zeroHoursHoliday({ region, staff, events, requests, paidOut = []
     allowance: a.allowance,
     used: usedTotal,
     paidOutHours,
+    carriedOverHours,
     usedIsEstimate: estimated,
-    balance: round1(a.allowance - usedTotal),
+    balance: round1(a.allowance + carriedOverHours - usedTotal),
     avgWeekHours: a.avgWeekHours,
     weeksInAverage: a.weeksUsed,
     hoursThisYear: a.hoursThisYear,
     firstYear: a.firstYear,
     startDateGuessed: !staff?.start_date && !!firstClockIn,
-    missingClockOuts: missingClockOut.filter(s => londonDateStr(s).startsWith(String(year))).length,
+    missingClockOuts: missingClockOut.filter(s => inHolidayYear(londonDateStr(s), holidayYear)).length,
   }
 }
 
