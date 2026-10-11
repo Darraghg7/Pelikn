@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   workedShifts, weekStarting, hoursByWeek, averageWeek,
   holidayAllowance, holidayUsed, estimateLeaveHours, zeroHoursHoliday, suggestedPaidHours,
-  leaveHoursBreakdown,
+  leaveHoursBreakdown, startDateBelievable,
 } from '../holiday'
 import { holidayYearStarting, holidayYearContaining, previousHolidayYear } from '../holidayYear'
 
@@ -118,20 +118,88 @@ describe('start date', () => {
   ]
   const base = { region: 'ni', events, requests: [], holidayYear: CAL_2026, today: '2026-10-10', now: NOW }
 
-  it('uses the first clock-in when no start date is saved, so a new starter gets a month, not a year', () => {
-    const h = zeroHoursHoliday({ ...base, staff: { working_days: [] } })
+  it('uses the first clock-in when no start date is saved and it is clearly after the venue started, so a new starter gets a month, not a year', () => {
+    const h = zeroHoursHoliday({ ...base, staff: { working_days: [] }, firstClockIn: '2026-09-25', venueFirstClockIn: '2025-02-01' })
     expect(h.startDateGuessed).toBe(true)
+    expect(h.startDateMissing).toBe(true)
+    expect(h.guessedStartDate).toBe('2026-09-25')
     expect(h.firstYear).toBe(true)
     expect(h.allowance).toBe(4.3)                   // 5.6 × 9.3 × 1/12
+  })
+
+  it('without the venue\'s first clock-in there is nothing to judge a guess by: full year, start date asked for', () => {
+    const h = zeroHoursHoliday({ ...base, staff: { working_days: [] }, firstClockIn: '2026-09-25' })
+    expect(h.startDateGuessed).toBe(false)
+    expect(h.startDateMissing).toBe(true)
+    expect(h.firstYear).toBe(false)
+    expect(h.allowance).toBe(52.1)
   })
 
   it('a saved start date wins over the first clock-in', () => {
     const h = zeroHoursHoliday({ ...base, staff: { working_days: [], start_date: '2024-03-01' } })
     expect(h.startDateGuessed).toBe(false)
+    expect(h.startDateMissing).toBe(false)
     expect(h.firstYear).toBe(false)
     expect(h.allowance).toBe(52.1)                  // 5.6 × 9.3, the whole year
   })
 })
+
+describe('start date: venue new to Pelikn', () => {
+  // Nomad-style: the venue's first clock-in on Pelikn was 6 Mar 2026. Sarah
+  // has worked Fri–Sun for years, has no start date saved, and her first
+  // clock-in on record is that first weekend.
+  const weekends = []
+  for (let t = Date.parse('2026-03-06T00:00:00Z'); t < Date.parse('2026-10-10T00:00:00Z'); t += 7 * 86_400_000) {
+    const fri = new Date(t).toISOString().slice(0, 10)
+    weekends.push(...shift(fri, 6))
+  }
+  const base = {
+    region: 'ni', events: weekends, holidayYear: CAL_2026, today: '2026-10-10', now: NOW,
+    venueFirstClockIn: '2026-03-06',
+  }
+  // A week's holiday booked Fri–Sun, three times
+  const leave = ['2026-05-01', '2026-07-03', '2026-08-14'].map((d, i) => ({
+    id: `r${i}`, status: 'approved', leave_type: 'annual', start_date: d,
+    end_date: new Date(Date.parse(`${d}T00:00:00Z`) + 2 * 86_400_000).toISOString().slice(0, 10),
+  }))
+
+  it('someone clocking in from the venue\'s first weeks gets the full year, not a 2026 starter\'s share', () => {
+    const h = zeroHoursHoliday({ ...base, requests: leave, staff: { working_days: [5, 6, 7] }, firstClockIn: '2026-03-06' })
+    expect(h.firstYear).toBe(false)
+    expect(h.startDateGuessed).toBe(false)
+    expect(h.startDateMissing).toBe(true)
+    expect(h.allowance).toBe(round1(5.6 * h.avgWeekHours))
+    expect(h.balance).toBeGreaterThan(0)
+  })
+
+  it('a first clock-in a few weeks after the venue started still counts as already working there', () => {
+    const h = zeroHoursHoliday({ ...base, requests: [], staff: { working_days: [] }, firstClockIn: '2026-04-10' })
+    expect(h.firstYear).toBe(false)
+    expect(h.startDateGuessed).toBe(false)
+  })
+
+  it('a first clock-in well after the venue started is taken as a new starter', () => {
+    const h = zeroHoursHoliday({ ...base, requests: [], staff: { working_days: [] }, firstClockIn: '2026-09-25' })
+    expect(h.firstYear).toBe(true)
+    expect(h.startDateGuessed).toBe(true)
+    expect(h.guessedStartDate).toBe('2026-09-25')
+  })
+
+  it('the cut-off is six weeks after the venue\'s first clock-in', () => {
+    expect(startDateBelievable('2026-04-17', '2026-03-06')).toBe(false)   // 42 days on
+    expect(startDateBelievable('2026-04-18', '2026-03-06')).toBe(true)    // 43 days on
+    expect(startDateBelievable(null, '2026-03-06')).toBe(false)
+    expect(startDateBelievable('2026-09-25', null)).toBe(false)
+  })
+
+  it('GB never asks for a start date: holiday comes from hours worked', () => {
+    const h = zeroHoursHoliday({ ...base, region: 'gb', requests: [], staff: { working_days: [] }, firstClockIn: '2026-09-25' })
+    expect(h.startDateMissing).toBe(false)
+    expect(h.startDateGuessed).toBe(false)
+  })
+})
+
+const round1 = (n) => Math.round(n * 10) / 10
 
 describe('holidayUsed', () => {
   const base = { status: 'approved', leave_type: 'annual' }

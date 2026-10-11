@@ -269,6 +269,9 @@ function HolidayResult({ position, pay, hourlyRate, loading, failed, venueSlug, 
       {position.noAverage && (
         <p className="text-body-sm text-warn dark:text-warnDark">No clocked hours to work out their average week, so this shows nothing earned.</p>
       )}
+      {position.startDateMissing && (
+        <p className="text-body-sm text-warn dark:text-warnDark">No start date saved, so this assumes they were here all holiday year. If they started this year, add their start date.</p>
+      )}
       {position.usedIsEstimate && (
         <p className="text-body-sm text-ink3 dark:text-white/45">Some holiday used is an estimate — no hours were recorded for it.</p>
       )}

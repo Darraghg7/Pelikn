@@ -654,6 +654,13 @@ function withPaidOutAndCarryOver(b, paidOutDays = 0, carriedOverDays = 0) {
   return { ...b, entitlement, used, paidOutDays, carriedOverDays, remaining: Math.max(0, entitlement - used) }
 }
 
+// Shown under a zero-hours name when no start date is saved (NI only).
+function startDateNote(holiday) {
+  return holiday.startDateGuessed
+    ? `Add start date · using first clock-in, ${format(parseISO(holiday.guessedStartDate), 'd MMM')}`
+    : 'Add start date · full year assumed'
+}
+
 function balanceTone(balance) {
   if (balance < 0) return 'text-bad dark:text-badDark'
   if (balance <= 4) return 'text-warn dark:text-warnDark'
@@ -709,6 +716,11 @@ function OwnBalanceCard({ balance, year, holiday }) {
         </div>
         {holiday?.balance < 0 && (
           <p className="text-body-sm text-bad dark:text-badDark mt-1.5">You've had more paid holiday than you've built up so far.</p>
+        )}
+        {holiday?.startDateGuessed && (
+          <p className="text-body-sm text-ink3 dark:text-white/45 mt-1.5">
+            Worked out as if you started on {format(parseISO(holiday.guessedStartDate), 'd MMM yyyy')}, your first clock-in. If you started before then, ask your manager to add your start date.
+          </p>
         )}
       </div>
     )
@@ -862,7 +874,12 @@ function TeamBalanceRow({ balance: b, holiday, settingsPath, onLogPast }) {
 
   return (
     <div className="flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2.5">
-      <p className="flex-1 min-w-0 text-body font-semibold text-ink dark:text-white truncate">{b.name}</p>
+      <div className="flex-1 min-w-0">
+        <p className="text-body font-semibold text-ink dark:text-white truncate">{b.name}</p>
+        {b.isZeroHours && holiday?.status === 'ok' && holiday.startDateMissing && (
+          <p className="text-body-sm text-ink3 dark:text-white/45 truncate">{startDateNote(holiday)}</p>
+        )}
+      </div>
       <div className="shrink-0 text-right">{left}</div>
       <Button
         variant="secondary"

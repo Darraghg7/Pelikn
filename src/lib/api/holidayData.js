@@ -63,6 +63,33 @@ export function fetchClockEvents(staffIds, sinceDate) {
 }
 
 /**
+ * Each person's first clock-in on record, `{ [staffId]: occurred_at }`, for
+ * guessing a start date when none is saved. One tiny read per person: clock
+ * events are only fetched from the start of the holiday year, which doesn't
+ * reach back to when long-serving staff started.
+ */
+export async function fetchFirstClockIns(staffIds) {
+  const firsts = await Promise.all(staffIds.map(id => firstClockIn(q => q.eq('staff_id', id))))
+  const out = {}
+  staffIds.forEach((id, i) => { if (firsts[i]) out[id] = firsts[i] })
+  return out
+}
+
+/** The venue's first clock-in on record (occurred_at), or null — when it started clocking in on Pelikn. */
+export function fetchVenueFirstClockIn(venueId) {
+  return firstClockIn(q => q.eq('venue_id', venueId))
+}
+
+async function firstClockIn(filter) {
+  const res = await filter(supabase.from('clock_events').select('occurred_at'))
+    .eq('event_type', 'clock_in')
+    .order('occurred_at', { ascending: true })
+    .limit(1)
+  throwIfError(res)
+  return res.data?.[0]?.occurred_at ?? null
+}
+
+/**
  * Approved annual leave for these people touching the date range — a holiday
  * year's `start` / `end` ("yyyy-MM-dd", inclusive).
  */
