@@ -26,7 +26,8 @@ vi.mock('../../../contexts/SessionContext', () => ({
   useSession: () => ({ session: who.session, isManager: who.isManager }),
 }))
 vi.mock('../../../components/ui/Toast', () => ({ useToast: () => vi.fn() }))
-vi.mock('../../../hooks/useSettings', () => ({ useAppSettings: () => ({ maxStaffOffEnabled: false, maxStaffOffCount: 1 }) }))
+const venueSettings = { maxStaffOffEnabled: false, maxStaffOffCount: 1, allowUnpaidLeave: true }
+vi.mock('../../../hooks/useSettings', () => ({ useAppSettings: () => venueSettings }))
 vi.mock('../../../hooks/useTodaySummary', () => ({ invalidateSummaryCache: vi.fn() }))
 
 const sarah = { id: 'sarah', name: 'Sarah', employment_type: 'zero_hours', working_days: [4, 5, 6, 7], holiday_pay_eligible: true }
@@ -83,6 +84,7 @@ function renderPage() {
 describe('Time Off page — zero-hours holiday', () => {
   beforeEach(() => {
     update.mockClear(); eq.mockClear()
+    venueSettings.allowUnpaidLeave = true
     Object.assign(who, { session: { staffId: 'mgr', staffName: 'Manager' }, isManager: true, own: null })
   })
 
@@ -106,7 +108,24 @@ describe('Time Off page — zero-hours holiday', () => {
     expect(screen.queryByText(/missing a clock-out/)).toBeNull()
   })
 
-  it('asks the manager for the hours to pay and saves them on approval', async () => {
+  it('with unpaid leave switched off, approval leaves the holiday-pay-or-unpaid choice to the timesheet', async () => {
+    venueSettings.allowUnpaidLeave = false
+    renderPage()
+    expect(screen.queryByLabelText(/Holiday hours to pay Sarah/)).toBeNull()
+    expect(screen.getByText(/choose holiday pay or unpaid on the timesheet/)).toBeTruthy()
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Approve' })) })
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ status: 'approved' }))
+    expect(update.mock.calls[0][0]).not.toHaveProperty('paid_hours')
+  })
+
+  it('"Approve as unpaid leave" approves it as unpaid', async () => {
+    renderPage()
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Approve as unpaid leave/ })) })
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ status: 'approved', leave_type: 'unpaid' }))
+    expect(update.mock.calls[0][0]).not.toHaveProperty('paid_hours')
+  })
+
+  it('with unpaid leave switched on, asks the manager for the hours to pay and saves them on approval', async () => {
     renderPage()
     // Thu–Sun worker, Mon–Sun booked: the rota'd Saturday is 8 h, the other
     // three usual days a quarter of her 13.7 h week each → 8 + 10.3 = 18.3

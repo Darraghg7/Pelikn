@@ -18,6 +18,7 @@ import { holidayYearContaining } from '../../lib/holidayYear'
 import { useQueryClient } from '@tanstack/react-query'
 import HolidayPayModal from './HolidayPayModal'
 import { markUnpaid } from '../../lib/api/timeOff'
+import { sendPush } from '../../lib/sendPush'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import AddSessionModal from './AddSessionModal'
 import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard'
@@ -538,6 +539,14 @@ export default function TimesheetPage() {
     setMarkingUnpaid(null)
     if (error) { toast(error.message, 'error'); return }
     toast(`${name}'s ${format(parseISO(r.start_date), 'd MMM')} marked as unpaid leave`)
+    sendPush({
+      venueId,
+      notificationType: 'time_off_decision',
+      title: 'Time off changed',
+      body: `Your time off (${r.start_date} – ${r.end_date}) is unpaid leave. It doesn't use your holiday.`,
+      url: '/time-off',
+      staffIds: [r.staff_id],
+    })
     holidaySaved()
   }
 
@@ -848,12 +857,12 @@ export default function TimesheetPage() {
                         : <span className="text-warn dark:text-warnDark">holiday pay{suggestion != null ? ` (suggested ${suggestion} h)` : ''} or unpaid?</span>}
                     </p>
                   </div>
-                  {r.paid_hours == null && (
+                  {!isPeriodLocked && (
                     <Button
                       size="sm"
                       variant="secondary"
                       loading={markingUnpaid === r.id}
-                      disabled={isPeriodLocked || !!markingUnpaid}
+                      disabled={!!markingUnpaid}
                       onClick={() => setUnpaid(r, name)}
                       className="shrink-0"
                     >
