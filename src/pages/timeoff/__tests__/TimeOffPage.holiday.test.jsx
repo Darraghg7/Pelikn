@@ -96,6 +96,17 @@ describe('Time Off page — zero-hours holiday', () => {
     expect(screen.queryByText(/used of/)).toBeNull()
   })
 
+  it('a self-employed staff member gets no days allowance, an employee on one day a week does', () => {
+    const oneDay = { id: 'sam', employment_type: 'fixed', working_days: [5], holiday_pay_eligible: true }
+    Object.assign(who, { session: { staffId: 'sam', staffName: 'Sam' }, isManager: false, own: oneDay })
+    const { unmount } = renderPage()
+    expect(screen.getByText(/0 of 5\.5 used/)).toBeTruthy()   // 5.6 × 1 day, to the nearest half
+    unmount()
+    Object.assign(who, { own: { ...oneDay, holiday_pay_eligible: false } })
+    renderPage()
+    expect(screen.queryByText(/of 5\.5 used/)).toBeNull()
+  })
+
   it('shows just the hours left for each person, negative when overdrawn', () => {
     renderPage()
     expect(screen.getByText('63.2 h left')).toBeTruthy()       // Sarah: left, after leave
