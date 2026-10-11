@@ -19,7 +19,7 @@ export default function ExtrasLinks({ ids, className = '' }) {
   return (
     <div className={className}>
       <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">Extras</div>
-      <div className="rounded-xl border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark overflow-hidden divide-y divide-charcoal/6 dark:divide-white/8">
+      <div className="rounded-control border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark overflow-hidden divide-y divide-charcoal/6 dark:divide-white/8">
         {extras.map(f => (
           <button
             key={f.id}

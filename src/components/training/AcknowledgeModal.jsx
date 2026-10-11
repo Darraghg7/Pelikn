@@ -28,7 +28,7 @@ export default function AcknowledgeModal({ record, staffName, onSaved, onClose }
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 p-4" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-paperDark rounded-card w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="px-6 py-5 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between">
           <div>
             <p className="font-semibold text-charcoal dark:text-white">Training Record — Sign to Confirm</p>
@@ -57,7 +57,7 @@ export default function AcknowledgeModal({ record, staffName, onSaved, onClose }
           </div>
 
           {record.notes && (
-            <div className="bg-surface rounded-lg px-4 py-3">
+            <div className="bg-surface rounded-control px-4 py-3">
               <p className="text-micro text-charcoal/40 dark:text-white/35 uppercase tracking-widest mb-1">Notes</p>
               <p className="text-sm text-charcoal/70 dark:text-white/60 italic">{record.notes}</p>
             </div>

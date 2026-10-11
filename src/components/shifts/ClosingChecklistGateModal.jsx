@@ -52,7 +52,7 @@ export default function ClosingChecklistGateModal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-md p-6 flex flex-col gap-4 shadow-2xl max-h-[90dvh] overflow-y-auto"
+        className="bg-white dark:bg-paperDark rounded-card w-full max-w-md p-6 flex flex-col gap-4 shadow-2xl max-h-[90dvh] overflow-y-auto"
         style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
       >
         {!showOverride ? (
@@ -63,7 +63,7 @@ export default function ClosingChecklistGateModal({
             </div>
 
             {incomplete.map((d) => (
-              <div key={d.departmentId} className="rounded-xl border border-charcoal/10 dark:border-white/10 p-4 flex flex-col gap-2">
+              <div key={d.departmentId} className="rounded-control border border-charcoal/10 dark:border-white/10 p-4 flex flex-col gap-2">
                 <p className="text-sm font-medium text-charcoal dark:text-white">{d.departmentName}</p>
                 <p className="text-xs text-charcoal/50 dark:text-white/40">
                   {d.doneChecks}/{d.totalChecks} closing checks done — log each as done, or flag an issue, before you can clock out.
@@ -79,7 +79,7 @@ export default function ClosingChecklistGateModal({
             ))}
 
             {needsAccept.map((d) => (
-              <div key={d.departmentId} className="rounded-xl border border-charcoal/10 dark:border-white/10 p-4 flex flex-col gap-2">
+              <div key={d.departmentId} className="rounded-control border border-charcoal/10 dark:border-white/10 p-4 flex flex-col gap-2">
                 <p className="text-sm font-medium text-charcoal dark:text-white">{d.departmentName}</p>
                 <p className="text-xs text-charcoal/50 dark:text-white/40">
                   Closing checklist is complete. You're on record for tonight's close — confirm you've checked it yourself before clocking out.
@@ -124,7 +124,7 @@ export default function ClosingChecklistGateModal({
             <select
               value={managerId}
               onChange={(e) => { setManagerId(e.target.value); setPinError('') }}
-              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white"
+              className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white"
             >
               <option value="">Select manager…</option>
               {managers.map((m) => (
@@ -138,7 +138,7 @@ export default function ClosingChecklistGateModal({
               value={pin}
               onChange={(e) => { setPin(e.target.value.replace(/\D/g, '')); setPinError('') }}
               placeholder="4-digit PIN"
-              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-center tracking-[0.4em] text-charcoal dark:text-white"
+              className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-center tracking-[0.4em] text-charcoal dark:text-white"
             />
             {pinError && <p className="text-xs text-danger">{pinError}</p>}
             <div className="flex gap-2">

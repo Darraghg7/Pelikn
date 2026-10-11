@@ -24,6 +24,7 @@ import { captureSilent } from '../../lib/reportError'
 import { londonDateStr, formatLondon, resolveShiftInstants } from '../../lib/time'
 import { SkeletonList } from '../ui/Skeleton'
 import Button from '../ui/Button'
+import { radius } from '../../lib/tokens'
 
 /* ── Helpers ─────────────────────────────────────────────────────────── */
 function sessionDateLabel(date) {
@@ -62,7 +63,7 @@ function ConfirmDialog({ onConfirm, onCancel, saving }) {
       <div
         className="bg-paper dark:bg-paperDark shadow-[0_-8px_32px_theme(colors.black/15%)]"
         style={{
-          borderRadius: '20px 20px 0 0',
+          borderRadius: `${radius.sheet}px ${radius.sheet}px 0 0`,
           padding: '28px 24px 32px', width: '100%', maxWidth: 480,
           // Without these the sheet overflows off the *top* of the screen when it
           // is taller than the viewport, and nothing scrolls — the confirm button
@@ -73,7 +74,7 @@ function ConfirmDialog({ onConfirm, onCancel, saving }) {
       >
         {/* Icon */}
         <div className="bg-warnBg dark:bg-warn/25 text-warn dark:text-warnDark" style={{
-          width: 48, height: 48, borderRadius: 14, marginBottom: 16,
+          width: 48, height: 48, borderRadius: radius.card, marginBottom: 16,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -212,18 +213,18 @@ function EditSessionForm({ session, staffId, onSave, onCancel, isManagerEdit }) 
           <div className="flex flex-col gap-1">
             <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Clock In</label>
             <input type="time" value={clockIn} onChange={(e) => setClockIn(e.target.value)}
-              className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
+              className="bg-charcoal/4 dark:bg-white/5 rounded-control px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock Out</label>
             <input type="time" value={clockOut} onChange={(e) => setClockOut(e.target.value)}
-              className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
+              className="bg-charcoal/4 dark:bg-white/5 rounded-control px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Break</label>
           <select value={breakMin} onChange={(e) => setBreakMin(e.target.value)}
-            className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30">
+            className="bg-charcoal/4 dark:bg-white/5 rounded-control px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30">
             {BREAK_OPTIONS.map((m) => <option key={m} value={String(m)}>{m === 0 ? 'No break' : `${m} min`}</option>)}
           </select>
         </div>
@@ -236,7 +237,7 @@ function EditSessionForm({ session, staffId, onSave, onCancel, isManagerEdit }) 
               value={reason}
               onChange={e => setReason(e.target.value)}
               placeholder="e.g. forgot to clock out"
-              className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30"
+              className="bg-charcoal/4 dark:bg-white/5 rounded-control px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30"
             />
           </div>
         )}
@@ -434,7 +435,7 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
         <div className="flex flex-col gap-1">
           <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Date</label>
           <select value={date} onChange={(e) => setDate(e.target.value)}
-            className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30">
+            className="bg-charcoal/4 dark:bg-white/5 rounded-control px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30">
             {dateOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </div>
@@ -442,18 +443,18 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
           <div className="flex flex-col gap-1">
             <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock In</label>
             <input type="time" value={clockIn} onChange={(e) => setClockIn(e.target.value)}
-              className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
+              className="bg-charcoal/4 dark:bg-white/5 rounded-control px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock Out</label>
             <input type="time" value={clockOut} onChange={(e) => setClockOut(e.target.value)}
-              className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
+              className="bg-charcoal/4 dark:bg-white/5 rounded-control px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Break</label>
           <select value={breakMin} onChange={(e) => setBreakMin(e.target.value)}
-            className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30">
+            className="bg-charcoal/4 dark:bg-white/5 rounded-control px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30">
             {BREAK_OPTIONS.map((m) => <option key={m} value={String(m)}>{m === 0 ? 'No break' : `${m} min`}</option>)}
           </select>
         </div>
@@ -465,7 +466,7 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
               value={reason}
               onChange={e => setReason(e.target.value)}
               placeholder="e.g. forgot to clock in"
-              className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30"
+              className="bg-charcoal/4 dark:bg-white/5 rounded-control px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30"
             />
           </div>
         )}
@@ -568,5 +569,5 @@ export default function RecentShifts({ staffId, isManagerEdit = false, inline = 
   )
 
   if (inline) return body
-  return <div className="bg-white dark:bg-paperDark rounded-2xl p-5">{body}</div>
+  return <div className="bg-white dark:bg-paperDark rounded-card p-5">{body}</div>
 }

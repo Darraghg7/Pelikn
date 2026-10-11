@@ -20,7 +20,7 @@ export function WidgetShell({ title, badge, to, linkLabel, aside, flush = false,
   const statusDot = { good: 'bg-good', warning: 'bg-warn', bad: 'bg-bad' }
   const href = to && venueSlug ? `/v/${venueSlug}${to}` : to
   return (
-    <div className="bg-white dark:bg-paperDark rounded-2xl border border-line dark:border-white/10 overflow-hidden h-full flex flex-col">
+    <div className="bg-white dark:bg-paperDark rounded-card border border-line dark:border-white/10 overflow-hidden h-full flex flex-col">
       <div className={`flex items-center justify-between gap-2.5 px-3.5 sm:px-3.5 pt-2.5 shrink-0 ${flush ? 'pb-2.5 border-b border-line dark:border-white/10' : 'pb-2'}`}>
         <div className="flex items-center gap-2 min-w-0">
           {status && !badge && <span className={`w-2 h-2 rounded-full shrink-0 ${statusDot[status] ?? 'bg-ink4'}`} />}

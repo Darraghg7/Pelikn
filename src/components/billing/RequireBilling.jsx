@@ -40,7 +40,7 @@ export default function RequireBilling({ children }) {
 
   return (
     <div className="min-h-dvh bg-surface font-sans flex flex-col items-center justify-center px-5 py-12 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-brand/10 flex items-center justify-center mb-5">
+      <div className="w-14 h-14 rounded-card bg-brand/10 flex items-center justify-center mb-5">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-brand dark:text-accent" aria-hidden="true">
           <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
@@ -54,7 +54,7 @@ export default function RequireBilling({ children }) {
         {isManager && (
           <Link
             to={`/v/${venueSlug}/settings/billing`}
-            className="bg-brand text-cream py-3 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors"
+            className="bg-brand text-cream py-3 rounded-control text-sm font-semibold hover:bg-brand/90 transition-colors"
           >
             {access.reason === 'payment_failed' ? 'Update payment' : 'Choose a plan'}
           </Link>

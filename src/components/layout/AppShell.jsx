@@ -18,7 +18,7 @@ import NavTopbar from './NavTopbar'
 import { routeToNav, buildManagerCats, buildStaffCats, IcoOverview, PanelIcons } from './navConfig'
 import { initials } from '../../lib/names'
 import Button from '../ui/Button'
-import { colors, alpha, white } from '../../lib/tokens'
+import { colors, alpha, white, radius } from '../../lib/tokens'
 
 // Per-venue cache — busted automatically after TTL or on app restart
 const CACHE_TTL = 60_000 // 1 minute
@@ -214,7 +214,7 @@ function SideItem({ to, icon: Ico, label, badge, alert, isActive }) {
       onPointerEnter={() => preloadRoute(to)}
       onFocus={() => preloadRoute(to)}
       className={[
-        'relative flex items-center gap-3 px-3.5 py-2 mx-2 rounded-lg text-body font-medium',
+        'relative flex items-center gap-3 px-3.5 py-2 mx-2 rounded-control text-body font-medium',
         isActive
           ? 'bg-white/[0.14] text-white font-semibold'
           : alert
@@ -249,7 +249,7 @@ function SubItem({ to, icon: Ico, label, badge, alert, isActive }) {
       onPointerEnter={() => preloadRoute(to)}
       onFocus={() => preloadRoute(to)}
       className={[
-        'relative flex items-center gap-2.5 pl-5 pr-4 py-[7px] mx-2 rounded-lg text-body-sm',
+        'relative flex items-center gap-2.5 pl-5 pr-4 py-[7px] mx-2 rounded-control text-body-sm',
         isActive
           ? 'text-white font-semibold bg-white/[0.1]'
           : alert
@@ -280,10 +280,10 @@ function SubItem({ to, icon: Ico, label, badge, alert, isActive }) {
 /* ── Pro-locked nav item (shown to starter users as an upsell hint) ─────────── */
 function LockedSubItem({ label }) {
   return (
-    <div className="flex items-center gap-2.5 pl-5 pr-4 py-[7px] mx-2 rounded-lg text-body-sm text-white/25 cursor-default select-none">
+    <div className="flex items-center gap-2.5 pl-5 pr-4 py-[7px] mx-2 rounded-control text-body-sm text-white/25 cursor-default select-none">
       <span className="w-1 h-1 rounded-full shrink-0 bg-white/15" />
       <span className="flex-1 truncate">{label}</span>
-      <span className="text-micro tracking-widest uppercase font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0">Pro</span>
+      <span className="text-micro tracking-widest uppercase font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded-tag shrink-0">Pro</span>
     </div>
   )
 }
@@ -346,7 +346,7 @@ function VenueSwitcher({ venues, currentSlug, onSelect }) {
         </svg>
       </Button>
       {open && (
-        <div className="absolute top-full left-0 mt-2 w-52 bg-brand-800 rounded-xl shadow-dropdown border border-white/10 overflow-hidden z-50 animate-fade-in">
+        <div className="absolute top-full left-0 mt-2 w-52 bg-brand-800 rounded-control shadow-dropdown border border-white/10 overflow-hidden z-50 animate-fade-in">
           <p className="px-3 pt-2.5 pb-1.5 text-micro tracking-[0.12em] uppercase text-white/30 font-semibold">Your venues</p>
           {venues.map(v => (
             <button
@@ -544,7 +544,7 @@ export default function AppShell({ children }) {
     <div className="min-h-dvh flex font-sans" style={{ paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}>
 
       {/* Skip to content — a11y */}
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:z-[100] focus:top-2 focus:left-2 focus:bg-accent focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-semibold">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:z-[100] focus:top-2 focus:left-2 focus:bg-accent focus:text-white focus:px-4 focus:py-2 focus:rounded-control focus:text-sm focus:font-semibold">
         Skip to content
       </a>
 
@@ -586,7 +586,7 @@ export default function AppShell({ children }) {
             title="Expand panel (⌘\)"
             style={{
               position: 'fixed', left: 80, top: '50%', transform: 'translateY(-50%)',
-              width: 18, height: 56, borderRadius: '0 6px 6px 0',
+              width: 18, height: 56, borderRadius: `0 ${radius.tag}px ${radius.tag}px 0`,
               background: colors.sidebar.panel, color: alpha(colors.cream, 0.50),
               border: 'none', borderLeft: `1px solid ${white(0.07)}`,
               cursor: 'pointer', zIndex: 39,

@@ -133,7 +133,7 @@ export function formatPct(value) {
   return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)}%`
 }
 
-const CELL_BASE = 'w-[4.5rem] sm:w-24 h-8 rounded-lg inline-flex items-center justify-center font-mono text-body-sm font-semibold'
+const CELL_BASE = 'w-[4.5rem] sm:w-24 h-8 rounded-control inline-flex items-center justify-center font-mono text-body-sm font-semibold'
 
 export default function TempHistoryView({
   items,
@@ -248,7 +248,7 @@ export default function TempHistoryView({
                         {renderCell(item, dateStr, 'pm')}
                       </div>
                       {notes.map((note, i) => (
-                        <p key={i} className="mt-2 px-3 py-2 rounded-lg bg-badBg dark:bg-bad/20 text-body-sm text-ink2 dark:text-white/75">
+                        <p key={i} className="mt-2 px-3 py-2 rounded-control bg-badBg dark:bg-bad/20 text-body-sm text-ink2 dark:text-white/75">
                           <span className="font-semibold text-bad dark:text-badDark">Corrective action</span> · {note}
                         </p>
                       ))}

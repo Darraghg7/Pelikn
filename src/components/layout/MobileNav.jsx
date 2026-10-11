@@ -160,7 +160,7 @@ function NavReorderSheet({ items, onSave, onClose }) {
   return (
     <div className="fixed inset-0 z-[200] flex items-end" style={{ touchAction: 'none' }}>
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white dark:bg-paperDark rounded-t-3xl w-full shadow-2xl" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 20px)' }}>
+      <div className="relative bg-white dark:bg-paperDark rounded-t-sheet w-full shadow-2xl" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 20px)' }}>
         <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-charcoal/8 dark:border-white/10">
           <div>
             <p className="font-semibold text-charcoal dark:text-white text-base">Reorder tabs</p>
@@ -177,7 +177,7 @@ function NavReorderSheet({ items, onSave, onClose }) {
                 key={item.key}
                 ref={el => { rowRefs.current[index] = el }}
                 className={[
-                  'flex items-center gap-4 px-3 py-4 rounded-2xl my-1 select-none transition-colors',
+                  'flex items-center gap-4 px-3 py-4 rounded-card my-1 select-none transition-colors',
                   isDragging ? 'bg-charcoal/6 dark:bg-white/10 shadow-lg scale-[1.02]' : 'bg-transparent active:bg-charcoal/4 dark:active:bg-white/6',
                 ].join(' ')}
                 style={{ transform: isDragging ? 'scale(1.02)' : undefined, touchAction: 'none' }}
@@ -194,7 +194,7 @@ function NavReorderSheet({ items, onSave, onClose }) {
                   </svg>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="w-9 h-9 rounded-xl bg-charcoal/6 dark:bg-white/8 flex items-center justify-center text-charcoal/50 dark:text-white/40">
+                  <span className="w-9 h-9 rounded-control bg-charcoal/6 dark:bg-white/8 flex items-center justify-center text-charcoal/50 dark:text-white/40">
                     <item.icon active={false} />
                   </span>
                   <span className="text-sm font-semibold text-charcoal dark:text-white">{item.label}</span>
@@ -473,7 +473,7 @@ export default function MobileNav() {
                       aria-label={`${tab.label} (restricted)`}
                       className="flex flex-col items-center justify-center flex-1 gap-0.5 text-charcoal/20 dark:text-white/15 cursor-not-allowed select-none"
                     >
-                      <span className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl">
+                      <span className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-control">
                         <Icon active={false} />
                         <span className="text-micro leading-none tracking-wide font-medium">
                           {tab.label}
@@ -503,7 +503,7 @@ export default function MobileNav() {
                     ].join(' ')}
                   >
                     <span className={[
-                      'flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all',
+                      'flex flex-col items-center gap-0.5 px-3 py-1 rounded-control transition-all',
                       isActive ? 'bg-navpill dark:bg-brand/30' : '',
                     ].join(' ')}>
                       <Icon active={isActive} />

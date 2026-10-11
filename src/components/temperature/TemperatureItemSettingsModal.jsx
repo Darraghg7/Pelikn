@@ -139,7 +139,7 @@ export function TemperatureItemSettingsForm({
           <input
             value={form.name}
             onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-            className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+            className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </label>
         <label>
@@ -150,7 +150,7 @@ export function TemperatureItemSettingsForm({
             value={form.min_temp}
             onChange={e => setForm(f => ({ ...f, min_temp: e.target.value }))}
             placeholder={suggestions.min}
-            className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+            className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </label>
         <label>
@@ -161,7 +161,7 @@ export function TemperatureItemSettingsForm({
             value={form.max_temp ?? ''}
             onChange={e => setForm(f => ({ ...f, max_temp: e.target.value }))}
             placeholder={suggestions.max}
-            className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+            className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </label>
         <p className="sm:col-span-3 text-caption text-charcoal/35 dark:text-white/30 -mt-1">
@@ -180,7 +180,7 @@ export function TemperatureItemSettingsForm({
                 type="button"
                 onClick={() => toggleDay(day.value)}
                 className={[
-                  'px-3 py-2 rounded-xl border text-xs font-semibold transition-all',
+                  'px-3 py-2 rounded-control border text-xs font-semibold transition-all',
                   active
                     ? 'bg-charcoal text-cream border-charcoal dark:border-white'
                     : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
@@ -204,7 +204,7 @@ export function TemperatureItemSettingsForm({
                 type="button"
                 onClick={() => togglePeriod(period.value)}
                 className={[
-                  'py-2.5 rounded-xl border text-sm font-semibold transition-all',
+                  'py-2.5 rounded-control border text-sm font-semibold transition-all',
                   active
                     ? 'bg-charcoal text-cream border-charcoal dark:border-white'
                     : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',

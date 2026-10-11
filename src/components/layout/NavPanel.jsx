@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { T } from './navConfig'
-import { colors, alpha, white, black } from '../../lib/tokens'
+import { colors, alpha, white, black, radius } from '../../lib/tokens'
 
 function PanelItem({ item, isActive, onClick }) {
   const [hovered, setHovered] = useState(false)
@@ -18,7 +18,7 @@ function PanelItem({ item, isActive, onClick }) {
       style={{
         display: 'flex', alignItems: 'center', gap: 10,
         width: 'calc(100% - 16px)', margin: '1px 8px',
-        padding: '8px 10px', borderRadius: 8,
+        padding: '8px 10px', borderRadius: radius.control,
         background: isDisabled ? 'transparent' : isActive ? T.bgActive : hovered ? T.bgHover : 'transparent',
         border: !isDisabled && isActive ? `1px solid ${white(0.10)}` : '1px solid transparent',
         color: isDisabled ? T.inkFaint : isActive ? T.inkBright : isWarn ? T.warn : T.ink,
@@ -52,7 +52,7 @@ function PanelItem({ item, isActive, onClick }) {
         <span
           className="font-mono text-micro font-bold grid place-items-center"
           style={{
-            minWidth: 18, height: 17, padding: '0 5px', borderRadius: 8,
+            minWidth: 18, height: 17, padding: '0 5px', borderRadius: radius.control,
             background: isWarn ? T.warnBg : white(0.12),
             color: isWarn ? T.warn : T.inkBright,
           }}
@@ -74,7 +74,7 @@ function CollapseChevronButton({ onClick, isPreview }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         marginLeft: isPreview ? 6 : 'auto',
-        width: 22, height: 22, borderRadius: 5, padding: 0,
+        width: 22, height: 22, borderRadius: radius.tag, padding: 0,
         background: hovered ? white(0.07) : 'transparent',
         border: 'none', cursor: 'pointer',
         color: hovered ? T.inkBright : T.inkMuted,
@@ -111,7 +111,7 @@ function PanelVenueSwitcher({ venues, currentSlug, onSelect, onOverview }) {
         onMouseLeave={() => setHovered(false)}
         className="font-sans text-caption font-semibold cursor-pointer transition-[background,color,border-color] duration-[120ms] flex items-center gap-[7px] w-full"
         style={{
-          padding: '7px 10px', borderRadius: 8,
+          padding: '7px 10px', borderRadius: radius.control,
           background: open ? white(0.16) : hovered ? white(0.14) : white(0.09),
           border: open ? `1px solid ${white(0.22)}` : `1px solid ${white(0.12)}`,
           color: hovered || open ? T.inkBright : alpha(colors.cream, 0.80),
@@ -131,7 +131,7 @@ function PanelVenueSwitcher({ venues, currentSlug, onSelect, onOverview }) {
       <div style={{
         position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
         background: white(),
-        borderRadius: 10, overflow: 'hidden',
+        borderRadius: radius.control, overflow: 'hidden',
         border: `1px solid ${alpha(colors.ink, 0.08)}`,
         boxShadow: `0 4px 20px ${black(0.14)}`,
         zIndex: 50,
@@ -254,7 +254,7 @@ export default function NavPanel({
           {isPreview && (
             <span
               className="font-mono text-micro font-bold tracking-[0.08em] ml-auto"
-              style={{ padding: '2px 7px', borderRadius: 5, background: alpha(colors.accent, 0.18), color: T.warn }}
+              style={{ padding: '2px 7px', borderRadius: radius.tag, background: alpha(colors.accent, 0.18), color: T.warn }}
             >
               Browsing
             </span>

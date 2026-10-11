@@ -17,7 +17,7 @@ export default function AppSkeleton() {
           <Skeleton className="h-7 w-48 mb-5" />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 p-4">
+              <div key={i} className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 p-4">
                 <Skeleton className="h-3 w-2/3 mb-3" />
                 <Skeleton className="h-8 w-1/2 mb-2" />
                 <Skeleton className="h-3 w-full" />

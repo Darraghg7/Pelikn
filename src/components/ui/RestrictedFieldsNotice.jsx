@@ -44,7 +44,7 @@ export default function RestrictedFieldsNotice({ fields = ['pay'], className = '
   }
 
   return (
-    <div role="alert" className={`rounded-xl bg-warning/10 text-warning px-4 py-3 text-xs font-medium ${className}`}>
+    <div role="alert" className={`rounded-control bg-warning/10 text-warning px-4 py-3 text-xs font-medium ${className}`}>
       {sessionProblem ? (
         <>
           <span>
