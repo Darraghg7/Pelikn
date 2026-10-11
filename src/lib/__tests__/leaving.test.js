@@ -91,6 +91,13 @@ describe('leaverHolidayDays', () => {
   it('first-year leavers earn from their start date', () => {
     const r = leaverHolidayDays({ ...base, startDate: '2026-04-01', lastDay: '2026-09-30', requests: [] })
     expect(r.earned).toBe(14)
+    expect(r.startDateMissing).toBe(false)
+  })
+
+  it('with no start date saved, assumes the whole year and says so', () => {
+    const r = leaverHolidayDays({ ...base, requests: [] })
+    expect(r.earned).toBe(13.9)
+    expect(r.startDateMissing).toBe(true)
   })
 
   it('counts holiday already paid in days', () => {

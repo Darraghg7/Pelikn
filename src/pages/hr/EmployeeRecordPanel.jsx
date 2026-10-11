@@ -848,6 +848,15 @@ function LeaveTab({ staffId, venueSlug, staff }) {
         ))}
       </div>
 
+      {isZeroHrs && holiday?.status === 'ok' && holiday.startDateMissing && (
+        <p className="text-body-sm text-ink3 dark:text-white/45">
+          {holiday.startDateGuessed
+            ? `No start date saved, so their first clock-in (${format(parseISO(holiday.guessedStartDate), 'd MMM yyyy')}) is used and their holiday is built up from then. `
+            : 'No start date saved, so they get the full holiday year. '}
+          Add their start date in Team → Staff to be sure.
+        </p>
+      )}
+
       {loading ? (
         <SkeletonList rows={4} />
       ) : requests.length === 0 ? (

@@ -4,11 +4,12 @@ import { useVenue } from '../contexts/VenueContext'
 import { useAppSettings } from './useSettings'
 import {
   fetchClockEvents, fetchAnnualLeave, fetchRotaHours, fetchPaidOut, fetchCarryOver, fetchEntitlementOverride,
+  fetchFirstClockIns, fetchVenueFirstClockIn,
 } from '../lib/api/holidayData'
 import { fetchStaffPrivateFields } from '../lib/api/staffRestricted'
 import { zeroHoursHoliday, NI_LOOKBACK_WEEKS } from '../lib/holiday'
 import { holidayYearContaining, previousHolidayYear } from '../lib/holidayYear'
-import { londonToday } from '../lib/time'
+import { londonToday, londonDateStr } from '../lib/time'
 import { calculateEntitlementDays, daysUsedInHolidayYear } from './useLeaveBalance'
 
 export const HOLIDAY_BALANCES_KEY = 'holiday-balances'
@@ -28,6 +29,30 @@ function earliestNeeded(holidayYear, today) {
   const [y, m, d] = today.split('-').map(Number)
   const lookback = new Date(Date.UTC(y, m - 1, d - 7 * (NI_LOOKBACK_WEEKS + 1))).toISOString().slice(0, 10)
   return lookback < holidayYear.start ? lookback : holidayYear.start
+}
+
+/**
+ * For NI staff with no start date saved: their first clock-in and the venue's,
+ * so lib/holiday can tell a new starter from someone who was there before the
+ * venue started using Pelikn. Nothing is read for GB or when every start date
+ * is saved.
+ */
+async function fetchStartDateClues(region, venueId, staffIds) {
+  if (region !== 'ni' || !staffIds.length) return { firstClockIns: {}, venueFirstClockIn: null }
+  const [firstClockIns, venueFirstClockIn] = await Promise.all([
+    fetchFirstClockIns(staffIds),
+    fetchVenueFirstClockIn(venueId),
+  ])
+  return { firstClockIns, venueFirstClockIn }
+}
+
+/** zeroHoursHoliday's start-date guess inputs for one person, as London dates. */
+function startDateClues(clues, staffId) {
+  const first = clues.firstClockIns[staffId]
+  return {
+    firstClockIn: first ? londonDateStr(first) : null,
+    venueFirstClockIn: clues.venueFirstClockIn ? londonDateStr(clues.venueFirstClockIn) : null,
+  }
 }
 
 /**
@@ -53,7 +78,7 @@ export function useHolidayBalances(staffList, holidayYear) {
   const today = londonToday()
 
   const query = useQuery({
-    queryKey: [HOLIDAY_BALANCES_KEY, venueId, idsKey, holidayYear.start],
+    queryKey: [HOLIDAY_BALANCES_KEY, venueId, idsKey, holidayYear.start, holidayRegion],
     enabled: !!venueId && idsKey.length > 0,
     staleTime: 60_000,
     queryFn: async () => {
@@ -65,13 +90,15 @@ export function useHolidayBalances(staffList, holidayYear) {
         fetchPaidOut(ids, holidayYear.startYear),
         fetchCarryOver(ids, holidayYear.startYear),
       ])
-      return { events, leave, priv, paidOut, carriedOver }
+      const noStartDate = zero.filter(s => !(priv.get(s.id)?.start_date ?? s.start_date)).map(s => s.id)
+      const clues = await fetchStartDateClues(holidayRegion, venueId, noStartDate)
+      return { events, leave, priv, paidOut, carriedOver, clues }
     },
   })
 
   const byId = useMemo(() => {
     if (!query.data) return {}
-    const { events, leave, priv, paidOut, carriedOver } = query.data
+    const { events, leave, priv, paidOut, carriedOver, clues } = query.data
     const eventsBy = groupBy(events, 'staff_id')
     const leaveBy  = groupBy(leave, 'staff_id')
     const paidBy   = groupBy(paidOut, 'staff_id')
@@ -89,6 +116,7 @@ export function useHolidayBalances(staffList, holidayYear) {
         holidayYear,
         today,
         now,
+        ...startDateClues(clues, s.id),
       })
     }
     return out
@@ -182,7 +210,7 @@ export function useLastYearLeft(staff, holidayYear, enabled) {
   const last = useMemo(() => previousHolidayYear(holidayYear), [holidayYear])
   const isZeroHours = staff?.employment_type === 'zero_hours'
   const query = useQuery({
-    queryKey: [HOLIDAY_BALANCES_KEY, 'last-year-left', venueId, staff?.id, last.start, isZeroHours],
+    queryKey: [HOLIDAY_BALANCES_KEY, 'last-year-left', venueId, staff?.id, last.start, isZeroHours, holidayRegion],
     enabled: !!venueId && !!staff?.id && enabled,
     staleTime: 60_000,
     queryFn: async () => {
@@ -195,18 +223,21 @@ export function useLastYearLeft(staff, holidayYear, enabled) {
         isZeroHours ? fetchStaffPrivateFields() : null,
         isZeroHours ? null : fetchEntitlementOverride(staff.id, last.startYear),
       ])
-      return { leave, paidOut, carriedOver, events, priv, entitlement }
+      const hasStartDate = !!(priv?.get(staff.id)?.start_date ?? staff.start_date)
+      const clues = await fetchStartDateClues(isZeroHours ? holidayRegion : null, venueId, hasStartDate ? [] : ids)
+      return { leave, paidOut, carriedOver, events, priv, entitlement, clues }
     },
   })
   return useMemo(() => {
     if (!query.data || !staff) return null
-    const { leave, paidOut, carriedOver, events, priv, entitlement } = query.data
+    const { leave, paidOut, carriedOver, events, priv, entitlement, clues } = query.data
     if (isZeroHours) {
       const h = zeroHoursHoliday({
         region: holidayRegion,
         staff: { ...staff, start_date: priv?.get(staff.id)?.start_date ?? staff.start_date ?? null },
         events, requests: leave, paidOut, carriedOver,
         holidayYear: last, today: last.end, now: new Date(),
+        ...startDateClues(clues, staff.id),
       })
       return h.status === 'ok' ? { hours: Math.max(0, h.balance), yearLabel: last.label } : null
     }

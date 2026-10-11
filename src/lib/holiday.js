@@ -289,6 +289,20 @@ export function holidayUsed(requests, { holidayYear, avgWeekHours, workingDays }
 }
 
 /**
+ * How long after the venue's first clock-in someone's first clock-in has to
+ * be before we believe it's when they started. Covers the first few weeks of a
+ * venue using Pelikn, while people already working there clock in for the
+ * first time as their shifts come round.
+ */
+export const GUESS_AFTER_VENUE_DAYS = 42
+
+/** Is someone's first clock-in believable as their start date? (London "yyyy-MM-dd" strings) */
+export function startDateBelievable(firstClockIn, venueFirstClockIn) {
+  if (!firstClockIn || !venueFirstClockIn) return false
+  return daysBetween(venueFirstClockIn, firstClockIn) - 1 > GUESS_AFTER_VENUE_DAYS
+}
+
+/**
  * One zero-hours person's holiday position.
  *
  * Returns `{ status }` first: 'self_employed' (no statutory holiday),
@@ -299,17 +313,22 @@ export function holidayUsed(requests, { holidayYear, avgWeekHours, workingDays }
  * `paidOut` is holiday already paid outside a dated booking (migration 150);
  * its hours count as used. `carriedOver` is holiday a manager brought forward
  * from last holiday year (migration 153); its hours add to the balance.
+ *
+ * With no start date saved, `firstClockIn` (their first clock-in on record,
+ * London "yyyy-MM-dd") stands in — but only when it's believable: clearly after
+ * `venueFirstClockIn`, the venue's own first clock-in. A venue new to Pelikn
+ * has no clock-ins from before it started using it, so everyone already working
+ * there would otherwise look like a new starter and lose most of their year.
+ * When the guess isn't believable they get the full year and
+ * `startDateMissing` asks for the real date.
  */
-export function zeroHoursHoliday({ region, staff, events, requests, paidOut = [], carriedOver = [], holidayYear, today, now }) {
+export function zeroHoursHoliday({ region, staff, events, requests, paidOut = [], carriedOver = [], holidayYear, today, now, firstClockIn = null, venueFirstClockIn = null }) {
   if (staff?.holiday_pay_eligible === false) return { status: 'self_employed' }
   if (region !== 'gb' && region !== 'ni') return { status: 'needs_region' }
 
   const { shifts, missingClockOut } = workedShifts(events, now)
-  // No start date saved: their first clock-in stands in, so a new starter
-  // can't show a whole year's holiday. (Events reach back over a year, so
-  // anyone here before this year has an earlier clock-in and isn't affected.)
-  const firstClockIn = shifts.length ? londonDateStr(shifts[0].start) : null
-  const startDate = staff?.start_date ?? firstClockIn
+  const guessed = !staff?.start_date && startDateBelievable(firstClockIn, venueFirstClockIn)
+  const startDate = staff?.start_date ?? (guessed ? firstClockIn : null)
   const a = holidayAllowance({ region, shifts, holidayYear, today, startDate })
   const { used, estimated } = holidayUsed(requests, {
     holidayYear,
@@ -333,7 +352,10 @@ export function zeroHoursHoliday({ region, staff, events, requests, paidOut = []
     weeksInAverage: a.weeksUsed,
     hoursThisYear: a.hoursThisYear,
     firstYear: a.firstYear,
-    startDateGuessed: !staff?.start_date && !!firstClockIn,
+    // NI only: GB holiday comes from hours worked, so the start date doesn't matter
+    startDateMissing: region === 'ni' && !staff?.start_date,
+    startDateGuessed: region === 'ni' && guessed,
+    guessedStartDate: region === 'ni' && guessed ? firstClockIn : null,
     missingClockOuts: missingClockOut.filter(s => inHolidayYear(londonDateStr(s), holidayYear)).length,
   }
 }

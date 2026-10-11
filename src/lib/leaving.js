@@ -168,6 +168,9 @@ export function leaverHolidayHours({ region, staff, events, requests, paidOut = 
     weeksInAverage: weeksUsed,
     usedIsEstimate: estimated,
     noAverage: region === 'ni' && avgWeekHours == null,
+    // NI pro-rates from the start date. With none saved they're treated as
+    // here all holiday year (no guess from clock-ins: this is what gets paid).
+    startDateMissing: region === 'ni' && !staff?.start_date,
   }
 }
 
@@ -210,6 +213,7 @@ export function leaverHolidayDays({ entitlementDays, requests, paidOut = [], car
     owed: round1(earned + carried - used),
     fullYear: entitlementDays,
     share,
+    startDateMissing: !startDate,
   }
 }
 
