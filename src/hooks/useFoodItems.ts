@@ -1,5 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '../lib/supabase'
+import {
+  fetchFoodItems, fetchFoodItem, setFoodItemActive, replaceFoodItemAllergens,
+  updateFoodItemMayContain, createFoodItem, addFoodItemAllergens,
+} from '../lib/api/allergens'
 import { useVenue } from '../contexts/VenueContext'
 
 interface FoodAllergen {
@@ -33,20 +36,7 @@ export function useFoodItems(search = '', options: UseFoodItemsOptions = {}): {
 
   const { data: items = [], isLoading: loading, isError } = useQuery({
     queryKey,
-    queryFn: async () => {
-      let q = supabase
-        .from('food_items')
-        .select('*, food_allergens(allergen)')
-        .eq('venue_id', venueId)
-        .order('name')
-
-      if (!includeInactive) q = q.eq('is_active', true)
-      if (search) q = q.ilike('name', `%${search}%`)
-
-      const { data, error } = await q
-      if (error) throw error
-      return (data ?? []) as FoodItem[]
-    },
+    queryFn: async () => (await fetchFoodItems(venueId!, search, includeInactive)) as FoodItem[],
     enabled: !!venueId,
   })
 
@@ -60,18 +50,58 @@ export function useFoodItem(id: string): { item: FoodItem | null; loading: boole
 
   const { data: item = null, isLoading: loading } = useQuery({
     queryKey: ['food_item', venueId, id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('food_items')
-        .select('*, food_allergens(allergen)')
-        .eq('id', id)
-        .eq('venue_id', venueId)
-        .single()
-      if (error) throw error
-      return (data ?? null) as FoodItem | null
-    },
+    queryFn: async () => (await fetchFoodItem(venueId!, id)) as FoodItem | null,
     enabled: !!id && !!venueId,
   })
 
   return { item, loading }
+}
+
+/** Saving, hiding and showing dishes. Each one refreshes the lists and detail view that show them. */
+export function useFoodItemActions() {
+  const { venueId } = useVenue()
+  const queryClient = useQueryClient()
+  const refresh = () => Promise.all([
+    queryClient.invalidateQueries({ queryKey: ['food_items', venueId] }),
+    queryClient.invalidateQueries({ queryKey: ['food_item', venueId] }),
+  ])
+
+  return {
+    setActive: async (id: string, isActive: boolean) => {
+      await setFoodItemActive(venueId!, id, isActive)
+      void refresh()
+    },
+    /** Edit an existing dish. `mayContainFailed` is true when the allergens saved but the rest didn't. */
+    update: async (
+      id: string,
+      input: { sessionToken: string | undefined; name: string; description: string; allergens: string[]; mayContain: string[]; verbalNote: string },
+    ): Promise<{ mayContainFailed: boolean }> => {
+      await replaceFoodItemAllergens({
+        sessionToken: input.sessionToken, venueId: venueId!, id,
+        name: input.name, description: input.description, allergens: input.allergens,
+      })
+      try {
+        await updateFoodItemMayContain(venueId!, id, input.mayContain, input.verbalNote)
+      } catch {
+        void refresh()
+        return { mayContainFailed: true }
+      }
+      void refresh()
+      return { mayContainFailed: false }
+    },
+    /** Add a dish. `allergensFailed` is true when the dish saved but its allergens didn't. */
+    create: async (
+      input: { name: string; description: string; allergens: string[]; mayContain: string[]; verbalNote: string },
+    ): Promise<{ allergensFailed: boolean }> => {
+      const created = await createFoodItem(venueId!, input)
+      try {
+        await addFoodItemAllergens(venueId!, created.id, input.allergens)
+      } catch {
+        void refresh()
+        return { allergensFailed: true }
+      }
+      void refresh()
+      return { allergensFailed: false }
+    },
+  }
 }

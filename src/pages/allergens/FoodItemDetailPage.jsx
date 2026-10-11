@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
-import { useFoodItem } from '../../hooks/useFoodItems'
+import { useFoodItem, useFoodItemActions } from '../../hooks/useFoodItems'
 import { useSession } from '../../contexts/SessionContext'
 import { EU_ALLERGENS } from '../../lib/constants'
 import { useToast } from '../../components/ui/Toast'
@@ -35,7 +34,8 @@ export default function FoodItemDetailPage() {
   const { id }     = useParams()
   const { item, loading } = useFoodItem(id)
   const { isManager }     = useSession()
-  const { venueId, venueSlug } = useVenue()
+  const { venueSlug } = useVenue()
+  const foodItems         = useFoodItemActions()
   const toast             = useToast()
   const navigate          = useNavigate()
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -46,12 +46,7 @@ export default function FoodItemDetailPage() {
   const absent      = EU_ALLERGENS.filter((a) => !allergens.includes(a) && !mayContain.includes(a))
 
   const handleDelete = async () => {
-    const { error } = await supabase
-      .from('food_items')
-      .update({ is_active: false })
-      .eq('id', id)
-      .eq('venue_id', venueId)
-    if (error) { toast(error.message, 'error'); return }
+    try { await foodItems.setActive(id, false) } catch (err) { toast(err.message, 'error'); return }
     toast('Item removed')
     navigate(`/v/${venueSlug}/allergens`)
   }

@@ -6,7 +6,7 @@
  */
 import React, { useMemo, useState } from 'react'
 import { format, parseISO } from 'date-fns'
-import { supabase } from '../../lib/supabase'
+import { uploadVenueDocument } from '../../lib/api/documents'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
@@ -14,8 +14,7 @@ import { PageSkeleton } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
 import { CARD, TONE, PageHeader } from '../../components/temperature/TempPageParts'
 import { useDocuments, documentStatus, DOCUMENT_CATEGORIES, EXPIRY_WARNING_DAYS } from '../../hooks/useDocuments'
-import { insertWithAttachment } from '../../lib/attachments'
-import { VENUE_DOCS_BUCKET, venueDocumentPath, openVenueDocument } from '../../lib/venueDocuments'
+import { openVenueDocument } from '../../lib/venueDocuments'
 import LoadError from '../../components/ui/LoadError'
 import Button from '../../components/ui/Button'
 
@@ -93,24 +92,16 @@ function UploadDocumentModal({ open, onClose, onSaved }) {
   const save = async () => {
     if (!canSave) return
     setSaving(true)
-    const path = venueDocumentPath(venueId, file.name)
-
-    const { error: uploadErr } = await supabase.storage.from(VENUE_DOCS_BUCKET).upload(path, file, { upsert: false })
-    if (uploadErr) { setSaving(false); toast('File upload failed: ' + uploadErr.message, 'error'); return }
-
-    // Stores the storage key; a signed URL is minted when the file is opened.
-    const { error } = await insertWithAttachment(row => supabase.from('documents').insert(row), {
-      venue_id:    venueId,
-      title:       title.trim(),
-      category,
-      file_name:   file.name,
-      file_size:   file.size,
-      expiry_date: expiryDate || null,
-      notes:       notes.trim() || null,
-      uploaded_by: session?.staffId ?? null,
-    }, { bucket: VENUE_DOCS_BUCKET, path, pathColumn: 'file_path', urlColumn: 'file_url' })
+    try {
+      await uploadVenueDocument(venueId, file, {
+        title, category, expiryDate, notes, uploadedBy: session?.staffId ?? null,
+      })
+    } catch (err) {
+      setSaving(false)
+      toast(err.message, 'error')
+      return
+    }
     setSaving(false)
-    if (error) { toast(error.message, 'error'); return }
     toast(`${title.trim()} uploaded`)
     reset()
     onSaved()

@@ -1,9 +1,8 @@
 import React, { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { QRCodeCanvas } from 'qrcode.react'
-import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
-import { useFoodItems } from '../../hooks/useFoodItems'
+import { useFoodItems, useFoodItemActions } from '../../hooks/useFoodItems'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
@@ -28,6 +27,7 @@ function SectionLabel({ children, action }) {
 export default function AllergenRegistryPage() {
   const [search, setSearch] = useState('')
   const { items, loading, isError, reload } = useFoodItems(search, { includeInactive: true })
+  const foodItems = useFoodItemActions()
   const { venueId, venueSlug, venueName } = useVenue()
   const { isManager } = useSession()
   const toast                     = useToast()
@@ -84,24 +84,23 @@ export default function AllergenRegistryPage() {
 
   const confirmDelete = async () => {
     setDeleting(deleteTarget.id)
-    const { error } = await supabase.from('food_items').update({ is_active: false }).eq('id', deleteTarget.id).eq('venue_id', venueId)
+    try {
+      await foodItems.setActive(deleteTarget.id, false)
+    } catch (err) {
+      setDeleting(null)
+      setDeleteTarget(null)
+      toast(err.message, 'error')
+      return
+    }
     setDeleting(null)
     setDeleteTarget(null)
-    if (error) { toast(error.message, 'error'); return }
     toast('Item removed')
-    reload()
   }
 
   const toggleItemActive = async (item) => {
     const nextActive = !item.is_active
-    const { error } = await supabase
-      .from('food_items')
-      .update({ is_active: nextActive })
-      .eq('id', item.id)
-      .eq('venue_id', venueId)
-    if (error) { toast(error.message, 'error'); return }
+    try { await foodItems.setActive(item.id, nextActive) } catch (err) { toast(err.message, 'error'); return }
     toast(nextActive ? 'Item shown on QR menu' : 'Item hidden from QR menu')
-    reload()
   }
 
   return (

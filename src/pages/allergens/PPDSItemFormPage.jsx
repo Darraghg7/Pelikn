@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
+import { usePPDSItem, usePPDSActions } from '../../hooks/usePPDSItems'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
@@ -13,33 +13,28 @@ export default function PPDSItemFormPage() {
   const { id }              = useParams()
   const isEdit              = !!id
   const navigate            = useNavigate()
-  const { venueId, venueSlug } = useVenue()
+  const { venueSlug } = useVenue()
   const toast               = useToast()
 
   const [name, setName]           = useState('')
   const [description, setDesc]    = useState('')
   const [ingredients, setIngredients] = useState([{ ...EMPTY_INGREDIENT }])
   const [mayContain, setMayContain] = useState([])
-  const [loading, setLoading]     = useState(isEdit)
   const [saving, setSaving]       = useState(false)
+  const { item, loading: itemLoading, failed } = usePPDSItem(isEdit ? id : undefined)
+  const ppds = usePPDSActions()
+  const populatedFor = useRef(null)
 
+  // Fill the form once per item — a later refetch must not overwrite unsaved edits.
   useEffect(() => {
-    if (!isEdit || !venueId) return
-    supabase
-      .from('ppds_items')
-      .select('*')
-      .eq('id', id)
-      .eq('venue_id', venueId)
-      .single()
-      .then(({ data, error }) => {
-        if (error || !data) { toast('Item not found', 'error'); navigate(`/v/${venueSlug}/allergens/ppds`); return }
-        setName(data.name)
-        setDesc(data.description ?? '')
-        setIngredients(data.ingredients?.length ? data.ingredients : [{ ...EMPTY_INGREDIENT }])
-        setMayContain(data.may_contain_allergens ?? [])
-        setLoading(false)
-      })
-  }, [id, venueId, isEdit]) // eslint-disable-line react-hooks/exhaustive-deps -- load the saved item once per id/venue; toast/navigate/venueSlug are only used on the not-found path, and re-running would overwrite unsaved edits in the form
+    if (!isEdit || itemLoading || populatedFor.current === id) return
+    if (failed || !item) { toast('Item not found', 'error'); navigate(`/v/${venueSlug}/allergens/ppds`); return }
+    populatedFor.current = id
+    setName(item.name)
+    setDesc(item.description ?? '')
+    setIngredients(item.ingredients?.length ? item.ingredients : [{ ...EMPTY_INGREDIENT }])
+    setMayContain(item.may_contain_allergens ?? [])
+  }, [id, isEdit, item, itemLoading, failed]) // eslint-disable-line react-hooks/exhaustive-deps -- toast/navigate/venueSlug are only used on the not-found path
 
   // ── Ingredient list helpers ──────────────────────────────────────────────────
 
@@ -80,27 +75,25 @@ export default function PPDSItemFormPage() {
     if (clean.length === 0) { toast('Add at least one ingredient', 'error'); return }
     setSaving(true)
 
-    const payload = {
-      venue_id:              venueId,
-      name:                  name.trim(),
-      description:           description.trim() || null,
-      ingredients:           clean,
-      may_contain_allergens: mayContain,
-      updated_at:            new Date().toISOString(),
-      is_active:             true,
+    try {
+      await ppds.save(isEdit ? id : undefined, {
+        name:                  name.trim(),
+        description:           description.trim() || null,
+        ingredients:           clean,
+        may_contain_allergens: mayContain,
+      })
+    } catch (err) {
+      setSaving(false)
+      toast(err.message, 'error')
+      return
     }
 
-    const { error } = isEdit
-      ? await supabase.from('ppds_items').update(payload).eq('id', id).eq('venue_id', venueId)
-      : await supabase.from('ppds_items').insert(payload)
-
     setSaving(false)
-    if (error) { toast(error.message, 'error'); return }
     toast(isEdit ? 'PPDS item updated' : 'PPDS item created')
     navigate(`/v/${venueSlug}/allergens/ppds`)
   }
 
-  if (loading) return <PageSkeleton />
+  if (isEdit && populatedFor.current !== id) return <PageSkeleton />
 
   return (
     <div className="flex flex-col gap-6 max-w-xl">
