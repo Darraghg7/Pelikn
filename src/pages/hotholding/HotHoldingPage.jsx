@@ -12,7 +12,8 @@
 import React, { useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { format } from 'date-fns'
-import { supabase } from '../../lib/supabase'
+import { insertHotHoldingLog, addHotHoldingItem, deactivateHotHoldingItem, updateHotHoldingItem } from '../../lib/api/hotHolding'
+import { errorOf } from '../../lib/api/writes'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
@@ -112,7 +113,7 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
     savingRef.current = true
     setSaving(true)
     const value = parseFloat(temp)
-    const { error } = await supabase.from('hot_holding_logs').insert({
+    const error = await errorOf(insertHotHoldingLog({
       venue_id:       venueId,
       item_id:        item.id,
       item_name:      item.name,
@@ -122,7 +123,7 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
       logged_by_name: session?.staffName ?? 'Unknown',
       logged_at:      new Date().toISOString(),
       notes:          note.trim() || null,
-    })
+    }))
     savingRef.current = false
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
@@ -270,7 +271,7 @@ export default function HotHoldingPage() {
     const name = newItemName.trim()
     if (!name) return
     setAddingItem(true)
-    const { error } = await supabase.from('hot_holding_items').insert({ venue_id: venueId, name })
+    const error = await errorOf(addHotHoldingItem(venueId, name))
     setAddingItem(false)
     if (error) { toast(error.message, 'error'); return }
     toast(`${name} added`)
@@ -280,7 +281,7 @@ export default function HotHoldingPage() {
   }
 
   const handleRemoveItem = async (item) => {
-    const { error } = await supabase.from('hot_holding_items').update({ is_active: false }).eq('id', item.id)
+    const error = await errorOf(deactivateHotHoldingItem(venueId, item.id))
     if (error) { toast(error.message, 'error'); return }
     toast(`${item.name} removed`)
     setOpenItemId(null)
@@ -289,11 +290,7 @@ export default function HotHoldingPage() {
   }
 
   const handleSaveItemSettings = async (item, values) => {
-    const { error } = await supabase
-      .from('hot_holding_items')
-      .update(values)
-      .eq('venue_id', venueId)
-      .eq('id', item.id)
+    const error = await errorOf(updateHotHoldingItem(venueId, item.id, values))
     if (error) { toast(error.message, 'error'); return }
     toast(`${values.name} settings saved`)
     setOpenItemId(null)

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { format, subDays } from 'date-fns'
-import { supabase } from '../../lib/supabase'
+import { insertWasteLog, fetchWasteForExport } from '../../lib/api/waste'
+import { errorOf } from '../../lib/api/writes'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useWasteLogs } from '../../hooks/useWasteLogs'
@@ -67,7 +68,7 @@ export default function WasteLogPage() {
     e.preventDefault()
     if (!canSubmit) return
     setSubmitting(true)
-    const { error } = await supabase.from('waste_logs').insert({
+    const error = await errorOf(insertWasteLog({
       item_name:        form.item_name.trim(),
       quantity:         parseFloat(form.quantity),
       unit:             form.unit,
@@ -77,7 +78,7 @@ export default function WasteLogPage() {
       recorded_by_name: session?.staffName ?? 'Unknown',
       recorded_at:      recordedTime.instant().toISOString(),
       venue_id:         venueId,
-    })
+    }))
     setSubmitting(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Waste logged')
@@ -88,15 +89,15 @@ export default function WasteLogPage() {
 
   const handleExportPdf = async () => {
     setExporting(true)
-    const { data, error } = await supabase
-      .from('waste_logs')
-      .select('recorded_at, item_name, quantity, unit, reason, recorded_by_name, notes')
-      .eq('venue_id', venueId)
-      .gte('recorded_at', exportFrom)
-      .lte('recorded_at', exportTo + 'T23:59:59')
-      .order('recorded_at')
+    let data
+    try {
+      data = await fetchWasteForExport(venueId, exportFrom, exportTo)
+    } catch (error) {
+      setExporting(false)
+      toast(error.message, 'error')
+      return
+    }
     setExporting(false)
-    if (error) { toast(error.message, 'error'); return }
     if (!data?.length) { toast('No waste records in this period', 'error'); return }
     buildPdfReport({
       title: 'Pelikn',

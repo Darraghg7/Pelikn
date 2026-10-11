@@ -12,7 +12,8 @@
 import React, { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { format } from 'date-fns'
-import { supabase } from '../../lib/supabase'
+import { insertCookingLog } from '../../lib/api/cooking'
+import { errorOf } from '../../lib/api/writes'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
@@ -90,7 +91,7 @@ function LogReadingForm({ onLogged }) {
   const save = async () => {
     if (!canLog) return
     setSaving(true)
-    const { error } = await supabase.from('cooking_temp_logs').insert({
+    const error = await errorOf(insertCookingLog({
       venue_id:       venueId,
       check_type:     checkType,
       food_item:      foodItem.trim(),
@@ -100,7 +101,7 @@ function LogReadingForm({ onLogged }) {
       logged_by_name: session?.staffName ?? 'Unknown',
       logged_at:      clock.at.toISOString(),
       notes:          note.trim() || null,
-    })
+    }))
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast(`${foodItem.trim()} · ${tempNum.toFixed(1)}°C logged`)

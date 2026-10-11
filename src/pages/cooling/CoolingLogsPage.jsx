@@ -14,7 +14,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { format, subDays, isToday } from 'date-fns'
-import { supabase } from '../../lib/supabase'
+import { startCoolingBatch, finishCoolingBatch, discardCoolingBatch } from '../../lib/api/cooling'
+import { errorOf } from '../../lib/api/writes'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
@@ -57,6 +58,7 @@ function startedLabel(startedAt) {
 /* ── A batch that's cooling right now ─────────────────────────────────────── */
 function CoolingBatchCard({ batch, now, canDiscard, onChanged, onDiscard }) {
   const toast = useToast()
+  const { venueId } = useVenue()
   const [endTemp, setEndTemp] = useState('')
   const [note, setNote]       = useState('')
   const [saving, setSaving]   = useState(false)
@@ -92,15 +94,16 @@ function CoolingBatchCard({ batch, now, canDiscard, onChanged, onDiscard }) {
     setSaving(true)
     const notes = [batch.notes, note.trim() || null].filter(Boolean).join('\n') || null
     // Guard on end_temp IS NULL so two devices can't both finish the same batch
-    const { data, error } = await supabase
-      .from('cooling_logs')
-      .update({ end_temp: parseFloat(endTemp), finished_at: finishedAt.toISOString(), notes })
-      .eq('id', batch.id)
-      .is('end_temp', null)
-      .select('id')
+    let finished
+    try {
+      finished = await finishCoolingBatch(venueId, batch.id, { end_temp: parseFloat(endTemp), finished_at: finishedAt.toISOString(), notes })
+    } catch (error) {
+      setSaving(false)
+      toast(error.message, 'error')
+      return
+    }
     setSaving(false)
-    if (error) { toast(error.message, 'error'); return }
-    if (!data?.length) { toast(`${batch.food_item} was already finished on another device`, 'error'); onChanged(); return }
+    if (!finished) { toast(`${batch.food_item} was already finished on another device`, 'error'); onChanged(); return }
     toast(`${batch.food_item} · ${needsNote || minutes > COOLING_TARGET_MINUTES ? 'failed — corrective action recorded' : `cooled in ${formatCoolingMinutes(minutes)}`}`)
     onChanged()
   }
@@ -189,7 +192,7 @@ function StartBatchForm({ session, venueId, onStarted }) {
   const start = async () => {
     if (!canStart || saving) return
     setSaving(true)
-    const { error } = await supabase.from('cooling_logs').insert({
+    const error = await errorOf(startCoolingBatch({
       venue_id:       venueId,
       food_item:      foodItem.trim(),
       start_temp:     parseFloat(startTemp),
@@ -200,7 +203,7 @@ function StartBatchForm({ session, venueId, onStarted }) {
       logged_by:      session?.staffId ?? null,
       logged_by_name: session?.staffName ?? 'Unknown',
       notes:          note.trim() || null,
-    })
+    }))
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast(`${foodItem.trim()} · cooling timer started`)
@@ -411,7 +414,7 @@ export default function CoolingLogsPage() {
   const reloadAll = () => { reloadBatches(); reloadRecent() }
 
   const discard = async (batch) => {
-    const { error } = await supabase.from('cooling_logs').delete().eq('id', batch.id).is('end_temp', null)
+    const error = await errorOf(discardCoolingBatch(venueId, batch.id))
     if (error) { toast(error.message, 'error'); return }
     toast(`${batch.food_item} discarded`)
     reloadBatches()

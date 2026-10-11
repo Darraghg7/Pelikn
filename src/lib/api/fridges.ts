@@ -1,5 +1,6 @@
 import { supabase } from '../supabase'
 import type { Fridge, FridgeLog, FridgeWithLastLog, FridgeTodayStatus } from '../../types'
+import { insertRow, updateRowById } from './writes'
 
 const FRIDGE_COLUMNS = 'id, name, is_active, min_temp, max_temp, check_days, required_periods, venue_id'
 const LEGACY_FRIDGE_COLUMNS = 'id, name, is_active, min_temp, max_temp, venue_id'
@@ -137,4 +138,29 @@ export async function fetchFridgeHistory(
   const { data, error } = await q
   if (error) throw error
   return (data ?? []) as FridgeLog[]
+}
+
+// ── Writes ──────────────────────────────────────────────────────────────────
+
+/** Record one temperature reading (today's check, the log form, or a backfilled one). */
+export function insertFridgeLog(row: Record<string, unknown>): Promise<void> {
+  return insertRow('fridge_temperature_logs', row)
+}
+
+/** A manager adds the reason to an out-of-range reading after the fact. */
+export function setFridgeLogReason(venueId: string, logId: string, reason: string | null): Promise<void> {
+  return updateRowById('fridge_temperature_logs', logId, { exceedance_reason: reason }, venueId, 'That reading no longer exists')
+}
+
+export function createFridge(venueId: string, values: Record<string, unknown>): Promise<void> {
+  return insertRow('fridges', { ...values, venue_id: venueId })
+}
+
+/** Removing a fridge hides it; its past readings stay. */
+export function deactivateFridge(venueId: string, fridgeId: string): Promise<void> {
+  return updateRowById('fridges', fridgeId, { is_active: false }, venueId, 'That fridge no longer exists')
+}
+
+export function updateFridge(venueId: string, fridgeId: string, values: Record<string, unknown>): Promise<void> {
+  return updateRowById('fridges', fridgeId, values, venueId, 'That fridge no longer exists')
 }

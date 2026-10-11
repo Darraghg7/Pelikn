@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { format, parseISO } from 'date-fns'
-import { supabase } from '../../lib/supabase'
+import { insertFridgeLog } from '../../lib/api/fridges'
+import { errorOf } from '../../lib/api/writes'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
@@ -56,7 +57,7 @@ export default function FridgeBackfillModal({ open, onClose, fridge, dateStr, pe
     const dt = parseISO(dateStr)
     dt.setHours(hh ?? 12, mm ?? 0, 0, 0)
 
-    const { error } = await supabase.from('fridge_temperature_logs').insert({
+    const error = await errorOf(insertFridgeLog({
       fridge_id:         fridge.id,
       fridge_name:       fridge.name,
       temperature:       parsedTemp,
@@ -68,7 +69,7 @@ export default function FridgeBackfillModal({ open, onClose, fridge, dateStr, pe
       venue_id:          venueId,
       exceedance_reason: reason ?? null,
       follow_up_due_at:  null,
-    })
+    }))
 
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }

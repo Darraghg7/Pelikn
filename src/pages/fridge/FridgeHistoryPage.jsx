@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
+import { setFridgeLogReason } from '../../lib/api/fridges'
+import { errorOf } from '../../lib/api/writes'
 import { useFridges, useFridgeHistory } from '../../hooks/useFridgeLogs'
 import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
@@ -42,7 +43,7 @@ const EXCEEDANCE_ICONS = {
 export default function FridgeHistoryPage() {
   const toast = useToast()
   const { isManager } = useSession()
-  const { venueSlug } = useVenue()
+  const { venueId, venueSlug } = useVenue()
   const { fridges } = useFridges()
   const [fridgeId, setFridgeId] = useState('')
 
@@ -62,10 +63,7 @@ export default function FridgeHistoryPage() {
 
   const saveReason = async (logId, reason) => {
     setSavingId(logId)
-    const { error } = await supabase
-      .from('fridge_temperature_logs')
-      .update({ exceedance_reason: reason })
-      .eq('id', logId)
+    const error = await errorOf(setFridgeLogReason(venueId, logId, reason))
     setSavingId(null)
     if (error) { toast(error.message, 'error'); return }
     toast('Reason updated — compliance score recalculated ✓')
