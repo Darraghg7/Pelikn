@@ -27,7 +27,7 @@ const COLOR_PALETTE = [
   'bg-stone-100 text-stone-800',
 ]
 
-export const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'day_hours', 'compliance_nav_order', 'action_schedules', 'late_grace_mins', 'break_overrun_grace_mins', 'require_late_reason', 'require_manager_approval_for_late', 'notify_manager_at_strike', 'disciplinary_at_strike', 'counting_window_days', 'push_to_manager', 'notify_break_overrun', 'hidden_check_tiles', 'hidden_team_tiles', 'max_staff_off_enabled', 'max_staff_off_count', 'enforce_closing_checklist', 'cleaning_visible_to_all', 'holiday_region']
+export const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'day_hours', 'compliance_nav_order', 'action_schedules', 'late_grace_mins', 'break_overrun_grace_mins', 'require_late_reason', 'require_manager_approval_for_late', 'notify_manager_at_strike', 'disciplinary_at_strike', 'counting_window_days', 'push_to_manager', 'notify_break_overrun', 'hidden_check_tiles', 'hidden_team_tiles', 'max_staff_off_enabled', 'max_staff_off_count', 'enforce_closing_checklist', 'cleaning_visible_to_all', 'holiday_region', 'holiday_year_start_month']
 
 interface CustomRole {
   value: string
@@ -77,6 +77,8 @@ interface AppSettings {
   // Which holiday rules apply to zero-hours staff — see lib/holiday.js. No
   // default on purpose: GB and NI rules differ, so the owner has to choose.
   holidayRegion: 'gb' | 'ni' | null
+  // Month the holiday year starts in, 1 = January … 12 = December — see lib/holidayYear.js
+  holidayYearStartMonth: number
 }
 
 const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6]
@@ -118,6 +120,7 @@ const DEFAULTS: AppSettings = {
   enforceClosingChecklist: false,
   cleaningVisibleToAll: false,
   holidayRegion: null,
+  holidayYearStartMonth: 1,
 }
 
 // ── Cold-start persistence ──────────────────────────────────────────────────
@@ -221,6 +224,7 @@ async function fetchAppSettings(venueId: string): Promise<AppSettings> {
         if (row.key === 'enforce_closing_checklist' && typeof parsed === 'boolean') result.enforceClosingChecklist = parsed
         if (row.key === 'cleaning_visible_to_all'   && typeof parsed === 'boolean') result.cleaningVisibleToAll = parsed
         if (row.key === 'holiday_region' && (parsed === 'gb' || parsed === 'ni')) result.holidayRegion = parsed
+        if (row.key === 'holiday_year_start_month' && Number.isInteger(parsed) && parsed >= 1 && parsed <= 12) result.holidayYearStartMonth = parsed
       } catch { /* ignore corrupt JSON — leave defaults */ }
     }
   }
@@ -291,6 +295,7 @@ export function useAppSettings() {
       enforce_closing_checklist: 'enforceClosingChecklist',
       cleaning_visible_to_all: 'cleaningVisibleToAll',
       holiday_region: 'holidayRegion',
+      holiday_year_start_month: 'holidayYearStartMonth',
     }
 
     // Keep the pre-write snapshot so a failed save can be rolled back —
@@ -336,6 +341,7 @@ export function useAppSettings() {
   const saveEnforceClosingChecklist = useCallback((v: boolean) => saveSetting('enforce_closing_checklist', v), [saveSetting])
   const saveCleaningVisibleToAll = useCallback((v: boolean) => saveSetting('cleaning_visible_to_all', v), [saveSetting])
   const saveHolidayRegion = useCallback((v: 'gb' | 'ni') => saveSetting('holiday_region', v), [saveSetting])
+  const saveHolidayYearStartMonth = useCallback((m: number) => saveSetting('holiday_year_start_month', m), [saveSetting])
 
   /** Pick the next unused colour from the palette. Falls back to the least-used colour. */
   const nextColor = useCallback(() => {
@@ -379,13 +385,14 @@ export function useAppSettings() {
     enforceClosingChecklist: settings.enforceClosingChecklist,
     cleaningVisibleToAll: settings.cleaningVisibleToAll,
     holidayRegion: settings.holidayRegion,
+    holidayYearStartMonth: settings.holidayYearStartMonth,
     loading,
     saveCustomRoles, saveClosedDays, saveBreakDuration, saveCleanupMinutes, saveFridgeCheckTime,
     saveOpenTime, saveCloseTime, saveDayHours, saveComplianceNavOrder, saveActionSchedules,
     saveLateGraceMins, saveBreakOverrunGraceMins, saveRequireLateReason, saveRequireManagerApprovalForLate,
     saveNotifyManagerAtStrike, saveDisciplinaryAtStrike, saveCountingWindowDays, savePushToManager, saveNotifyBreakOverrun,
     saveHiddenCheckTiles, saveHiddenTeamTiles, saveMaxStaffOffEnabled, saveMaxStaffOffCount, saveEnforceClosingChecklist,
-    saveCleaningVisibleToAll, saveHolidayRegion,
+    saveCleaningVisibleToAll, saveHolidayRegion, saveHolidayYearStartMonth,
     nextColor, reload,
   }
 }

@@ -49,12 +49,16 @@ vi.mock('../../../hooks/useTimeOffData', () => ({
   }),
 }))
 
+const CAL_2026 = { startYear: 2026, start: '2026-01-01', end: '2026-12-31', startMonth: 1, label: '2026' }
 const ok = (o) => ({ status: 'ok', region: 'ni', usedIsEstimate: false, missingClockOuts: 0, firstYear: false, ...o })
 vi.mock('../../../hooks/useHolidayBalances', () => ({
   HOLIDAY_BALANCES_KEY: 'holiday-balances',
   // Sarah was already on the rota for the Saturday of her week off: 8 h
   useRotaHours: () => ({ sarah: { '2026-11-14': 8 } }),
   usePaidOut: () => ({}),
+  useCarryOver: () => ({}),
+  useLastYearLeft: () => null,
+  useHolidayYear: () => CAL_2026,
   useHolidayBalances: (list) => ({
     byId: list.length ? {
       sarah: ok({ allowance: 76.9, used: 13.7, balance: 63.2, avgWeekHours: 13.7 }),

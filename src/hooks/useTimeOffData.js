@@ -11,7 +11,7 @@ import { supabase } from '../lib/supabase'
 import { reportError } from '../lib/reportError'
 import { fetchTimeOffPrivateFields, withTimeOffPrivate } from '../lib/api/timeOffPrivate'
 import { fetchAllPages, withPaidHoursColumns } from '../lib/api/holidayData'
-import { calculateEntitlementDays, countWorkingDaysInRequest } from './useLeaveBalance'
+import { calculateEntitlementDays, daysUsedInHolidayYear } from './useLeaveBalance'
 
 export function useTimeOffRequests(venueId) {
   const [requests, setRequests] = useState([])
@@ -79,9 +79,13 @@ export function useOwnProfile(staffId) {
   return profile
 }
 
-// Compute all staff leave balances in a single batch fetch
-export function useTeamLeaveBalances(staff, leaveYear) {
-  const year = leaveYear ?? new Date().getFullYear()
+/**
+ * Days-based leave balances for the whole team in one batch fetch, for a
+ * holiday year (lib/holidayYear). leave_entitlements.leave_year is the year
+ * the holiday year starts in.
+ */
+export function useTeamLeaveBalances(staff, holidayYear) {
+  const { start, end, startYear } = holidayYear
   const [approvedReqs, setApprovedReqs] = useState([])
   const [overrides, setOverrides]       = useState({})
   const [loading, setLoading]           = useState(true)
@@ -103,12 +107,12 @@ export function useTeamLeaveBalances(staff, leaveYear) {
         .in('staff_id', ids)
         .eq('status', 'approved')
         .eq('leave_type', 'annual')
-        .gte('start_date', `${year}-01-01`)
-        .lte('start_date', `${year}-12-31`),
+        .lte('start_date', end)
+        .gte('end_date', start),
       supabase.from('leave_entitlements')
         .select('staff_id, override_days')
         .in('staff_id', ids)
-        .eq('leave_year', year),
+        .eq('leave_year', startYear),
     ]).then(([reqRes, ovRes]) => {
       if (cancelled) return
       // Without both reads every balance would show as a full, untouched
@@ -123,7 +127,7 @@ export function useTeamLeaveBalances(staff, leaveYear) {
       setLoading(false)
     })
     return () => { cancelled = true }
-  }, [ids, year, tick])
+  }, [ids, start, end, startYear, tick])
 
   const reloadBalances = useCallback(() => setTick(t => t + 1), [])
 
@@ -132,11 +136,10 @@ export function useTeamLeaveBalances(staff, leaveYear) {
     const calculated  = eligible ? calculateEntitlementDays(s.employment_type, s.working_days) : null
     const entitlement = eligible ? (overrides[s.id] ?? calculated) : null
     const myReqs      = approvedReqs.filter(r => r.staff_id === s.id)
-    const used        = myReqs.reduce((sum, r) =>
-      sum + countWorkingDaysInRequest(r.start_date, r.end_date, s.working_days), 0)
+    const used        = daysUsedInHolidayYear(myReqs, { start, end }, s.working_days)
     const remaining   = entitlement != null ? Math.max(0, entitlement - used) : null
     return { ...s, entitlement, used, remaining, isZeroHours: s.employment_type === 'zero_hours', isEligible: eligible }
-  }), [staff, approvedReqs, overrides])
+  }), [staff, approvedReqs, overrides, start, end])
 
   return { balances, loading, failed, reloadBalances }
 }

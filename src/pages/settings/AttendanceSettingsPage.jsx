@@ -6,7 +6,9 @@ import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 import Toggle from '../../components/ui/Toggle'
 import Button from '../../components/ui/Button'
 import { HOLIDAY_REGIONS } from '../../lib/holiday'
+import { MONTH_NAMES, currentHolidayYear } from '../../lib/holidayYear'
 
+/** @param {{ value: number, onChange: (n: number) => void, suffix?: string, min?: number, max?: number, step?: number }} props */
 function Stepper({ value, onChange, suffix, min = 0, max = 99, step = 1 }) {
   const btn = (label, fn, disabled) => (
     <button
@@ -24,6 +26,7 @@ function Stepper({ value, onChange, suffix, min = 0, max = 99, step = 1 }) {
   )
 }
 
+/** @param {{ label: string, sub?: string, warnText?: string, control: React.ReactNode, last?: boolean }} props */
 function Row({ label, sub, warnText, control, last }) {
   return (
     <div className={`flex items-center gap-3 px-[15px] py-[13px] ${last === false ? 'border-t border-charcoal/6 dark:border-white/8' : ''}`}>
@@ -63,10 +66,10 @@ export default function AttendanceSettingsPage() {
   const {
     lateGraceMins, breakDurationMins, breakOverrunGraceMins, cleanupMinutes,
     requireLateReason, requireManagerApprovalForLate, notifyManagerAtStrike, disciplinaryAtStrike,
-    countingWindowDays, pushToManager, maxStaffOffEnabled, maxStaffOffCount, holidayRegion,
+    countingWindowDays, pushToManager, maxStaffOffEnabled, maxStaffOffCount, holidayRegion, holidayYearStartMonth,
     saveLateGraceMins, saveBreakDuration, saveBreakOverrunGraceMins, saveCleanupMinutes,
     saveRequireLateReason, saveRequireManagerApprovalForLate, saveNotifyManagerAtStrike, saveDisciplinaryAtStrike,
-    saveCountingWindowDays, savePushToManager, saveMaxStaffOffEnabled, saveMaxStaffOffCount, saveHolidayRegion,
+    saveCountingWindowDays, savePushToManager, saveMaxStaffOffEnabled, saveMaxStaffOffCount, saveHolidayRegion, saveHolidayYearStartMonth,
   } = settings
 
   const vp = (path) => `/v/${venueSlug}${path}`
@@ -218,6 +221,21 @@ export default function AttendanceSettingsPage() {
               ))}
             </div>
           </div>
+          <Row
+            label="Holiday year starts in"
+            sub={`This holiday year: ${currentHolidayYear(holidayYearStartMonth).label}`}
+            last={false}
+            control={(
+              <select
+                value={holidayYearStartMonth}
+                onChange={e => saveHolidayYearStartMonth(Number(e.target.value))}
+                aria-label="Holiday year starts in"
+                className="shrink-0 h-[34px] px-2.5 rounded-[9px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-sm font-medium text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              >
+                {MONTH_NAMES.map((name, i) => <option key={name} value={i + 1}>{name}</option>)}
+              </select>
+            )}
+          />
         </Group>
 
       </div>

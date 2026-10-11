@@ -62,16 +62,19 @@ export function fetchClockEvents(staffIds, sinceDate) {
     .order('id', { ascending: true }))
 }
 
-/** Approved annual leave for these people touching `year`. */
-export function fetchAnnualLeave(staffIds, year) {
+/**
+ * Approved annual leave for these people touching the date range — a holiday
+ * year's `start` / `end` ("yyyy-MM-dd", inclusive).
+ */
+export function fetchAnnualLeave(staffIds, { start, end }) {
   return withPaidHoursColumns(extra => fetchAllPages(() => supabase
     .from('time_off_requests')
     .select(`id, staff_id, start_date, end_date, status, leave_type${extra}`)
     .in('staff_id', staffIds)
     .eq('status', 'approved')
     .eq('leave_type', 'annual')
-    .lte('start_date', `${year}-12-31`)
-    .gte('end_date', `${year}-01-01`)
+    .lte('start_date', end)
+    .gte('end_date', start)
     .order('start_date', { ascending: true })
     .order('id', { ascending: true })))
 }
@@ -105,22 +108,56 @@ export async function fetchRotaHours(venueId, staffIds, from, to, { breakMins = 
 const isMissingTable = (e) => e && (e.code === 'PGRST205' || e.code === '42P01')
 
 /**
- * Holiday already paid outside a dated booking (migration 150) for `year`.
+ * Holiday already paid outside a dated booking (migration 150) for the holiday
+ * year starting in `leaveYear` (lib/holidayYear: HolidayYear.startYear).
  * Before 150 is applied there is no table, which reads as "none recorded".
  */
-export async function fetchPaidOut(staffIds, year) {
+export function fetchPaidOut(staffIds, leaveYear) {
+  return fetchLeaveYearRows('holiday_paid_out', 'id, staff_id, leave_year, hours, days, paid_on, note, created_at', staffIds, leaveYear)
+}
+
+/**
+ * Holiday carried over into the holiday year starting in `leaveYear`
+ * (migration 153), with who recorded it. Before 153 is applied there is no
+ * table, which reads as "none".
+ */
+export function fetchCarryOver(staffIds, leaveYear) {
+  return fetchLeaveYearRows('holiday_carry_over', 'id, staff_id, leave_year, hours, days, note, created_at, created_by, creator:created_by(name)', staffIds, leaveYear)
+}
+
+async function fetchLeaveYearRows(table, columns, staffIds, leaveYear) {
   try {
     return await fetchAllPages(() => supabase
-      .from('holiday_paid_out')
-      .select('id, staff_id, leave_year, hours, days, paid_on, note, created_at')
+      .from(table)
+      .select(columns)
       .in('staff_id', staffIds)
-      .eq('leave_year', year)
+      .eq('leave_year', leaveYear)
       .order('created_at', { ascending: true })
       .order('id', { ascending: true }))
   } catch (e) {
     if (isMissingTable(e)) return []
     throw e
   }
+}
+
+/** A manager-set days allowance for one person's holiday year (leave_entitlements), or null. */
+export async function fetchEntitlementOverride(staffId, leaveYear) {
+  const res = await supabase
+    .from('leave_entitlements')
+    .select('override_days')
+    .eq('staff_id', staffId)
+    .eq('leave_year', leaveYear)
+    .maybeSingle()
+  throwIfError(res)
+  return res.data?.override_days ?? null
+}
+
+export function addCarryOver(row) {
+  return supabase.from('holiday_carry_over').insert(row)
+}
+
+export function removeCarryOver(id) {
+  return supabase.from('holiday_carry_over').delete().eq('id', id)
 }
 
 export function addPaidOut(row) {
