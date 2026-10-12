@@ -409,13 +409,22 @@ function StaffHoursSheet({ t, person, periodDays, dailyGrid, periodLabel, canRem
                             {breakMins > 0 && <><span className="text-charcoal/30 dark:text-white/30">·</span><span className="text-caption text-charcoal/50 dark:text-white/40">{breakMins}m break</span></>}
                           </div>
                         </button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => onEditDay({ dateStr, session })}
+                          aria-label={`Edit the ${formatLondon(session.in, 'HH:mm')} shift on ${format(d, 'EEE d MMM')}`}
+                          className="ml-auto shrink-0"
+                        >
+                          Edit
+                        </Button>
                         {canRemove && (
                           <Button
                             size="sm"
                             variant="danger-ghost"
                             onClick={() => onRemoveDay({ dateStr, session })}
                             aria-label={`Remove the ${formatLondon(session.in, 'HH:mm')} shift on ${format(d, 'EEE d MMM')}`}
-                            className="ml-auto shrink-0"
+                            className="shrink-0"
                           >
                             Remove
                           </Button>
