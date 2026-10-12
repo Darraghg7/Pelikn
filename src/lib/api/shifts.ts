@@ -115,8 +115,10 @@ export function insertVenueClosures(rows: Record<string, unknown>[]) {
 
 // ── Shift swaps ──────────────────────────────────────────────────────────────
 
-export function resolveShiftSwap(swapId: string, status: 'approved' | 'rejected') {
-  return supabase.from('shift_swaps').update({ status, resolved_at: new Date().toISOString() }).eq('id', swapId)
+export function resolveShiftSwap(swapId: string, status: 'approved' | 'rejected', managerNote?: string | null) {
+  const update: Record<string, unknown> = { status, resolved_at: new Date().toISOString() }
+  if (managerNote !== undefined) update.manager_note = managerNote
+  return supabase.from('shift_swaps').update(update).eq('id', swapId)
 }
 
 // ── RPCs ─────────────────────────────────────────────────────────────────────

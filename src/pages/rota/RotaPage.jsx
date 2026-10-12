@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import RotaMobileGrid from './RotaMobileGrid'
-import { format, addDays, addWeeks, eachDayOfInterval, parseISO } from 'date-fns'
+import { format, addDays, addWeeks, parseISO } from 'date-fns'
 import {
   deleteVenueClosure, insertVenueClosures,
   insertShift, updateShift, deleteShift as deleteShiftRow, deleteDutyAssignmentsForShift,
@@ -21,6 +21,7 @@ import { reportError } from '../../lib/reportError'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useVenueRoles, loadAllStaffRolesForVenue } from '../../hooks/useVenueRoles'
 import RotaWeekView from './RotaWeekView'
+import { closureDateSet } from '../../lib/rota'
 import { shareRotaImage } from '../../lib/rotaImageExport'
 import RotaAutoFillModal from './RotaAutoFillModal'
 import RotaConfigModal from './RotaConfigModal'
@@ -71,16 +72,7 @@ export default function RotaPage() {
   // Shared cache with the rest of the app, so this isn't fetched twice.
   const { closures, reload: loadClosures } = useVenueClosures()
 
-  const closedDates = React.useMemo(() => {
-    const set = new Set()
-    for (const c of closures) {
-      try {
-        const days = eachDayOfInterval({ start: parseISO(c.start_date), end: parseISO(c.end_date) })
-        days.forEach(d => set.add(format(d, 'yyyy-MM-dd')))
-      } catch { /* skip invalid ranges */ }
-    }
-    return set
-  }, [closures])
+  const closedDates = React.useMemo(() => closureDateSet(closures), [closures])
 
   // ── Closure mode ──
   const [closureMode, setClosureMode]       = useState(false)

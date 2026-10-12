@@ -53,6 +53,10 @@ vi.mock('../../../contexts/VenueContext', () => ({ useVenue: () => ({ venueId: '
 vi.mock('../../../contexts/ThemeContext', () => ({ useTheme: () => ({ dark: false }) }))
 vi.mock('../../../components/ui/Toast', () => ({ useToast: () => vi.fn() }))
 vi.mock('../../../lib/sendPush', () => ({ sendPush: vi.fn() }))
+vi.mock('../../../lib/api/shifts', async (orig) => {
+  const actual = /** @type {Record<string, unknown>} */ (await orig())
+  return { ...actual, resolveShiftSwap: vi.fn(() => Promise.resolve({ error: null })) }
+})
 vi.mock('../../../lib/reportError', () => ({ reportError: vi.fn() }))
 vi.mock('../../../lib/supabase', () => ({
   supabase: { from: () => ({ select: () => ({ eq: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: { value: 'x' }, error: null }) }) }) }) }) },
@@ -61,58 +65,70 @@ vi.mock('../../../hooks/useShifts', async (orig) => {
   const actual = /** @type {Record<string, unknown>} */ (await orig())
   return { ...actual, useShifts: () => ({ shifts: globalThis.__SHIFTS, loading: false, isError: false, reload: vi.fn() }), useStaffList: () => ({ staff: globalThis.__STAFF, loading: false, isError: false, reload: vi.fn() }) }
 })
-vi.mock('../../../hooks/useShiftSwaps', () => ({ useShiftSwaps: () => ({ swaps: [], pendingCount: 0, reload: vi.fn() }) }))
+vi.mock('../../../hooks/useShiftSwaps', () => ({ useShiftSwaps: () => ({ swaps: globalThis.__SWAPS, pendingCount: globalThis.__SWAPS.filter((x) => x.status === 'pending').length, reload: vi.fn() }) }))
 vi.mock('../../../hooks/useAvailability', () => ({ useAvailability: () => ({ unavailability: globalThis.__UNAVAIL }) }))
 vi.mock('../../../hooks/useVenueRoles', () => ({ useVenueRoles: () => ({ roles: [] }) }))
+vi.mock('../../../hooks/useSettings', () => ({ useAppSettings: () => ({ closedDays: [], breakDurationMins: 45 }) }))
+vi.mock('../../../hooks/useVenueClosures', () => ({ default: () => ({ closures: [{ id: 'c1', start_date: d(4), end_date: d(4) }], loading: false, reload: vi.fn() }) }))
 
 import RotaMobileGrid from '../RotaMobileGrid'
+import { sendPush } from '../../../lib/sendPush'
+import { resolveShiftSwap } from '../../../lib/api/shifts'
 import RotaWeekView from '../RotaWeekView'
 
 beforeEach(() => {
   globalThis.__SHIFTS = SHIFTS
   globalThis.__STAFF = STAFF
   globalThis.__UNAVAIL = UNAVAIL
+  globalThis.__SWAPS = []
 })
 
 const text = (el) => el.textContent.replace(/\s+/g, ' ').trim()
 
 // ── Phone grid ──────────────────────────────────────────────────────────────
+// Rota core PR 3: the phone now reads the same week model as the desktop, so
+// the expectations below that used to describe phone-only behaviour changed
+// on purpose (each is marked CHANGED with what it used to be).
 describe('phone rota grid (RotaMobileGrid) — week view', () => {
   const renderPhone = async () => {
     const utils = render(<RotaMobileGrid />)
     await waitFor(() => expect(screen.getByText('Ana A.')).toBeTruthy())
     return utils
   }
-  // The phone shows first names through shortName(); each person is a row.
+  // The phone shows names through shortName(); each person is a row.
   const rowFor = (name) => screen.getByText(name).closest('div.flex.items-center')
+  const labels = () => screen.getAllByRole('button').map((b) => b.getAttribute('aria-label') ?? '')
 
-  it('shows RAW hours per person (no break taken off) and the week total in the header', async () => {
+  it('CHANGED: shows PAID hours per person (venue break off), was raw hours', async () => {
     await renderPhone()
-    expect(text(rowFor('Ana A.'))).toContain('25h')      // 8 + 8 + 4 + 5
-    expect(text(rowFor('Ben Y.'))).toContain('8h')       // 5 + 3, break NOT deducted
-    expect(text(screen.getByText(/ – /).closest('div'))).toContain('33h') // header total
+    expect(text(rowFor('Ana A.'))).toContain('23.5h')   // 7.25 + 7.25 + 4 + 5 (was 25h)
+    expect(text(rowFor('Ben Y.'))).toContain('7.5h')    // 4.5 (30m statutory, under 18) + 3 (was 8h)
   })
 
-  it('shows cost using a fixed 30-minute break, ignoring under-18 and the venue setting', async () => {
+  it('CHANGED: header total counts open days only (Friday is closed): 23.5 + 4.5', async () => {
+    await renderPhone()
+    expect(text(screen.getByText(/ – /).closest('div'))).toContain('28h') // was 33h
+  })
+
+  it('CHANGED: cost uses the venue break and the under-18 rule, same as desktop', async () => {
     await renderPhone()
     fireEvent.click(screen.getByRole('radio', { name: '£' }))
-    // Ana: 7.5 + 7.5 + 4 + 5 = 24h paid × £12 = £288
-    expect(text(rowFor('Ana A.'))).toContain('£288')
-    // Ben (under 18 but treated as adult here): 5h → no break (adult rule needs >6h), 3h → 8h × £10 = £80
-    expect(text(rowFor('Ben Y.'))).toContain('£80')
+    expect(text(rowFor('Ana A.'))).toContain('£282')    // 23.5h × £12 (was £288)
+    expect(text(rowFor('Ben Y.'))).toContain('£75')     // 7.5h × £10 (was £80); Friday still in the person's total, as on desktop
   })
 
-  it('counts split shifts as separate "on" entries in the day footer', async () => {
+  it('CHANGED: "N on" counts people, not shifts (Wednesday: one person on a split)', async () => {
     await renderPhone()
-    // Wednesday has ONE person on two shifts; the phone footer says 2 on
-    expect(screen.getAllByText('2 on').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('2 on').length).toBe(1)  // Monday: Ana + Ben
+    expect(screen.getAllByText('1 on').length).toBe(2)  // Tuesday + Wednesday (was "2 on" for Wednesday)
   })
 
-  it('shows only one shift per person per day in the grid (split shift: the later one wins)', async () => {
+  it('CHANGED: a split day shows both shifts in the cell, each tappable (was only the later one)', async () => {
     await renderPhone()
-    const wedButtons = screen.getAllByRole('button').filter((b) => /Ana Adult, .*Wednesday/.test(b.getAttribute('aria-label') ?? ''))
-    expect(wedButtons).toHaveLength(1)
-    expect(wedButtons[0].getAttribute('aria-label')).toContain('17 to 22')
+    const wed = labels().filter((l) => /Ana Adult, .*Wednesday/.test(l))
+    expect(wed).toHaveLength(2)
+    expect(wed.some((l) => l.includes('9 to 13'))).toBe(true)
+    expect(wed.some((l) => l.includes('17 to 22'))).toBe(true)
   })
 
   it('shows "Leave" for approved time off with no shift', async () => {
@@ -120,21 +136,36 @@ describe('phone rota grid (RotaMobileGrid) — week view', () => {
     expect(screen.getAllByText('Leave').length).toBe(1)
   })
 
-  it('does NOT know about closed days: Friday shift shows and can be added to', async () => {
+  it('CHANGED: respects closed days — Friday shift is hidden and nothing can be added to it (was shown and addable)', async () => {
     await renderPhone()
-    const friday = screen.getAllByRole('button').find((b) => /Ben Young, Friday/.test(b.getAttribute('aria-label') ?? ''))
-    expect(friday.getAttribute('aria-label')).toContain('9 to 12')
-    expect(screen.getAllByRole('button').some((b) => /Add shift, Ana Adult, Friday/.test(b.getAttribute('aria-label') ?? ''))).toBe(true)
+    expect(labels().some((l) => /Ben Young, Friday/.test(l))).toBe(false)
+    expect(labels().some((l) => /Add shift, .*, Friday/.test(l))).toBe(false)
+    expect(labels().some((l) => /Add shift, Ana Adult, Thursday/.test(l))).toBe(false) // Thursday is leave, as before
+    expect(labels().some((l) => /Add shift, Ana Adult, Saturday/.test(l))).toBe(true)
   })
 
-  it('shows no marker for a shift on a day the person marked unavailable', async () => {
+  it('still shows no marker for a shift on a day the person marked unavailable (not changed in this PR)', async () => {
     await renderPhone()
     expect(document.body.textContent).not.toMatch(/Unavail/i)
   })
 
-  it('shows no "busy elsewhere" marker for the visiting person', async () => {
+  it('still shows no "busy elsewhere" marker for the visiting person (not changed in this PR)', async () => {
     await renderPhone()
     expect(document.body.textContent).not.toMatch(/Busy|Visiting/)
+  })
+})
+
+describe('phone rota — swap requests', () => {
+  it('CHANGED: declining a swap tells the person who asked (was silent), like the desktop', async () => {
+    globalThis.__SWAPS = [{ id: 'sw1', status: 'pending', shift_id: SHIFTS[0].id, requester_id: ana.id, target_staff_id: ben.id, requester_name: 'Ana Adult', target_staff_name: 'Ben Young', shift: { shift_date: d(6), start_time: '09:00:00', end_time: '17:00:00' } }]
+    render(<RotaMobileGrid />)
+    await waitFor(() => expect(screen.getByText(/swap request/)).toBeTruthy())
+    fireEvent.click(screen.getByText(/swap request/))
+    fireEvent.click(await screen.findByRole('button', { name: 'Decline' }))
+    await waitFor(() => expect(resolveShiftSwap).toHaveBeenCalledWith('sw1', 'rejected', null))
+    await waitFor(() => expect(sendPush).toHaveBeenCalledWith(expect.objectContaining({
+      notificationType: 'shift_swap_decision', staffIds: [ana.id], title: 'Shift Swap Rejected',
+    })))
   })
 })
 
