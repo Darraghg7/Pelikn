@@ -1,10 +1,15 @@
 import React, { useMemo } from 'react'
 import { format, isToday } from 'date-fns'
-import { getWeekDays, staffColour } from '../../lib/utils'
+import { staffColour } from '../../lib/utils'
 import Avatar from '../../components/ui/Avatar'
 import { firstName } from '../../lib/names'
-import { shiftDurationHours, paidShiftHours, unpaidBreakMins } from '../../hooks/useShifts'
+import { buildRotaWeek, shiftDurationHours } from '../../lib/rota'
 
+/** @type {Record<string, import('../../lib/rota').RotaUnavailability>} */
+const NO_UNAVAILABILITY = {}
+const NO_DAYS = []
+const NO_DATES = new Set()
+const NO_CROSS = []
 const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
 
 function fmtGBP(amount) {
@@ -34,23 +39,13 @@ function MobileShiftCell({ shift, accent, onClick }) {
   )
 }
 
-function MobileWeekGrid({ days, shifts, shiftIndex, staff, onCellClick, currentStaffId, isManager, unavailability, closedDays, closedDates, breakDurationMins = 30, crossShifts = [] }) {
+function MobileWeekGrid({ week, onCellClick, currentStaffId, isManager }) {
+  const { days: weekDays, staff } = week
+  const days = weekDays.map((d) => d.date)
   const COL_W  = 78
   const NAME_W = 140
 
-  const dayTotals = days.map((d, di) => {
-    const dateStr = format(d, 'yyyy-MM-dd')
-    if (closedDays.includes(di) || closedDates?.has(dateStr)) return { hours: 0, heads: 0 }
-    let hours = 0, heads = 0
-    for (const s of staff) {
-      const dayShifts = shiftIndex[`${s.id}:${dateStr}`] ?? []
-      if (dayShifts.length) {
-        heads++
-        hours += dayShifts.reduce((acc, sh) => acc + paidShiftHours(sh.start_time, sh.end_time, s.is_under_18 ?? false, breakDurationMins), 0)
-      }
-    }
-    return { hours: Math.round(hours * 10) / 10, heads }
-  })
+  const dayTotals = week.dayTotals.map((t) => ({ hours: Math.round(t.paidHours * 10) / 10, heads: t.heads }))
 
   return (
     <div className="mx-0 rounded-card border border-charcoal/8 dark:border-white/8 overflow-hidden bg-white dark:bg-paperDark">
@@ -62,8 +57,7 @@ function MobileWeekGrid({ days, shifts, shiftIndex, staff, onCellClick, currentS
           <div className="sticky left-0 z-[21] bg-white dark:bg-paperDark shrink-0" style={{ width: NAME_W, minWidth: NAME_W }} />
           {days.map((d, i) => {
             const today   = isToday(d)
-            const dateStr = format(d, 'yyyy-MM-dd')
-            const closed  = closedDays.includes(i) || closedDates?.has(dateStr)
+            const closed  = weekDays[i].closed
             return (
               <div key={i}
                 className={`shrink-0 pt-3 pb-2 px-1 text-center ${i < 6 ? 'border-r border-charcoal/6 dark:border-white/8' : ''}`}
@@ -109,11 +103,7 @@ function MobileWeekGrid({ days, shifts, shiftIndex, staff, onCellClick, currentS
 
               {/* Day cells */}
               {days.map((d, di) => {
-                const dateStr   = format(d, 'yyyy-MM-dd')
-                const closed    = closedDays.includes(di) || closedDates?.has(dateStr)
-                const dayShifts = shiftIndex[`${s.id}:${dateStr}`] ?? []
-                const unavail   = unavailability?.[`${s.id}:${dateStr}`]
-                const isTimeOff = unavail?.type === 'time_off'
+                const { closed, shifts: dayShifts, isTimeOff } = week.cell(s.id, weekDays[di].dateStr)
                 const canClick  = isManager || (currentStaffId === s.id && dayShifts.length > 0)
                 return (
                   <div key={di}
@@ -177,7 +167,9 @@ function MobileWeekGrid({ days, shifts, shiftIndex, staff, onCellClick, currentS
 }
 
 /* ── Desktop Week Table ───────────────────────────────────────────────────── */
-function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onToggleAvailability, currentStaffId, isManager, unavailability, closedDays, closedDates, closureMode, onToggleClosure, weeklyTotal, breakDurationMins, crossShifts = [] }) {
+function DesktopWeekTable({ week, onCellClick, onToggleAvailability, currentStaffId, isManager, closureMode, onToggleClosure, breakDurationMins }) {
+  const { staff, weekCost: weeklyTotal } = week
+  const days = week.days.map((d) => d.date)
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full text-sm border-separate border-spacing-0">
@@ -188,9 +180,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
             </th>
             {days.map((d, i) => {
               const today    = isToday(d)
-              const dateStr  = format(d, 'yyyy-MM-dd')
-              const isClosed = closedDays.includes(i) || closedDates.has(dateStr)
-              const isDbClosed = closedDates.has(dateStr)
+              const { dateStr, closed: isClosed, closedByDate: isDbClosed } = week.days[i]
               return (
                 <th
                   key={i}
@@ -229,18 +219,8 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
         </thead>
         <tbody>
           {staff.map((s) => {
-            // Gather all shifts for this staff member across all rendered days
-            const staffShifts = days.flatMap(d => shiftIndex[`${s.id}:${format(d, 'yyyy-MM-dd')}`] ?? [])
             const isUnder18   = s.is_under_18 ?? false
-            const totalHrs    = staffShifts.reduce((acc, sh) => acc + paidShiftHours(sh.start_time, sh.end_time, isUnder18, breakDurationMins), 0)
-            const rawHrs      = staffShifts.reduce((acc, sh) => acc + shiftDurationHours(sh.start_time, sh.end_time), 0)
-            // Count how many shifts qualify for a break
-            const breakCount  = staffShifts.filter(sh => {
-              const raw = shiftDurationHours(sh.start_time, sh.end_time)
-              return isUnder18 ? raw > 4.5 : raw > 6
-            }).length
-            const totalBreakMins = breakCount * (isUnder18 ? 30 : breakDurationMins)
-            const wageCost    = totalHrs * (s.hourly_rate ?? 0)
+            const { paidHours: totalHrs, breakCount, breakMins: totalBreakMins, cost: wageCost } = week.personTotals(s.id)
             const isOwnStaff  = !isManager && currentStaffId === s.id
 
             return (
@@ -266,15 +246,9 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                   </div>
                 </td>
                 {days.map((d, di) => {
-                  const dateStr   = format(d, 'yyyy-MM-dd')
                   const today     = isToday(d)
-                  const isClosed  = closedDays.includes(di) || closedDates.has(dateStr)
-                  const dayShifts = shiftIndex[`${s.id}:${dateStr}`] ?? []
-                  const unavail   = unavailability[`${s.id}:${dateStr}`]
-                  const isTimeOff = unavail?.type === 'time_off'
-                  const isManualOff = unavail?.type === 'manual'
+                  const { closed: isClosed, shifts: dayShifts, unavail, isTimeOff, isManualOff, crossShift } = week.cell(s.id, week.days[di].dateStr)
                   const isBreakCover = false
-                  const crossShift = s._crossVenue ? crossShifts.find(cs => cs.staff_id === s.id && cs.shift_date === dateStr) : null
 
                   if (isClosed) {
                     return (
@@ -435,26 +409,20 @@ export default function RotaWeekView({
   onToggleAvailability,
   currentStaffId = null,
   isManager = true,
-  unavailability = {},
-  closedDays = [],
-  closedDates = new Set(),
+  unavailability = NO_UNAVAILABILITY,
+  closedDays = NO_DAYS,
+  closedDates = NO_DATES,
   closureMode = false,
   onToggleClosure = null,
   breakDurationMins = 30,
-  crossShifts = [],
+  crossShifts = NO_CROSS,
 }) {
-  const days = getWeekDays(weekStart)
-
-  // Pre-index shifts by "staffId:date" for O(1) lookup in cell rendering
-  const shiftIndex = useMemo(() => {
-    const idx = {}
-    for (const sh of shifts) {
-      const key = `${sh.staff_id}:${sh.shift_date}`
-      if (!idx[key]) idx[key] = []
-      idx[key].push(sh)
-    }
-    return idx
-  }, [shifts])
+  // One model of the week (shifts by person and day, closed days, leave,
+  // totals) shared with the phone rota: see src/lib/rota/week.ts.
+  const week = useMemo(
+    () => buildRotaWeek({ weekStart, shifts, staff, unavailability, closedDays, closedDates, crossShifts, breakDurationMins }),
+    [weekStart, shifts, staff, unavailability, closedDays, closedDates, crossShifts, breakDurationMins],
+  )
 
   if (staff.length === 0) {
     return (
@@ -464,14 +432,7 @@ export default function RotaWeekView({
     )
   }
 
-  const weeklyTotal = staff.reduce((total, s) => {
-    const staffShifts = shifts.filter((sh) => sh.staff_id === s.id)
-    const isUnder18 = s.is_under_18 ?? false
-    const hrs = staffShifts.reduce((acc, sh) => acc + paidShiftHours(sh.start_time, sh.end_time, isUnder18, breakDurationMins), 0)
-    return total + hrs * (s.hourly_rate ?? 0)
-  }, 0)
-
-  const sharedProps = { days, shifts, shiftIndex, staff, onCellClick, onToggleAvailability, currentStaffId, isManager, unavailability, closedDays, closedDates, closureMode, onToggleClosure, breakDurationMins, crossShifts }
+  const sharedProps = { week, onCellClick, onToggleAvailability, currentStaffId, isManager, closureMode, onToggleClosure, breakDurationMins }
 
   return (
     <>
@@ -482,7 +443,7 @@ export default function RotaWeekView({
 
       {/* Desktop: full week table (≥ 1024px) */}
       <div className="hidden lg:block">
-        <DesktopWeekTable {...sharedProps} weeklyTotal={weeklyTotal} />
+        <DesktopWeekTable {...sharedProps} />
       </div>
     </>
   )

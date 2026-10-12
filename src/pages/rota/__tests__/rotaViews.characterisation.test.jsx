@@ -39,6 +39,7 @@ const SHIFTS = [
   shift(ben, 0, '10:00', '15:00', 'Bar'),        // Mon 5h, under 18
   shift(ben, 4, '09:00', '12:00', 'Bar'),        // Fri 3h, on a CLOSED day
 ]
+/** @type {Record<string, any>} */
 const UNAVAIL = {
   [`${ana.id}:${d(3)}`]: { type: 'time_off' },   // Ana: Thu on leave
   [`${ben.id}:${d(1)}`]: { type: 'manual', subtype: 'unavailable' },
