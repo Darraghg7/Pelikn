@@ -6,3 +6,4 @@
  */
 export * from './hours'
 export * from './stations'
+export * from './week'
