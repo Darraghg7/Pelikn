@@ -57,7 +57,7 @@ vi.mock('../../../lib/supabase', () => ({
   supabase: { from: () => ({ select: () => ({ eq: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: { value: 'x' }, error: null }) }) }) }) }) },
 }))
 vi.mock('../../../hooks/useShifts', async (orig) => {
-  const actual = await orig()
+  const actual = /** @type {Record<string, unknown>} */ (await orig())
   return { ...actual, useShifts: () => ({ shifts: globalThis.__SHIFTS, loading: false, isError: false, reload: vi.fn() }), useStaffList: () => ({ staff: globalThis.__STAFF, loading: false, isError: false, reload: vi.fn() }) }
 })
 vi.mock('../../../hooks/useShiftSwaps', () => ({ useShiftSwaps: () => ({ swaps: [], pendingCount: 0, reload: vi.fn() }) }))

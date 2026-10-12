@@ -18,20 +18,7 @@ import { shortName } from '../../lib/names'
 import Button, { CloseButton } from '../../components/ui/Button'
 import { useTheme } from '../../contexts/ThemeContext'
 import { colors, white } from '../../lib/tokens'
-
-// Same category colours as calendar events (src/lib/tokens.js)
-const STATION_COLOR = { Kitchen: colors.warn, FOH: colors.category.teal, Bar: colors.category.plum, KP: colors.category.slate }
-const STATION_ORDER = ['Kitchen', 'FOH', 'Bar', 'KP']
-
-function stationFromRole(role) {
-  if (!role) return null
-  const r = role.toLowerCase()
-  if (r.includes('kitchen') || r.includes('chef') || r.includes('cook')) return 'Kitchen'
-  if (r.includes('kp') || r.includes('porter')) return 'KP'
-  if (r.includes('bar') || r.includes('barista')) return 'Bar'
-  if (r.includes('foh') || r.includes('front') || r.includes('floor') || r.includes('server') || r.includes('host') || r.includes('supervisor')) return 'FOH'
-  return role.charAt(0).toUpperCase() + role.slice(1)
-}
+import { STATION_COLOR, STATION_ORDER, stationFromRole, stationColor } from '../../lib/rota'
 
 // ── Time helpers ──────────────────────────────────────────────────────────────
 const HOURS   = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
@@ -463,11 +450,6 @@ const SECTION = 'font-mono text-caption font-semibold tracking-[0.08em] uppercas
 /** 16.1 → "16.1h", 16 → "16h" */
 function hrs(n) { return `${Math.round(n * 10) / 10}h` }
 function money(n) { return `£${Math.round(n)}` }
-
-function stationColor(roleLabel) {
-  const station = stationFromRole(roleLabel)
-  return (station && STATION_COLOR[station]) || colors.brand.DEFAULT
-}
 
 function Segmented({ options, value, onChange, label }) {
   return (
