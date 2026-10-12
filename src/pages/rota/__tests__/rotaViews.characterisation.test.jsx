@@ -58,9 +58,7 @@ vi.mock('../../../lib/api/shifts', async (orig) => {
   return { ...actual, resolveShiftSwap: vi.fn(() => Promise.resolve({ error: null })) }
 })
 vi.mock('../../../lib/reportError', () => ({ reportError: vi.fn() }))
-vi.mock('../../../lib/supabase', () => ({
-  supabase: { from: () => ({ select: () => ({ eq: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: { value: 'x' }, error: null }) }) }) }) }) },
-}))
+vi.mock('../../../hooks/useRotaPublished', () => ({ useRotaPublished: () => ({ published: globalThis.__PUBLISHED, markPublished: vi.fn() }) }))
 vi.mock('../../../hooks/useShifts', async (orig) => {
   const actual = /** @type {Record<string, unknown>} */ (await orig())
   return { ...actual, useShifts: () => ({ shifts: globalThis.__SHIFTS, loading: false, isError: false, reload: vi.fn() }), useStaffList: () => ({ staff: globalThis.__STAFF, loading: false, isError: false, reload: vi.fn() }) }
@@ -81,6 +79,7 @@ beforeEach(() => {
   globalThis.__STAFF = STAFF
   globalThis.__UNAVAIL = UNAVAIL
   globalThis.__SWAPS = []
+  globalThis.__PUBLISHED = true
 })
 
 const text = (el) => el.textContent.replace(/\s+/g, ' ').trim()
@@ -152,6 +151,30 @@ describe('phone rota grid (RotaMobileGrid) — week view', () => {
   it('still shows no "busy elsewhere" marker for the visiting person (not changed in this PR)', async () => {
     await renderPhone()
     expect(document.body.textContent).not.toMatch(/Busy|Visiting/)
+  })
+})
+
+describe('phone rota — publish state', () => {
+  const publishButton = async () => {
+    render(<RotaMobileGrid />)
+    await waitFor(() => expect(screen.getByText('Ana A.')).toBeTruthy())
+    return screen.getByRole('button', { name: /Publish/ })
+  }
+  it('a published week with no edits shows a disabled "Published"', async () => {
+    const b = await publishButton()
+    expect(b.textContent).toContain('Published')
+    expect(b.hasAttribute('disabled')).toBe(true)
+  })
+  it('a week that has shifts but was never published can be published', async () => {
+    globalThis.__PUBLISHED = false
+    const b = await publishButton()
+    expect(b.textContent).toContain('Publish')
+    expect(b.hasAttribute('disabled')).toBe(false)
+  })
+  it('a week whose published state is unknown stays disabled (no false warning)', async () => {
+    globalThis.__PUBLISHED = null
+    const b = await publishButton()
+    expect(b.hasAttribute('disabled')).toBe(true)
   })
 })
 

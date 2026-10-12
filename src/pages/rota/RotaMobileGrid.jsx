@@ -1,9 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { format, addWeeks, isToday, differenceInCalendarWeeks } from 'date-fns'
-import { updateShift, insertShift, deleteShift, updateShiftStaff, resolveShiftSwap, upsertRotaPublished, insertShifts } from '../../lib/api/shifts'
-import { sendPush } from '../../lib/sendPush'
-import { supabase } from '../../lib/supabase'
-import { reportError } from '../../lib/reportError'
+import { updateShift, insertShift, deleteShift, updateShiftStaff, insertShifts } from '../../lib/api/shifts'
 import { useVenue } from '../../contexts/VenueContext'
 import { useShifts, useStaffList } from '../../hooks/useShifts'
 import { useAppSettings } from '../../hooks/useSettings'
@@ -20,7 +17,8 @@ import { shortName } from '../../lib/names'
 import Button, { CloseButton } from '../../components/ui/Button'
 import { useTheme } from '../../contexts/ThemeContext'
 import { colors, white } from '../../lib/tokens'
-import { STATION_COLOR, STATION_ORDER, stationFromRole, stationColor, buildRotaWeek, closureDateSet, shiftCost, shiftDurationHours } from '../../lib/rota'
+import { STATION_COLOR, STATION_ORDER, stationFromRole, stationColor, buildRotaWeek, closureDateSet, shiftCost, shiftDurationHours, canPublishWeek, publishButtonLabel, publishRota, approveSwapRequest, declineSwapRequest, isSwapExpired, EXPIRED_SWAP_NOTE } from '../../lib/rota'
+import { useRotaPublished } from '../../hooks/useRotaPublished'
 
 // ── Time helpers ──────────────────────────────────────────────────────────────
 const HOURS   = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
@@ -299,29 +297,21 @@ function SwapSheet({ swaps, onClose, onResolved }) {
 
   const approve = async (swap) => {
     setResolving(swap.id)
-    const { error: shiftErr } = await updateShiftStaff(swap.shift_id, swap.target_staff_id)
-    if (shiftErr) { toast(shiftErr.message, 'error'); setResolving(null); return }
-    const { error } = await resolveShiftSwap(swap.id, 'approved')
+    const { error } = await approveSwapRequest(swap, venueId)
     setResolving(null)
     if (error) { toast(error.message, 'error'); return }
     toast('Swap approved ✓')
-    const staffIds = [swap.requester_id, swap.target_staff_id].filter(Boolean)
-    if (staffIds.length) sendPush({ venueId, notificationType: 'shift_swap_decision', title: 'Shift Swap Approved', body: 'Your shift swap has been approved.', url: '/rota', staffIds })
     onResolved()
   }
 
   const decline = async (swap) => {
     setResolving(swap.id)
     // A swap for a shift that has already passed can only be dismissed, and says why.
-    const passed = !!swap.shift?.shift_date && swap.shift.shift_date < format(new Date(), 'yyyy-MM-dd')
-    const note = passed ? 'Shift had already passed' : null
-    const { error } = await resolveShiftSwap(swap.id, 'rejected', note)
+    const passed = isSwapExpired(swap)
+    const { error } = await declineSwapRequest(swap, venueId, passed ? EXPIRED_SWAP_NOTE : null)
     setResolving(null)
     if (error) { toast(error.message, 'error'); return }
     toast(passed ? 'Expired swap request dismissed' : 'Swap declined')
-    if (swap.requester_id) {
-      sendPush({ venueId, notificationType: 'shift_swap_decision', title: 'Shift Swap Rejected', body: `Your shift swap request was not approved.${note ? ' Note: ' + note : ''}`, url: '/rota', staffIds: [swap.requester_id] })
-    }
     onResolved()
   }
 
@@ -348,12 +338,12 @@ function SwapSheet({ swaps, onClose, onResolved }) {
               {swap.shift && (
                 <div className="font-mono text-[10px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.03em] mt-1">
                   {format(new Date(swap.shift.shift_date + 'T00:00:00'), 'EEE d MMM')} · {swap.shift.start_time?.slice(0, 5)}–{swap.shift.end_time?.slice(0, 5)}
-                  {swap.shift.shift_date < format(new Date(), 'yyyy-MM-dd') && ' · shift has passed'}
+                  {isSwapExpired(swap) && ' · shift has passed'}
                 </div>
               )}
               {swap.message && <div className="text-body-sm text-charcoal/75 dark:text-white/60 italic mt-2">"{swap.message}"</div>}
               {/* A swap for a shift that has already happened can only be dismissed */}
-              {swap.shift?.shift_date && swap.shift.shift_date < format(new Date(), 'yyyy-MM-dd') ? (
+              {isSwapExpired(swap) ? (
                 <div className="flex gap-2 mt-3">
                   <Button variant="secondary" size="sm" onClick={() => decline(swap)} disabled={resolving === swap.id} className="flex-1">{resolving === swap.id ? '…' : 'Dismiss'}</Button>
                 </div>
@@ -789,7 +779,6 @@ export default function RotaMobileGrid() {
   const [sessionChanges, setSessionChanges] = useState([])
   const [publishing, setPublishing] = useState(false)
   const [reverting, setReverting]   = useState(false)
-  const [dbPublished, setDbPublished] = useState(null)   // null until loaded
   const pendingChanges = sessionChanges.length
 
   const { shifts, loading, isError: shiftsFailed, reload } = useShifts(weekStart, 1)
@@ -801,22 +790,7 @@ export default function RotaMobileGrid() {
   const { closures } = useVenueClosures()
   const closedDates = useMemo(() => closureDateSet(closures), [closures])
 
-  useEffect(() => {
-    if (!venueId) return
-    setDbPublished(null)
-    const weekStartStr = format(weekStart, 'yyyy-MM-dd')
-    supabase
-      .from('app_settings')
-      .select('value')
-      .eq('venue_id', venueId)
-      .eq('key', `rota_published_${weekStartStr}`)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        // Left as null (unknown) on failure, so no false "never published" warning.
-        if (error) { reportError(error, 'RotaMobileGrid:published-state'); return }
-        setDbPublished(!!data?.value)
-      })
-  }, [venueId, weekStart])
+  const { published: dbPublished, markPublished } = useRotaPublished(weekStart)
 
   const goWeek = (n) => {
     const w = addWeeks(weekStart, n)
@@ -845,22 +819,16 @@ export default function RotaMobileGrid() {
 
   // Publishing is only possible when there is something new for staff to see:
   // unpublished edits this session, or a week with shifts that was never published.
-  const neverPublished = dbPublished === false && shifts.length > 0
-  const canPublish = pendingChanges > 0 || neverPublished
+  const canPublish = canPublishWeek({ pendingChanges, publishedState: dbPublished, shiftCount: shifts.length })
 
   const publish = async () => {
     if (!canPublish) return
     setPublishing(true)
-    const weekStartStr = format(weekStart, 'yyyy-MM-dd')
-    const { error } = await upsertRotaPublished(venueId, weekStartStr, new Date().toISOString())
-    if (error) { toast(error.message, 'error'); setPublishing(false); return }
-    const staffIds = [...new Set(shifts.map(s => s.staff_id).filter(Boolean))]
-    if (staffIds.length) {
-      sendPush({ venueId, notificationType: 'rota_published', title: 'Rota Published', body: `Your rota for the week of ${weekStartStr} is now available.`, url: '/rota', staffIds })
-    }
+    const { error } = await publishRota({ venueId, weekStartStr: format(weekStart, 'yyyy-MM-dd'), shifts })
     setPublishing(false)
+    if (error) { toast(error.message, 'error'); return }
     setSessionChanges([])
-    setDbPublished(true)
+    markPublished()
     toast('Rota published — everyone notified ✓')
   }
 
@@ -891,7 +859,7 @@ export default function RotaMobileGrid() {
   // An empty grid from a failed read looks like a week with nothing on it.
   const loadFailed = shiftsFailed || staffFailed
 
-  const publishLabel = publishing ? 'Publishing…' : canPublish ? 'Publish' : dbPublished ? 'Published' : 'Publish'
+  const publishLabel = publishButtonLabel({ publishing, canPublish, publishedState: dbPublished })
 
   return (
     <div className="flex flex-col gap-2.5">
