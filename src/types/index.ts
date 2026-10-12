@@ -30,6 +30,10 @@ export interface Shift {
   start_time: string
   end_time: string
   role?: string
+  /** What the person is doing on the shift (NOT NULL in the database). */
+  role_label?: string | null
+  /** Closing shift: they own their department's closing tasks. */
+  is_closing?: boolean
   notes?: string
   is_closure?: boolean
   staff?: Staff

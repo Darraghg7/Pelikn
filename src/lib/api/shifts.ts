@@ -100,6 +100,12 @@ export async function fetchPayrollLocks(venueId: string): Promise<string[]> {
   if (error) throw error
   try { return JSON.parse(data?.value ?? '[]') } catch { return [] }
 }
+/** When the week was last published, or null if never. Throws on a failed read. */
+export async function fetchRotaPublished(venueId: string, weekStartStr: string): Promise<string | null> {
+  const { data, error } = await supabase.from('app_settings').select('value').eq('venue_id', venueId).eq('key', `rota_published_${weekStartStr}`).maybeSingle()
+  if (error) throw error
+  return data?.value || null
+}
 export function upsertRotaPublished(venueId: string, weekStartStr: string, value: string) {
   return supabase.from('app_settings').upsert({ venue_id: venueId, key: `rota_published_${weekStartStr}`, value }, { onConflict: 'venue_id,key' })
 }
@@ -115,8 +121,10 @@ export function insertVenueClosures(rows: Record<string, unknown>[]) {
 
 // ── Shift swaps ──────────────────────────────────────────────────────────────
 
-export function resolveShiftSwap(swapId: string, status: 'approved' | 'rejected') {
-  return supabase.from('shift_swaps').update({ status, resolved_at: new Date().toISOString() }).eq('id', swapId)
+export function resolveShiftSwap(swapId: string, status: 'approved' | 'rejected', managerNote?: string | null) {
+  const update: Record<string, unknown> = { status, resolved_at: new Date().toISOString() }
+  if (managerNote !== undefined) update.manager_note = managerNote
+  return supabase.from('shift_swaps').update(update).eq('id', swapId)
 }
 
 // ── RPCs ─────────────────────────────────────────────────────────────────────

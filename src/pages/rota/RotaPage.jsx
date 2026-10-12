@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import RotaMobileGrid from './RotaMobileGrid'
-import { format, addDays, addWeeks, eachDayOfInterval, parseISO } from 'date-fns'
+import { format, addDays, addWeeks, parseISO } from 'date-fns'
 import {
   deleteVenueClosure, insertVenueClosures,
   insertShift, updateShift, deleteShift as deleteShiftRow, deleteDutyAssignmentsForShift,
-  insertDutyAssignment, upsertRotaPublished, createSwapRequest, insertShifts, deleteShiftsForWeek,
+  insertDutyAssignment, createSwapRequest, insertShifts, deleteShiftsForWeek,
 } from '../../lib/api/shifts'
 import { sendPush } from '../../lib/sendPush'
 import { supabase } from '../../lib/supabase'
@@ -21,6 +21,7 @@ import { reportError } from '../../lib/reportError'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useVenueRoles, loadAllStaffRolesForVenue } from '../../hooks/useVenueRoles'
 import RotaWeekView from './RotaWeekView'
+import { closureDateSet, publishRota, approveSwapRequest, declineSwapRequest } from '../../lib/rota'
 import { shareRotaImage } from '../../lib/rotaImageExport'
 import RotaAutoFillModal from './RotaAutoFillModal'
 import RotaConfigModal from './RotaConfigModal'
@@ -71,16 +72,7 @@ export default function RotaPage() {
   // Shared cache with the rest of the app, so this isn't fetched twice.
   const { closures, reload: loadClosures } = useVenueClosures()
 
-  const closedDates = React.useMemo(() => {
-    const set = new Set()
-    for (const c of closures) {
-      try {
-        const days = eachDayOfInterval({ start: parseISO(c.start_date), end: parseISO(c.end_date) })
-        days.forEach(d => set.add(format(d, 'yyyy-MM-dd')))
-      } catch { /* skip invalid ranges */ }
-    }
-    return set
-  }, [closures])
+  const closedDates = React.useMemo(() => closureDateSet(closures), [closures])
 
   // ── Closure mode ──
   const [closureMode, setClosureMode]       = useState(false)
@@ -262,21 +254,9 @@ export default function RotaPage() {
 
   const emailRota = async () => {
     setEmailing(true)
-    const weekStartStr = format(weekStart, 'yyyy-MM-dd')
-    const { error: saveErr } = await upsertRotaPublished(venueId, weekStartStr, new Date().toISOString())
-    if (saveErr) { toast('Failed to publish: ' + saveErr.message, 'error'); setEmailing(false); return }
-    const staffIds = [...new Set(shifts.map(s => s.staff_id).filter(Boolean))]
-    if (staffIds.length) {
-      sendPush({
-        venueId,
-        notificationType: 'rota_published',
-        title: 'Rota Published',
-        body:  `Your rota for the week of ${weekStartStr} is now available.`,
-        url:   '/rota',
-        staffIds,
-      })
-    }
+    const { error: saveErr } = await publishRota({ venueId, weekStartStr: format(weekStart, 'yyyy-MM-dd'), shifts })
     setEmailing(false)
+    if (saveErr) { toast('Failed to publish: ' + saveErr.message, 'error'); return }
     toast('Rota published ✓')
   }
 
@@ -307,29 +287,10 @@ export default function RotaPage() {
 
   const approveSwap = async (swap) => {
     setResolving(swap.id)
-    const { error: shiftErr } = await supabase
-      .from('shifts')
-      .update({ staff_id: swap.target_staff_id })
-      .eq('id', swap.shift_id)
-    if (shiftErr) { toast(shiftErr.message, 'error'); setResolving(null); return }
-    const { error } = await supabase
-      .from('shift_swaps')
-      .update({ status: 'approved', resolved_at: new Date().toISOString() })
-      .eq('id', swap.id)
+    const { error } = await approveSwapRequest(swap, venueId)
     setResolving(null)
     if (error) { toast(error.message, 'error'); return }
     toast('Swap approved — shift reassigned ✓')
-    const staffIds = [swap.requester_id, swap.target_staff_id].filter(Boolean)
-    if (staffIds.length) {
-      sendPush({
-        venueId,
-        notificationType: 'shift_swap_decision',
-        title: 'Shift Swap Approved',
-        body:  'Your shift swap request has been approved. Check the rota for updates.',
-        url:   '/rota',
-        staffIds,
-      })
-    }
     reloadSwaps()
     reload()
   }
@@ -339,27 +300,10 @@ export default function RotaPage() {
   const rejectSwap = async (swap, presetNote) => {
     const note = presetNote ?? rejectNote[swap.id]?.trim() ?? ''
     setResolving(swap.id)
-    const { error } = await supabase
-      .from('shift_swaps')
-      .update({
-        status:       'rejected',
-        manager_note: note || null,
-        resolved_at:  new Date().toISOString(),
-      })
-      .eq('id', swap.id)
+    const { error } = await declineSwapRequest(swap, venueId, note)
     setResolving(null)
     if (error) { toast(error.message, 'error'); return }
     toast(presetNote ? 'Expired swap request dismissed' : 'Swap request rejected')
-    if (swap.requester_id) {
-      sendPush({
-        venueId,
-        notificationType: 'shift_swap_decision',
-        title: 'Shift Swap Rejected',
-        body:  `Your shift swap request was not approved.${note ? ' Note: ' + note : ''}`,
-        url:   '/rota',
-        staffIds: [swap.requester_id],
-      })
-    }
     reloadSwaps()
   }
 

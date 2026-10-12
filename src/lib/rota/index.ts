@@ -7,3 +7,6 @@
 export * from './hours'
 export * from './stations'
 export * from './week'
+export * from './closures'
+export * from './publish'
+export * from './swaps'

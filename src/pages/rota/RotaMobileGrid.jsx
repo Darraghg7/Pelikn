@@ -1,11 +1,10 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react'
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { format, addWeeks, isToday, differenceInCalendarWeeks } from 'date-fns'
-import { updateShift, insertShift, deleteShift, updateShiftStaff, resolveShiftSwap, upsertRotaPublished, insertShifts } from '../../lib/api/shifts'
-import { sendPush } from '../../lib/sendPush'
-import { supabase } from '../../lib/supabase'
-import { reportError } from '../../lib/reportError'
+import { updateShift, insertShift, deleteShift, updateShiftStaff, insertShifts } from '../../lib/api/shifts'
 import { useVenue } from '../../contexts/VenueContext'
-import { useShifts, useStaffList, shiftDurationHours, paidShiftHours } from '../../hooks/useShifts'
+import { useShifts, useStaffList } from '../../hooks/useShifts'
+import { useAppSettings } from '../../hooks/useSettings'
+import useVenueClosures from '../../hooks/useVenueClosures'
 import { useShiftSwaps } from '../../hooks/useShiftSwaps'
 import { useAvailability } from '../../hooks/useAvailability'
 import { useVenueRoles } from '../../hooks/useVenueRoles'
@@ -18,7 +17,8 @@ import { shortName } from '../../lib/names'
 import Button, { CloseButton } from '../../components/ui/Button'
 import { useTheme } from '../../contexts/ThemeContext'
 import { colors, white } from '../../lib/tokens'
-import { STATION_COLOR, STATION_ORDER, stationFromRole, stationColor } from '../../lib/rota'
+import { STATION_COLOR, STATION_ORDER, stationFromRole, stationColor, buildRotaWeek, closureDateSet, shiftCost, shiftDurationHours, canPublishWeek, publishButtonLabel, publishRota, approveSwapRequest, declineSwapRequest, isSwapExpired, EXPIRED_SWAP_NOTE } from '../../lib/rota'
+import { useRotaPublished } from '../../hooks/useRotaPublished'
 
 // ── Time helpers ──────────────────────────────────────────────────────────────
 const HOURS   = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
@@ -93,7 +93,7 @@ function Wheel({ values, value, onChange, accent }) {
 }
 
 // ── Shift Sheet ───────────────────────────────────────────────────────────────
-function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved, onDeleted }) {
+function ShiftSheet({ shift, staffMember, day, venueId, roles, breakDurationMins, onClose, onSaved, onDeleted }) {
   const existing = shift?.id ? shift : null
   const [startH, setStartH] = useState(existing?.start_time?.slice(0, 2) ?? '09')
   const [startM, setStartM] = useState(
@@ -121,7 +121,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
   const hrs       = shiftDurationHours(startTime, endTime)
   const valid     = hrs > 0 && !!roleLabel
   const rate      = staffMember?.hourly_rate
-  const cost      = (rate && valid) ? Math.round(paidShiftHours(startTime, endTime) * rate) : null
+  const cost      = (rate && valid) ? Math.round(shiftCost(startTime, endTime, staffMember, breakDurationMins)) : null
 
   const save = async () => {
     setSaving(true)
@@ -297,23 +297,21 @@ function SwapSheet({ swaps, onClose, onResolved }) {
 
   const approve = async (swap) => {
     setResolving(swap.id)
-    const { error: shiftErr } = await updateShiftStaff(swap.shift_id, swap.target_staff_id)
-    if (shiftErr) { toast(shiftErr.message, 'error'); setResolving(null); return }
-    const { error } = await resolveShiftSwap(swap.id, 'approved')
+    const { error } = await approveSwapRequest(swap, venueId)
     setResolving(null)
     if (error) { toast(error.message, 'error'); return }
     toast('Swap approved ✓')
-    const staffIds = [swap.requester_id, swap.target_staff_id].filter(Boolean)
-    if (staffIds.length) sendPush({ venueId, notificationType: 'shift_swap_decision', title: 'Shift Swap Approved', body: 'Your shift swap has been approved.', url: '/rota', staffIds })
     onResolved()
   }
 
   const decline = async (swap) => {
     setResolving(swap.id)
-    const { error } = await resolveShiftSwap(swap.id, 'rejected')
+    // A swap for a shift that has already passed can only be dismissed, and says why.
+    const passed = isSwapExpired(swap)
+    const { error } = await declineSwapRequest(swap, venueId, passed ? EXPIRED_SWAP_NOTE : null)
     setResolving(null)
     if (error) { toast(error.message, 'error'); return }
-    toast('Swap declined')
+    toast(passed ? 'Expired swap request dismissed' : 'Swap declined')
     onResolved()
   }
 
@@ -340,12 +338,12 @@ function SwapSheet({ swaps, onClose, onResolved }) {
               {swap.shift && (
                 <div className="font-mono text-[10px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.03em] mt-1">
                   {format(new Date(swap.shift.shift_date + 'T00:00:00'), 'EEE d MMM')} · {swap.shift.start_time?.slice(0, 5)}–{swap.shift.end_time?.slice(0, 5)}
-                  {swap.shift.shift_date < format(new Date(), 'yyyy-MM-dd') && ' · shift has passed'}
+                  {isSwapExpired(swap) && ' · shift has passed'}
                 </div>
               )}
               {swap.message && <div className="text-body-sm text-charcoal/75 dark:text-white/60 italic mt-2">"{swap.message}"</div>}
               {/* A swap for a shift that has already happened can only be dismissed */}
-              {swap.shift?.shift_date && swap.shift.shift_date < format(new Date(), 'yyyy-MM-dd') ? (
+              {isSwapExpired(swap) ? (
                 <div className="flex gap-2 mt-3">
                   <Button variant="secondary" size="sm" onClick={() => decline(swap)} disabled={resolving === swap.id} className="flex-1">{resolving === swap.id ? '…' : 'Dismiss'}</Button>
                 </div>
@@ -478,10 +476,20 @@ const CHEVRON_R = <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" strok
 const PLUS = <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
 
 // ── Week grid cell ────────────────────────────────────────────────────────────
-function WeekCell({ shift, onLeave, onTap, label }) {
+function WeekCell({ shifts, closed, onLeave, onTap, onTapShift, label }) {
+  // A closed day takes no shifts, same as the desktop rota.
+  if (closed) {
+    return (
+      <div className="flex-1 min-w-0 p-[3px]">
+        <div className="h-[46px] flex items-center justify-center">
+          <span className="font-mono text-[9px] text-ink4 dark:text-white/25 uppercase tracking-widest" title="Closed">—</span>
+        </div>
+      </div>
+    )
+  }
   // Approved time off blocks the slot: no tap target, so nobody gets rota'd
   // onto a day they have booked off.
-  if (!shift && onLeave) {
+  if (!shifts.length && onLeave) {
     return (
       <div className="flex-1 min-w-0 p-[3px]">
         <div className="h-[46px] rounded-control bg-line2 dark:bg-white/10 flex items-center justify-center">
@@ -490,7 +498,7 @@ function WeekCell({ shift, onLeave, onTap, label }) {
       </div>
     )
   }
-  if (!shift) {
+  if (!shifts.length) {
     return (
       <button type="button" onClick={onTap} aria-label={`Add shift, ${label}`} className="flex-1 min-w-0 p-[3px] group">
         <span className="h-[46px] flex items-center justify-center">
@@ -501,66 +509,94 @@ function WeekCell({ shift, onLeave, onTap, label }) {
       </button>
     )
   }
-  const col = stationColor(shift.role_label)
-  const start = fmtT(shift.start_time.slice(0, 5))
-  const end   = fmtT(shift.end_time.slice(0, 5))
+  // One shift fills the cell. A split day gives every shift its own compact
+  // chip, stacked in the same cell height.
+  const multi = shifts.length > 1
   return (
-    <button type="button" onClick={onTap} aria-label={`${label}, ${start} to ${end}`} className="flex-1 min-w-0 p-[3px]">
-      <span className="relative h-[46px] rounded-control flex flex-col items-center justify-center leading-none" style={{ background: col + '1f', color: col }}>
-        <span className="font-mono text-caption font-bold tabular-nums tracking-[-0.03em]">{start}</span>
-        <span className="font-mono text-micro font-medium tabular-nums tracking-[-0.03em] opacity-75 mt-[3px]">{end}</span>
-        {shift._hasSwap && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-warn" title="Swap requested" />}
-      </span>
-    </button>
+    <div className="flex-1 min-w-0 p-[3px]">
+      <div className={`h-[46px] ${multi ? 'flex flex-col gap-[2px]' : ''}`}>
+        {shifts.map((shift) => {
+          const col = stationColor(shift.role_label)
+          const start = fmtT(shift.start_time.slice(0, 5))
+          const end   = fmtT(shift.end_time.slice(0, 5))
+          return (
+            <button
+              key={shift.id}
+              type="button"
+              onClick={() => onTapShift(shift)}
+              aria-label={`${label}, ${start} to ${end}`}
+              className={`relative w-full flex items-center justify-center ${multi
+                ? 'flex-1 min-h-0 rounded-tag font-mono text-[9px] font-bold tabular-nums tracking-[-0.04em] leading-none whitespace-nowrap overflow-hidden'
+                : 'h-[46px] rounded-control flex-col leading-none'}`}
+              style={{ background: col + '1f', color: col }}
+            >
+              {multi ? `${start}–${end}` : (
+                <>
+                  <span className="font-mono text-caption font-bold tabular-nums tracking-[-0.03em]">{start}</span>
+                  <span className="font-mono text-micro font-medium tabular-nums tracking-[-0.03em] opacity-75 mt-[3px]">{end}</span>
+                </>
+              )}
+              {shift._hasSwap && <span className={`absolute rounded-full bg-warn ${multi ? 'top-0.5 right-0.5 w-1 h-1' : 'top-1 right-1 w-1.5 h-1.5'}`} title="Swap requested" />}
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
 // ── Week view ─────────────────────────────────────────────────────────────────
-function WeekGrid({ days, staff, shiftMap, unavailability, dayTotals, personTotal, showCost, onTap }) {
+function WeekGrid({ week, showCost, onTap }) {
+  const { days, staff } = week
   return (
     <div className={`${CARD} overflow-hidden`}>
       <div className="flex border-b border-line dark:border-white/10 px-1">
         <div className="w-[68px] shrink-0" />
-        {days.map((day, i) => {
+        {days.map(({ date: day, closed }, i) => {
           const today = isToday(day)
           return (
             <div key={i} className="flex-1 min-w-0 p-[3px]">
               <div className={`rounded-control py-1.5 text-center ${today ? 'bg-line2 dark:bg-white/10' : ''}`}>
                 <div className="font-mono text-[10px] font-semibold tracking-[0.04em] uppercase text-ink3 dark:text-white/45">{format(day, 'EEE')}</div>
-                <div className={`text-body-lg font-bold leading-tight mt-0.5 ${today ? 'text-accent' : 'text-ink dark:text-white'}`}>{format(day, 'd')}</div>
+                <div className={`text-body-lg font-bold leading-tight mt-0.5 ${today ? 'text-accent' : closed ? 'text-ink4 dark:text-white/25' : 'text-ink dark:text-white'}`}>{format(day, 'd')}</div>
               </div>
             </div>
           )
         })}
       </div>
 
-      {staff.map((member) => (
-        <div key={member.id} className="flex items-center border-b border-line dark:border-white/10 px-1">
-          <div className="w-[68px] shrink-0 pl-2 pr-1 min-w-0">
-            <div className="text-body-sm font-semibold text-ink dark:text-white truncate" title={member.name}>{shortName(member.name) || '—'}</div>
-            <div className="font-mono text-micro text-ink3 dark:text-white/45 mt-0.5">{showCost ? money(personTotal(member).cost) : hrs(personTotal(member).hours)}</div>
+      {staff.map((member) => {
+        const total = week.personTotals(member.id)
+        return (
+          <div key={member.id} className="flex items-center border-b border-line dark:border-white/10 px-1">
+            <div className="w-[68px] shrink-0 pl-2 pr-1 min-w-0">
+              <div className="text-body-sm font-semibold text-ink dark:text-white truncate" title={member.name}>{shortName(member.name) || '—'}</div>
+              <div className="font-mono text-micro text-ink3 dark:text-white/45 mt-0.5">{showCost ? money(total.cost) : hrs(total.paidHours)}</div>
+            </div>
+            {days.map((day, di) => {
+              const cell = week.cell(member.id, day.dateStr)
+              return (
+                <WeekCell
+                  key={di}
+                  shifts={cell.shifts}
+                  closed={cell.closed}
+                  onLeave={cell.isTimeOff}
+                  label={`${member.name}, ${format(day.date, 'EEEE d MMMM')}`}
+                  onTap={() => onTap(null, member, day.date)}
+                  onTapShift={(shift) => onTap(shift, member, day.date)}
+                />
+              )
+            })}
           </div>
-          {days.map((day, di) => {
-            const dateStr = format(day, 'yyyy-MM-dd')
-            return (
-              <WeekCell
-                key={di}
-                shift={shiftMap[`${member.id}|${dateStr}`] ?? null}
-                onLeave={unavailability[`${member.id}:${dateStr}`]?.type === 'time_off'}
-                label={`${member.name}, ${format(day, 'EEEE d MMMM')}`}
-                onTap={() => onTap(shiftMap[`${member.id}|${dateStr}`] ?? null, member, day)}
-              />
-            )
-          })}
-        </div>
-      ))}
+        )
+      })}
 
       <div className="flex items-center bg-cream/60 dark:bg-white/5 px-1 py-2">
         <div className="w-[68px] shrink-0 pl-2 font-mono text-micro font-semibold tracking-[0.06em] uppercase text-ink3 dark:text-white/45">{showCost ? 'Cost' : 'Hours'}</div>
-        {dayTotals.map((t, i) => (
+        {week.dayTotals.map((t, i) => (
           <div key={i} className="flex-1 min-w-0 text-center">
-            <div className="text-body-sm font-bold text-ink dark:text-white tabular-nums">{showCost ? money(t.cost) : `${t.hours}h`}</div>
-            <div className="font-mono text-[10px] uppercase text-ink3 dark:text-white/45 mt-0.5">{t.count} on</div>
+            <div className="text-body-sm font-bold text-ink dark:text-white tabular-nums">{showCost ? money(t.cost) : hrs(t.paidHours)}</div>
+            <div className="font-mono text-[10px] uppercase text-ink3 dark:text-white/45 mt-0.5">{t.heads} on</div>
           </div>
         ))}
       </div>
@@ -569,18 +605,20 @@ function WeekGrid({ days, staff, shiftMap, unavailability, dayTotals, personTota
 }
 
 // ── Day view ──────────────────────────────────────────────────────────────────
-function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, dayTotals, personTotal, showCost, onTap }) {
+function DayView({ week, dayIndex, setDayIndex, shifts, breakDurationMins, showCost, onTap }) {
+  const { staff } = week
+  const days = week.days.map((d) => d.date)
   const day = days[dayIndex]
   const dateStr = format(day, 'yyyy-MM-dd')
+  const dayClosed = week.days[dayIndex].closed
+  const dayTotal = week.dayTotals[dayIndex]
   const onShift = shifts
     .filter(s => s.shift_date === dateStr && s.staff_id)
     .sort((a, b) => a.start_time.localeCompare(b.start_time))
   const scheduledIds = new Set(onShift.map(s => s.staff_id))
-  const onLeave = staff.filter(m => !scheduledIds.has(m.id) && unavailability[`${m.id}:${dateStr}`]?.type === 'time_off')
+  const onLeave = staff.filter(m => !scheduledIds.has(m.id) && week.cell(m.id, dateStr).isTimeOff)
   const leaveIds = new Set(onLeave.map(m => m.id))
   const free = staff.filter(m => !scheduledIds.has(m.id) && !leaveIds.has(m.id))
-  const dayHours = onShift.reduce((a, s) => a + shiftDurationHours(s.start_time, s.end_time), 0)
-  const dayCost  = onShift.reduce((a, s) => a + (s.staff ? paidShiftHours(s.start_time, s.end_time) * (s.staff.hourly_rate ?? 0) : 0), 0)
 
   return (
     <>
@@ -598,7 +636,7 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
             >
               <div className={`font-mono text-[10px] font-semibold uppercase tracking-[0.04em] ${on ? 'text-white/70' : 'text-ink3 dark:text-white/45'}`}>{format(d, 'EEE')}</div>
               <div className="text-body-lg font-bold leading-tight mt-0.5">{format(d, 'd')}</div>
-              <div className={`font-mono text-[10px] mt-0.5 ${on ? 'text-white/70' : 'text-ink3 dark:text-white/45'}`}>{showCost ? money(dayTotals[i].cost) : `${dayTotals[i].hours}h`}</div>
+              <div className={`font-mono text-[10px] mt-0.5 ${on ? 'text-white/70' : 'text-ink3 dark:text-white/45'}`}>{showCost ? money(week.dayTotals[i].cost) : hrs(week.dayTotals[i].paidHours)}</div>
             </button>
           )
         })}
@@ -606,10 +644,12 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
 
       <div className="flex items-baseline justify-between px-1 pt-1">
         <h2 className="text-body-lg font-bold text-ink dark:text-white">{format(day, 'EEEE d MMM')}</h2>
-        <span className="text-caption text-ink3 dark:text-white/45">{onShift.length} on · {showCost ? money(dayCost) : hrs(dayHours)}</span>
+        <span className="text-caption text-ink3 dark:text-white/45">{dayClosed ? 'Closed' : `${dayTotal.heads} on · ${showCost ? money(dayTotal.cost) : hrs(dayTotal.paidHours)}`}</span>
       </div>
 
-      {onShift.length === 0 ? (
+      {dayClosed ? (
+        <div className={`${CARD} px-4 py-5 text-center text-body-sm text-ink3 dark:text-white/45`}>Closed — no shifts on this day.</div>
+      ) : onShift.length === 0 ? (
         <div className={`${CARD} px-4 py-5 text-center text-body-sm text-ink3 dark:text-white/45`}>Nobody on yet. Add a shift below.</div>
       ) : (
         <div className={`${CARD} overflow-hidden divide-y divide-line dark:divide-white/10`}>
@@ -627,7 +667,7 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
                 </span>
                 <span className="shrink-0 rounded-control px-2.5 py-1.5 text-right" style={{ background: col + '1f', color: col }}>
                   <span className="block font-mono text-body-sm font-bold tabular-nums tracking-[-0.02em]">{start}–{end}</span>
-                  <span className="block font-mono text-micro opacity-75 mt-0.5">{showCost && member.hourly_rate ? money(paidShiftHours(s.start_time, s.end_time) * member.hourly_rate) : hrs(shiftDurationHours(s.start_time, s.end_time))}</span>
+                  <span className="block font-mono text-micro opacity-75 mt-0.5">{showCost && member.hourly_rate ? money(shiftCost(s.start_time, s.end_time, member, breakDurationMins)) : hrs(shiftDurationHours(s.start_time, s.end_time))}</span>
                 </span>
                 {s._hasSwap && <span className="w-1.5 h-1.5 rounded-full bg-warn shrink-0" title="Swap requested" />}
               </button>
@@ -636,7 +676,7 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
         </div>
       )}
 
-      {onLeave.length > 0 && (
+      {!dayClosed && onLeave.length > 0 && (
         <>
           <p className={`${SECTION} pt-1`}>On leave</p>
           <div className={`${CARD} overflow-hidden divide-y divide-line dark:divide-white/10`}>
@@ -650,7 +690,7 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
         </>
       )}
 
-      {free.length > 0 && (
+      {!dayClosed && free.length > 0 && (
         <>
           <p className={`${SECTION} pt-1`}>Not scheduled · {free.length}</p>
           <div className={`${CARD} overflow-hidden divide-y divide-line dark:divide-white/10`}>
@@ -659,7 +699,7 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
                 <Avatar name={m.name} id={m.id} colour={m.colour} photoUrl={m.photo_url} size="sm" decorative />
                 <span className="flex-1 min-w-0">
                   <span className="block text-body-sm font-semibold text-ink dark:text-white truncate">{shortName(m.name) || '—'}</span>
-                  <span className="block text-caption text-ink3 dark:text-white/45 mt-0.5">{showCost ? `${money(personTotal(m).cost)} this week` : `${hrs(personTotal(m).hours)} this week`}</span>
+                  <span className="block text-caption text-ink3 dark:text-white/45 mt-0.5">{showCost ? `${money(week.personTotals(m.id).cost)} this week` : `${hrs(week.personTotals(m.id).paidHours)} this week`}</span>
                 </span>
                 <Button
                   variant="secondary"
@@ -739,7 +779,6 @@ export default function RotaMobileGrid() {
   const [sessionChanges, setSessionChanges] = useState([])
   const [publishing, setPublishing] = useState(false)
   const [reverting, setReverting]   = useState(false)
-  const [dbPublished, setDbPublished] = useState(null)   // null until loaded
   const pendingChanges = sessionChanges.length
 
   const { shifts, loading, isError: shiftsFailed, reload } = useShifts(weekStart, 1)
@@ -747,23 +786,11 @@ export default function RotaMobileGrid() {
   const { unavailability } = useAvailability(weekStart, 1)
   const { swaps, pendingCount, reload: reloadSwaps } = useShiftSwaps()
   const { roles } = useVenueRoles()
+  const { closedDays, breakDurationMins } = useAppSettings()
+  const { closures } = useVenueClosures()
+  const closedDates = useMemo(() => closureDateSet(closures), [closures])
 
-  useEffect(() => {
-    if (!venueId) return
-    setDbPublished(null)
-    const weekStartStr = format(weekStart, 'yyyy-MM-dd')
-    supabase
-      .from('app_settings')
-      .select('value')
-      .eq('venue_id', venueId)
-      .eq('key', `rota_published_${weekStartStr}`)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        // Left as null (unknown) on failure, so no false "never published" warning.
-        if (error) { reportError(error, 'RotaMobileGrid:published-state'); return }
-        setDbPublished(!!data?.value)
-      })
-  }, [venueId, weekStart])
+  const { published: dbPublished, markPublished } = useRotaPublished(weekStart)
 
   const goWeek = (n) => {
     const w = addWeeks(weekStart, n)
@@ -773,54 +800,35 @@ export default function RotaMobileGrid() {
     setDayIndex(i < 0 ? 0 : i)
   }
 
-  const shiftMap = {}
   const swapShiftIds = new Set(swaps.filter(s => s.status === 'pending').map(s => s.shift_id))
   const weekShifts = shifts.map(s => ({ ...s, _hasSwap: swapShiftIds.has(s.id) }))
-  for (const s of weekShifts) shiftMap[`${s.staff_id}|${s.shift_date}`] = s
+
+  // The same week model the desktop rota uses: shifts by person and day,
+  // closed days, paid hours and cost with the venue's break rules.
+  const week = useMemo(
+    () => buildRotaWeek({ weekStart, shifts: weekShifts, staff, unavailability, closedDays, closedDates, breakDurationMins }),
+    [weekStart, shifts, swaps, staff, unavailability, closedDays, closedDates, breakDurationMins], // eslint-disable-line react-hooks/exhaustive-deps -- weekShifts is derived from shifts and swaps
+  )
 
   const openShifts = weekShifts
     .filter(s => !s.staff_id)
     .map(s => ({ ...s, _day: days.find(d => format(d, 'yyyy-MM-dd') === s.shift_date) ?? days[0] }))
 
-  const dayTotals = days.map(day => {
-    const ds = format(day, 'yyyy-MM-dd')
-    const dayShifts = shifts.filter(s => s.shift_date === ds && s.staff_id)
-    return {
-      hours: Math.round(dayShifts.reduce((sum, s) => sum + shiftDurationHours(s.start_time, s.end_time), 0)),
-      cost:  Math.round(dayShifts.reduce((sum, s) => sum + (s.staff ? paidShiftHours(s.start_time, s.end_time) * (s.staff.hourly_rate ?? 0) : 0), 0)),
-      count: dayShifts.length,
-    }
-  })
-  const weekHours = dayTotals.reduce((a, t) => a + t.hours, 0)
-  const weekCost  = dayTotals.reduce((a, t) => a + t.cost, 0)
-
-  const personTotals = {}
-  for (const s of shifts) {
-    if (!s.staff_id) continue
-    const t = personTotals[s.staff_id] ?? (personTotals[s.staff_id] = { hours: 0, cost: 0 })
-    t.hours += shiftDurationHours(s.start_time, s.end_time)
-    t.cost  += s.staff ? paidShiftHours(s.start_time, s.end_time) * (s.staff.hourly_rate ?? 0) : 0
-  }
-  const personTotal = (m) => personTotals[m.id] ?? { hours: 0, cost: 0 }
+  const weekHours = week.dayTotals.reduce((a, t) => a + t.paidHours, 0)
+  const weekCost  = week.dayTotals.reduce((a, t) => a + t.cost, 0)
 
   // Publishing is only possible when there is something new for staff to see:
   // unpublished edits this session, or a week with shifts that was never published.
-  const neverPublished = dbPublished === false && shifts.length > 0
-  const canPublish = pendingChanges > 0 || neverPublished
+  const canPublish = canPublishWeek({ pendingChanges, publishedState: dbPublished, shiftCount: shifts.length })
 
   const publish = async () => {
     if (!canPublish) return
     setPublishing(true)
-    const weekStartStr = format(weekStart, 'yyyy-MM-dd')
-    const { error } = await upsertRotaPublished(venueId, weekStartStr, new Date().toISOString())
-    if (error) { toast(error.message, 'error'); setPublishing(false); return }
-    const staffIds = [...new Set(shifts.map(s => s.staff_id).filter(Boolean))]
-    if (staffIds.length) {
-      sendPush({ venueId, notificationType: 'rota_published', title: 'Rota Published', body: `Your rota for the week of ${weekStartStr} is now available.`, url: '/rota', staffIds })
-    }
+    const { error } = await publishRota({ venueId, weekStartStr: format(weekStart, 'yyyy-MM-dd'), shifts })
     setPublishing(false)
+    if (error) { toast(error.message, 'error'); return }
     setSessionChanges([])
-    setDbPublished(true)
+    markPublished()
     toast('Rota published — everyone notified ✓')
   }
 
@@ -851,7 +859,7 @@ export default function RotaMobileGrid() {
   // An empty grid from a failed read looks like a week with nothing on it.
   const loadFailed = shiftsFailed || staffFailed
 
-  const publishLabel = publishing ? 'Publishing…' : canPublish ? 'Publish' : dbPublished ? 'Published' : 'Publish'
+  const publishLabel = publishButtonLabel({ publishing, canPublish, publishedState: dbPublished })
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -894,7 +902,7 @@ export default function RotaMobileGrid() {
         <div className={`${CARD} flex-1 min-w-0 py-2 text-center`}>
           <div className="text-body-lg font-bold text-ink dark:text-white">{weekTitle}</div>
           <div className="font-mono text-micro tracking-[0.06em] uppercase text-ink3 dark:text-white/45 mt-0.5">
-            {format(days[0], 'd MMM')} – {format(days[6], 'd MMM')} · {showCost ? money(weekCost) : `${weekHours}h`}
+            {format(days[0], 'd MMM')} – {format(days[6], 'd MMM')} · {showCost ? money(weekCost) : hrs(weekHours)}
           </div>
         </div>
         <button type="button" onClick={() => goWeek(1)} aria-label="Next week" className={`${CARD} w-11 shrink-0 flex items-center justify-center text-ink2 dark:text-white/70 hover:text-ink`}>{CHEVRON_R}</button>
@@ -929,26 +937,14 @@ export default function RotaMobileGrid() {
       ) : loadFailed ? (
         <LoadError what="the rota" onRetry={() => { reload(); reloadStaff() }} className={CARD} />
       ) : view === 'week' ? (
-        <WeekGrid
-          days={days}
-          staff={staff}
-          shiftMap={shiftMap}
-          unavailability={unavailability}
-          dayTotals={dayTotals}
-          personTotal={personTotal}
-          showCost={showCost}
-          onTap={openSheet}
-        />
+        <WeekGrid week={week} showCost={showCost} onTap={openSheet} />
       ) : (
         <DayView
-          days={days}
+          week={week}
           dayIndex={dayIndex}
           setDayIndex={setDayIndex}
-          staff={staff}
           shifts={weekShifts}
-          unavailability={unavailability}
-          dayTotals={dayTotals}
-          personTotal={personTotal}
+          breakDurationMins={breakDurationMins}
           showCost={showCost}
           onTap={openSheet}
         />
@@ -965,6 +961,7 @@ export default function RotaMobileGrid() {
           day={shiftSheet.day}
           venueId={venueId}
           roles={roles}
+          breakDurationMins={breakDurationMins}
           onClose={() => setShiftSheet(null)}
           onSaved={handleChange}
           onDeleted={handleChange}
