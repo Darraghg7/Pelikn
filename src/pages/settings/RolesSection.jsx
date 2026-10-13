@@ -63,6 +63,7 @@ function DepartmentsSection() {
                 <>
                   <input
                     type="text"
+                    aria-label={`Rename ${dept.name}`}
                     value={editName}
                     onChange={e => setEditName(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleRename(dept.id)}
@@ -183,6 +184,7 @@ export default function RolesSection() {
                 <>
                   <input
                     type="text"
+                    aria-label={`Rename ${role.name}`}
                     value={editName}
                     onChange={e => setEditName(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleRename(role.id)}

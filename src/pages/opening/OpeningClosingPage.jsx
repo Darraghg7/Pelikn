@@ -354,7 +354,8 @@ function DateSelector({ value, onChange }) {
     <div className="bg-white dark:bg-paperDark rounded-card p-1 flex items-center gap-1">
       <button
         onClick={() => onChange(prevDay)}
-        className="p-2 rounded-control text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors"
+        aria-label="Previous day"
+        className="min-w-11 min-h-11 flex items-center justify-center rounded-control text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
       </button>
@@ -381,8 +382,9 @@ function DateSelector({ value, onChange }) {
 
       <button
         onClick={() => onChange(nextDay)}
+        aria-label="Next day"
         disabled={nextDay > today}
-        className="p-2 rounded-control text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors disabled:opacity-25 disabled:cursor-default"
+        className="min-w-11 min-h-11 flex items-center justify-center rounded-control text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors disabled:opacity-25 disabled:cursor-default"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
       </button>

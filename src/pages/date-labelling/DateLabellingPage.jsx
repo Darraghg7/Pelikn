@@ -130,12 +130,12 @@ export default function DateLabellingPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">From</label>
-              <input type="date" value={exportFrom} onChange={e => setExportFrom(e.target.value)}
+              <input aria-label="From" type="date" value={exportFrom} onChange={e => setExportFrom(e.target.value)}
                 className="w-full px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
             <div>
               <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">To</label>
-              <input type="date" value={exportTo} onChange={e => setExportTo(e.target.value)}
+              <input aria-label="To" type="date" value={exportTo} onChange={e => setExportTo(e.target.value)}
                 className="w-full px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
           </div>
@@ -163,7 +163,7 @@ export default function DateLabellingPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Opened Date</label>
-              <input
+              <input aria-label="Opened Date"
                 type="date"
                 value={form.opened_date}
                 onChange={e => setForm(f => ({ ...f, opened_date: e.target.value }))}
@@ -172,7 +172,7 @@ export default function DateLabellingPage() {
             </div>
             <div>
               <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Use By Date</label>
-              <input
+              <input aria-label="Use By Date"
                 type="date"
                 value={form.use_by_date}
                 min={form.opened_date}

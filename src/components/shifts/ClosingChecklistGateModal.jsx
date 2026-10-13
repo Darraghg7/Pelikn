@@ -122,6 +122,7 @@ export default function ClosingChecklistGateModal({
               </p>
             </div>
             <select
+              aria-label="Manager"
               value={managerId}
               onChange={(e) => { setManagerId(e.target.value); setPinError('') }}
               className="w-full px-4 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white"

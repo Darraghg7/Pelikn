@@ -72,6 +72,7 @@ export default function DateRangePresets({ preset = 'today', onPreset, dateFrom 
         <div className="flex items-center gap-2 flex-wrap">
           <input
             type="date"
+            aria-label="From date"
             value={dateFrom}
             onChange={(e) => onDateChange?.({ dateFrom: e.target.value, dateTo })}
             className={inputCls}
@@ -79,6 +80,7 @@ export default function DateRangePresets({ preset = 'today', onPreset, dateFrom 
           <span className="text-charcoal/40 dark:text-white/30 text-xs">to</span>
           <input
             type="date"
+            aria-label="To date"
             value={dateTo}
             onChange={(e) => onDateChange?.({ dateFrom, dateTo: e.target.value })}
             className={inputCls}

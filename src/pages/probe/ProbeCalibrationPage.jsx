@@ -214,7 +214,7 @@ export default function ProbeCalibrationPage() {
 
           <div>
             <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Tolerance (+/-)</label>
-            <input
+            <input aria-label="Tolerance (+/-)"
               type="number"
               step="0.1"
               value={form.tolerance}
@@ -236,7 +236,7 @@ export default function ProbeCalibrationPage() {
 
           <div>
             <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Date &amp; Time</label>
-            <input
+            <input aria-label="Date & Time"
               type="datetime-local"
               value={form.calibrated_at}
               max={nowDatetimeLocal()}

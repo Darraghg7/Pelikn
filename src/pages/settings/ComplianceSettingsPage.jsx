@@ -31,7 +31,7 @@ export default function ComplianceSettingsPage() {
               <div className="text-caption text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">When the daily fridge check is expected</div>
             </div>
             <div className="w-[120px] shrink-0">
-              <TimeSelect value={fridgeCheckTime} onChange={saveFridgeCheckTime} />
+              <TimeSelect label="Default check time" value={fridgeCheckTime} onChange={saveFridgeCheckTime} />
             </div>
           </div>
         </div>
@@ -43,7 +43,7 @@ export default function ComplianceSettingsPage() {
               <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">Everyone sees every cleaning task</div>
               <div className="text-caption text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">Staff can see and tick off other departments' cleaning</div>
             </div>
-            <Toggle checked={cleaningVisibleToAll} onChange={saveCleaningVisibleToAll} />
+            <Toggle aria-label="Everyone sees every cleaning task" checked={cleaningVisibleToAll} onChange={saveCleaningVisibleToAll} />
           </div>
         </div>
         <div className="text-caption text-charcoal/50 dark:text-white/40 pt-2 px-1 leading-[1.45]">
@@ -59,7 +59,7 @@ export default function ComplianceSettingsPage() {
               <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">Closers sign off before clocking out</div>
               <div className="text-caption text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">Only for shifts marked as closing on the rota</div>
             </div>
-            <Toggle checked={enforceClosingChecklist} onChange={saveEnforceClosingChecklist} />
+            <Toggle aria-label="Closers sign off before clocking out" checked={enforceClosingChecklist} onChange={saveEnforceClosingChecklist} />
           </div>
         </div>
         <div className="text-caption text-charcoal/50 dark:text-white/40 pt-2 px-1 leading-[1.45]">

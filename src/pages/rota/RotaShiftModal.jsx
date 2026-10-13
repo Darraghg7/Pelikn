@@ -143,6 +143,7 @@ export default function RotaShiftModal({
               <div className="flex flex-col gap-1.5">
                 <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Start</label>
                 <TimeSelect
+                  label="Start time"
                   value={form.startTime}
                   onChange={(v) => setForm((f) => ({ ...f, startTime: v }))}
                 />
@@ -150,6 +151,7 @@ export default function RotaShiftModal({
               <div className="flex flex-col gap-1.5">
                 <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">End</label>
                 <TimeSelect
+                  label="End time"
                   value={form.endTime}
                   onChange={(v) => setForm((f) => ({ ...f, endTime: v }))}
                 />
@@ -232,6 +234,7 @@ export default function RotaShiftModal({
               </p>
             </div>
             <Toggle
+              aria-label="Closing shift"
               checked={form.isClosing}
               onChange={() => setForm((f) => ({ ...f, isClosing: !f.isClosing }))}
             />
@@ -246,6 +249,7 @@ export default function RotaShiftModal({
                   <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">Optional task checklist for this shift</p>
                 </div>
                 <Toggle
+                  aria-label="Assign duty"
                   checked={assignDuty}
                   onChange={() => { setAssignDuty(v => !v); setSelectedDutyId(null) }}
                 />

@@ -212,18 +212,18 @@ function EditSessionForm({ session, staffId, onSave, onCancel, isManagerEdit }) 
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1">
             <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Clock In</label>
-            <input type="time" value={clockIn} onChange={(e) => setClockIn(e.target.value)}
+            <input aria-label="Clock In" type="time" value={clockIn} onChange={(e) => setClockIn(e.target.value)}
               className="bg-charcoal/4 dark:bg-white/5 rounded-control px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock Out</label>
-            <input type="time" value={clockOut} onChange={(e) => setClockOut(e.target.value)}
+            <input aria-label="Clock Out" type="time" value={clockOut} onChange={(e) => setClockOut(e.target.value)}
               className="bg-charcoal/4 dark:bg-white/5 rounded-control px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Break</label>
-          <select value={breakMin} onChange={(e) => setBreakMin(e.target.value)}
+          <select aria-label="Break" value={breakMin} onChange={(e) => setBreakMin(e.target.value)}
             className="bg-charcoal/4 dark:bg-white/5 rounded-control px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30">
             {BREAK_OPTIONS.map((m) => <option key={m} value={String(m)}>{m === 0 ? 'No break' : `${m} min`}</option>)}
           </select>
@@ -434,7 +434,7 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
       <div className="mt-3 pt-3 border-t border-charcoal/8 dark:border-white/8 flex flex-col gap-3">
         <div className="flex flex-col gap-1">
           <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Date</label>
-          <select value={date} onChange={(e) => setDate(e.target.value)}
+          <select aria-label="Date" value={date} onChange={(e) => setDate(e.target.value)}
             className="bg-charcoal/4 dark:bg-white/5 rounded-control px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30">
             {dateOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
@@ -442,18 +442,18 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1">
             <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock In</label>
-            <input type="time" value={clockIn} onChange={(e) => setClockIn(e.target.value)}
+            <input aria-label="Clock In" type="time" value={clockIn} onChange={(e) => setClockIn(e.target.value)}
               className="bg-charcoal/4 dark:bg-white/5 rounded-control px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock Out</label>
-            <input type="time" value={clockOut} onChange={(e) => setClockOut(e.target.value)}
+            <input aria-label="Clock Out" type="time" value={clockOut} onChange={(e) => setClockOut(e.target.value)}
               className="bg-charcoal/4 dark:bg-white/5 rounded-control px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Break</label>
-          <select value={breakMin} onChange={(e) => setBreakMin(e.target.value)}
+          <select aria-label="Break" value={breakMin} onChange={(e) => setBreakMin(e.target.value)}
             className="bg-charcoal/4 dark:bg-white/5 rounded-control px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30">
             {BREAK_OPTIONS.map((m) => <option key={m} value={String(m)}>{m === 0 ? 'No break' : `${m} min`}</option>)}
           </select>

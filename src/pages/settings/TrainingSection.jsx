@@ -106,12 +106,12 @@ export default function TrainingSection({ staffId }) {
           <div className="grid grid-cols-2 gap-2.5">
             <div>
               <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Issued Date</label>
-              <input type="date" value={form.issued_date} onChange={e => setForm(f => ({ ...f, issued_date: e.target.value }))}
+              <input aria-label="Issued Date" type="date" value={form.issued_date} onChange={e => setForm(f => ({ ...f, issued_date: e.target.value }))}
                 className="w-full px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-body-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
             <div>
               <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Expiry Date</label>
-              <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))}
+              <input aria-label="Expiry Date" type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))}
                 className="w-full px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-body-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
           </div>
@@ -123,7 +123,7 @@ export default function TrainingSection({ staffId }) {
           </div>
           <div>
             <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Certificate / File</label>
-            <input type="file" accept="image/*,.pdf"
+            <input aria-label="Certificate / File" type="file" accept="image/*,.pdf"
               onChange={e => setFile(e.target.files[0] ?? null)}
               className="w-full text-body-sm text-charcoal/60 dark:text-white/50 file:mr-3 file:py-1.5 file:px-3 file:rounded-control file:border file:border-charcoal/15 dark:file:border-white/15 file:text-xs file:bg-white dark:file:bg-paperDark file:text-charcoal/60 dark:file:text-white/50 hover:file:bg-cream" />
           </div>

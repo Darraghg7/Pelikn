@@ -353,7 +353,7 @@ function ManagerTasksView() {
           />
           <div className="flex items-center gap-2 flex-wrap">
             <label className="text-micro text-charcoal/50 dark:text-white/40 whitespace-nowrap">Due date:</label>
-            <input type="date" value={oForm.due_date}
+            <input aria-label="Due date" type="date" value={oForm.due_date}
               onChange={(e) => setOForm(f => ({ ...f, due_date: e.target.value }))}
               className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
@@ -361,7 +361,7 @@ function ManagerTasksView() {
           <div>
             <p className="text-caption text-charcoal/50 dark:text-white/40 mb-2">Assign to:</p>
             <div className="flex flex-col gap-2">
-              <select value={oForm.assigned_to_staff_id}
+              <select aria-label="Assign to a specific person" value={oForm.assigned_to_staff_id}
                 onChange={(e) => setOForm(f => ({ ...f, assigned_to_staff_id: e.target.value }))}
                 className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20">
                 <option value="">Specific person (optional)</option>

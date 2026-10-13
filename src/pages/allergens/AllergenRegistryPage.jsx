@@ -255,6 +255,7 @@ export default function AllergenRegistryPage() {
                       >
                         <span className="text-micro text-charcoal/35 dark:text-white/30 hidden sm:inline">QR</span>
                         <Toggle
+                          aria-label={`QR menu: ${item.name}`}
                           checked={item.is_active}
                           onChange={() => toggleItemActive(item)}
                           size="sm"

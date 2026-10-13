@@ -43,6 +43,7 @@ function SlotRow({ slot, roles, onDelete, onSave, isNew = false }) {
       {/* Row 1: Role + Count */}
       <div className="flex items-center gap-2 flex-wrap">
         <select
+          aria-label="Role"
           value={form.role_id}
           onChange={e => handleRoleChange(e.target.value)}
           className="flex-1 min-w-[130px] px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
@@ -54,6 +55,7 @@ function SlotRow({ slot, roles, onDelete, onSave, isNew = false }) {
         <div className="flex items-center gap-1.5">
           <span className="text-micro text-charcoal/40 dark:text-white/35 whitespace-nowrap">× staff</span>
           <input
+            aria-label="Number of staff"
             type="number" min={1} max={20} value={form.staff_count}
             onChange={e => set('staff_count', Math.max(1, parseInt(e.target.value) || 1))}
             className="w-14 px-2 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
@@ -64,9 +66,9 @@ function SlotRow({ slot, roles, onDelete, onSave, isNew = false }) {
       {/* Row 2: Times + Label */}
       <div className="flex items-center gap-2 flex-wrap">
         <div className="flex items-center gap-1.5">
-          <TimeSelect value={form.start_time} onChange={v => set('start_time', v)} />
+          <TimeSelect label="Start time" value={form.start_time} onChange={v => set('start_time', v)} />
           <span className="text-charcoal/30 dark:text-white/30 text-sm">–</span>
-          <TimeSelect value={form.end_time} onChange={v => set('end_time', v)} />
+          <TimeSelect label="End time" value={form.end_time} onChange={v => set('end_time', v)} />
         </div>
 
         <input

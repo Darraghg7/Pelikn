@@ -371,6 +371,7 @@ function ProcedureTab({ venueId }) {
           <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">{section.title}</p>
           <p className="text-xs text-charcoal/40 dark:text-white/35 mb-3">{section.desc}</p>
           <textarea
+            aria-label={section.title}
             value={sections[section.key] || ''}
             onChange={e => setSections(prev => ({ ...prev, [section.key]: e.target.value }))}
             rows={section.rows}

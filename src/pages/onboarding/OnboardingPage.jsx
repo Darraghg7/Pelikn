@@ -77,10 +77,13 @@ function InfoIcon({ className = '' }) {
 }
 
 /* ── MiniToggle ──────────────────────────────────────────────────────────────── */
-function MiniToggle({ checked, onChange }) {
+function MiniToggle({ checked, onChange, label }) {
   return (
     <button
       type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
       onClick={() => onChange(!checked)}
       className={`relative w-8 h-[18px] rounded-full border-none transition-colors duration-200 ${checked ? 'bg-brand dark:bg-brand-400' : 'bg-charcoal/15 dark:bg-transparent dark:ring-[1.5px] dark:ring-inset dark:ring-white/50'}`}
     >
@@ -98,9 +101,10 @@ for (let h = 0; h < 24; h++) {
   TIMES.push(`${String(h).padStart(2, '0')}:30`)
 }
 
-function TimeSelect({ value, onChange }) {
+function TimeSelect({ value, onChange, label }) {
   return (
     <select
+      aria-label={label}
       value={value}
       onChange={e => onChange(e.target.value)}
       className="px-2 py-1.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-body-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/20 appearance-none cursor-pointer min-w-[80px]"
@@ -620,6 +624,7 @@ export default function OnboardingPage() {
                               </button>
                             ) : (
                               <Toggle
+                                aria-label={feature.label}
                                 checked={enabledFeatures.has(feature.id)}
                                 onChange={() => toggleFeature(feature.id)}
                                 size="sm"
@@ -650,13 +655,13 @@ export default function OnboardingPage() {
                   >
                     <div className="flex items-center gap-2 w-[100px] shrink-0">
                       <span className="text-body-sm font-semibold text-charcoal dark:text-white w-9">{d.day.slice(0, 3)}</span>
-                      <MiniToggle checked={d.open} onChange={v => updateDay(i, { open: v })} />
+                      <MiniToggle label={`${d.day} open`} checked={d.open} onChange={v => updateDay(i, { open: v })} />
                     </div>
                     {d.open ? (
                       <div className="flex items-center gap-2 flex-1 justify-end">
-                        <TimeSelect value={d.start} onChange={v => updateDay(i, { start: v })} />
+                        <TimeSelect label={`${d.day} opening time`} value={d.start} onChange={v => updateDay(i, { start: v })} />
                         <span className="text-charcoal/30 dark:text-white/30 text-sm">–</span>
-                        <TimeSelect value={d.end} onChange={v => updateDay(i, { end: v })} />
+                        <TimeSelect label={`${d.day} closing time`} value={d.end} onChange={v => updateDay(i, { end: v })} />
                       </div>
                     ) : (
                       <span className="text-charcoal/35 dark:text-white/30 text-caption italic flex-1 text-right">Closed</span>

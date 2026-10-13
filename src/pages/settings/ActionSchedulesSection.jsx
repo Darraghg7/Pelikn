@@ -43,7 +43,7 @@ export default function ActionSchedulesSection({ schedules, onSave }) {
                 <p className="text-sm font-medium text-charcoal dark:text-white">{label}</p>
                 <p className="text-xs text-charcoal/45 dark:text-white/45">{description}</p>
               </div>
-              <Toggle checked={schedule.enabled} onChange={() => toggleEnabled(key)} size="sm" />
+              <Toggle aria-label={label} checked={schedule.enabled} onChange={() => toggleEnabled(key)} size="sm" />
             </div>
             {schedule.enabled && (
               <div className="flex gap-1.5 flex-wrap pl-1">

@@ -419,16 +419,16 @@ function DocumentsTab({ staffId, venueId }) {
           </div>
           <div>
             <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">File</label>
-            <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)} className="w-full text-body-sm" />
+            <input aria-label="File" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)} className="w-full text-body-sm" />
             {file && <p className="font-mono text-micro text-charcoal/30 dark:text-white/30 mt-1">{file.name} · {(file.size / 1024).toFixed(0)} KB</p>}
           </div>
           <div>
             <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Expiry date (optional)</label>
-            <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))} className="w-full px-3 py-2.5 rounded-control border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border" />
+            <input aria-label="Expiry date (optional)" type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))} className="w-full px-3 py-2.5 rounded-control border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border" />
           </div>
           <div>
             <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Notes (optional)</label>
-            <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className="w-full px-3 py-2.5 rounded-control border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 resize-none box-border" />
+            <textarea aria-label="Notes (optional)" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className="w-full px-3 py-2.5 rounded-control border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 resize-none box-border" />
           </div>
           <Button size="lg" loading={saving} onClick={upload} disabled={saving}>
             {saving ? 'Uploading…' : 'Upload Document'}
@@ -761,14 +761,14 @@ function DisciplinaryTab({ staffId, venueId }) {
         <div className="flex flex-col gap-3.5">
           <div>
             <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Action type</label>
-            <select value={form.action_type} onChange={e => setForm(f => ({ ...f, action_type: e.target.value }))}
+            <select aria-label="Action type" value={form.action_type} onChange={e => setForm(f => ({ ...f, action_type: e.target.value }))}
               className="w-full px-3 py-2.5 rounded-control border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 bg-white dark:bg-paperDark box-border">
               {Object.entries(FORMAL_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </div>
           <div>
             <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Date</label>
-            <input type="date" value={form.occurred_at} onChange={e => setForm(f => ({ ...f, occurred_at: e.target.value }))}
+            <input aria-label="Date" type="date" value={form.occurred_at} onChange={e => setForm(f => ({ ...f, occurred_at: e.target.value }))}
               className="w-full px-3 py-2.5 rounded-control border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border" />
           </div>
           <div>
@@ -779,7 +779,7 @@ function DisciplinaryTab({ staffId, venueId }) {
           </div>
           <div>
             <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Attachment (optional)</label>
-            <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)} className="w-full text-body-sm" />
+            <input aria-label="Attachment (optional)" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)} className="w-full text-body-sm" />
           </div>
           <Button variant="danger" size="lg" loading={saving} onClick={addFormal} disabled={saving}>
             {saving ? 'Saving…' : 'Record Action'}

@@ -123,7 +123,7 @@ function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSav
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Employee *</label>
-              <select
+              <select aria-label="Employee *"
                 value={form.staff_id}
                 onChange={e => setForm(f => ({ ...f, staff_id: e.target.value }))}
                 className="w-full px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
@@ -134,7 +134,7 @@ function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSav
             </div>
             <div>
               <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Training Date *</label>
-              <input
+              <input aria-label="Training Date *"
                 type="date"
                 value={form.training_date}
                 onChange={e => setForm(f => ({ ...f, training_date: e.target.value }))}

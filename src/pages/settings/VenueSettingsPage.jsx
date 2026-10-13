@@ -121,11 +121,11 @@ function ClosedPeriodsGroup({ venueId }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <div className="font-mono text-micro font-semibold tracking-[0.06em] uppercase text-charcoal/50 dark:text-white/40 mb-1.5">From</div>
-              <input type="date" value={form.start_date} onChange={e => setForm(f => ({ ...f, start_date: e.target.value, end_date: f.end_date && f.end_date >= e.target.value ? f.end_date : e.target.value }))} className={fieldClass} />
+              <input aria-label="From" type="date" value={form.start_date} onChange={e => setForm(f => ({ ...f, start_date: e.target.value, end_date: f.end_date && f.end_date >= e.target.value ? f.end_date : e.target.value }))} className={fieldClass} />
             </div>
             <div>
               <div className="font-mono text-micro font-semibold tracking-[0.06em] uppercase text-charcoal/50 dark:text-white/40 mb-1.5">To</div>
-              <input type="date" value={form.end_date} min={form.start_date} onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))} className={fieldClass} />
+              <input aria-label="To" type="date" value={form.end_date} min={form.start_date} onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))} className={fieldClass} />
             </div>
           </div>
           <div>
@@ -284,7 +284,7 @@ export default function VenueSettingsPage() {
             </div>
             <div>
               <div className="font-mono text-micro font-semibold tracking-[0.06em] uppercase text-charcoal/50 dark:text-white/40 mb-1.5">Date of last inspection</div>
-              <input
+              <input aria-label="Date of last inspection"
                 type="date"
                 value={fhrs.rated_at}
                 onChange={(e) => setFhrs((f) => ({ ...f, rated_at: e.target.value }))}
@@ -319,9 +319,9 @@ export default function VenueSettingsPage() {
                   <div className="flex-1 text-xs text-charcoal/30 dark:text-white/30 font-mono tracking-[0.04em]">CLOSED</div>
                 ) : (
                   <div className="flex-1 flex items-center gap-1.5">
-                    <div className="flex-1"><TimeSelect value={hours.open} onChange={v => updateHours('open', v)} /></div>
+                    <div className="flex-1"><TimeSelect label={`${day} opening time`} value={hours.open} onChange={v => updateHours('open', v)} /></div>
                     <span className="text-charcoal/30 dark:text-white/30 text-xs">–</span>
-                    <div className="flex-1"><TimeSelect value={hours.close} onChange={v => updateHours('close', v)} /></div>
+                    <div className="flex-1"><TimeSelect label={`${day} closing time`} value={hours.close} onChange={v => updateHours('close', v)} /></div>
                   </div>
                 )}
                 <button
@@ -344,6 +344,7 @@ export default function VenueSettingsPage() {
               )}
               <input
                 type="file" accept="image/*"
+                aria-label="Upload venue logo"
                 onChange={e => setLogoFile(e.target.files[0] ?? null)}
                 className="text-body-sm text-charcoal/50 dark:text-white/40"
               />

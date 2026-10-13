@@ -32,14 +32,14 @@ export default function NotificationsSettingsPage() {
               <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">Lateness escalation</div>
               <div className="text-caption text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">Notify manager when an attendance strike threshold is reached</div>
             </div>
-            <Toggle checked={pushToManager} onChange={savePushToManager} />
+            <Toggle aria-label="Lateness escalation" checked={pushToManager} onChange={savePushToManager} />
           </div>
           <div className="flex items-center gap-3 px-[15px] py-[13px]">
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">Break overrun</div>
               <div className="text-caption text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">Notify manager when a staff member exceeds their allowed break time</div>
             </div>
-            <Toggle checked={notifyBreakOverrun} onChange={saveNotifyBreakOverrun} />
+            <Toggle aria-label="Break overrun" checked={notifyBreakOverrun} onChange={saveNotifyBreakOverrun} />
           </div>
         </div>
 

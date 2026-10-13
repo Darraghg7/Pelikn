@@ -173,6 +173,7 @@ export default function PPDSItemFormPage() {
 
               {/* Allergen selector */}
               <select
+                aria-label={`Allergen for ingredient ${idx + 1}`}
                 value={row.allergen ?? ''}
                 onChange={e => setIngr(idx, 'allergen', e.target.value || null)}
                 className={`px-2 py-2 rounded-control border text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 ${

@@ -249,6 +249,7 @@ function ReportIncidentModal({ open, onClose, onSaved }) {
                   className={`${TEXT_FIELD} flex-1 min-w-0`}
                 />
                 <select
+                  aria-label={`Role of person ${i + 1}`}
                   value={p.type}
                   onChange={e => setPeople(list => list.map((x, j) => j === i ? { ...x, type: e.target.value } : x))}
                   className="h-9 px-3 rounded-control border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white"

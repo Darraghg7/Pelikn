@@ -103,17 +103,17 @@ export default function HotHoldingExportModal({ open, onClose }) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className={LABEL}>From</label>
-            <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className={FIELD} />
+            <input aria-label="From" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className={FIELD} />
           </div>
           <div>
             <label className={LABEL}>To</label>
-            <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className={FIELD} />
+            <input aria-label="To" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className={FIELD} />
           </div>
         </div>
 
         <div>
           <label className={LABEL}>Item</label>
-          <select value={itemId} onChange={e => setItemId(e.target.value)} className={FIELD}>
+          <select aria-label="Item" value={itemId} onChange={e => setItemId(e.target.value)} className={FIELD}>
             <option value="">All items</option>
             {items.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
           </select>

@@ -8,6 +8,7 @@
  *   onChange  — (newValue: string) => void, called with HH:mm
  *   className — extra classes on the wrapper div
  *   disabled  — optional boolean
+ *   label     — what the time is for ("Opening time"); read out before "hour"/"minute"
  */
 import React from 'react'
 
@@ -22,7 +23,7 @@ const selectCls = [
   'appearance-none cursor-pointer',
 ].join(' ')
 
-export default function TimeSelect({ value = '09:00', onChange, className = '', disabled = false }) {
+export default function TimeSelect({ value = '09:00', onChange, className = '', disabled = false, label = '' }) {
   const [hh, mm] = (value || '09:00').split(':')
 
   const handleHour = (e) => {
@@ -40,7 +41,7 @@ export default function TimeSelect({ value = '09:00', onChange, className = '', 
         value={hh ?? '09'}
         onChange={handleHour}
         disabled={disabled}
-        aria-label="Hour"
+        aria-label={label ? `${label} hour` : 'Hour'}
         className={selectCls}
       >
         {HOURS.map((h) => (
@@ -58,7 +59,7 @@ export default function TimeSelect({ value = '09:00', onChange, className = '', 
         })()}
         onChange={handleMinute}
         disabled={disabled}
-        aria-label="Minute"
+        aria-label={label ? `${label} minute` : 'Minute'}
         className={selectCls}
       >
         {MINUTES.map((m) => (

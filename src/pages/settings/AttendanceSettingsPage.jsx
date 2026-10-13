@@ -95,13 +95,13 @@ export default function AttendanceSettingsPage() {
             label="Require a reason"
             sub="Staff pick a reason when late"
             last={false}
-            control={<Toggle checked={requireLateReason} onChange={saveRequireLateReason} />}
+            control={<Toggle aria-label="Require a reason" checked={requireLateReason} onChange={saveRequireLateReason} />}
           />
           <Row
             label="Require manager approval"
             sub="Manager must enter their PIN to dismiss the late alert"
             last={false}
-            control={<Toggle checked={requireManagerApprovalForLate} onChange={saveRequireManagerApprovalForLate} />}
+            control={<Toggle aria-label="Require manager approval" checked={requireManagerApprovalForLate} onChange={saveRequireManagerApprovalForLate} />}
           />
         </Group>
 
@@ -172,7 +172,7 @@ export default function AttendanceSettingsPage() {
             label="Push to manager"
             sub="Send a notification on escalation"
             last={false}
-            control={<Toggle checked={pushToManager} onChange={savePushToManager} />}
+            control={<Toggle aria-label="Push to manager" checked={pushToManager} onChange={savePushToManager} />}
           />
         </Group>
 
@@ -185,7 +185,7 @@ export default function AttendanceSettingsPage() {
           <Row
             label="Staff can request unpaid leave"
             sub="Off: you decide on the timesheet"
-            control={<Toggle checked={allowUnpaidLeave} onChange={saveAllowUnpaidLeave} />}
+            control={<Toggle aria-label="Staff can request unpaid leave" checked={allowUnpaidLeave} onChange={saveAllowUnpaidLeave} />}
           />
         </Group>
 
@@ -198,7 +198,7 @@ export default function AttendanceSettingsPage() {
           <Row
             label="Limit staff off per day"
             sub="Warn when too many are off at once"
-            control={<Toggle checked={maxStaffOffEnabled} onChange={saveMaxStaffOffEnabled} />}
+            control={<Toggle aria-label="Limit staff off per day" checked={maxStaffOffEnabled} onChange={saveMaxStaffOffEnabled} />}
           />
           {maxStaffOffEnabled && (
             <Row

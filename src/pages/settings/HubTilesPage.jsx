@@ -40,12 +40,13 @@ const TRACK_ON    = 'bg-good'
 const TRACK_OFF   = 'bg-line dark:bg-white/20'
 const KNOB_SHADOW = `0 1px 3px ${black(0.2)}`
 
-function Toggle({ on, onClick = undefined, disabled = false }) {
+function Toggle({ on, onClick = undefined, disabled = false, label = undefined }) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
       aria-pressed={on}
+      aria-label={label}
       className={`relative w-10 h-6 rounded-full border-0 cursor-pointer disabled:cursor-default shrink-0 transition-colors duration-[180ms] p-0 ${on ? TRACK_ON : TRACK_OFF}`}
     >
       <span
@@ -67,8 +68,8 @@ function Row({ label, sub, on, onToggle, last, locked = false }) {
         {sub && <div className="text-caption text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">{sub}</div>}
       </div>
       {locked
-        ? <Toggle on={false} disabled />
-        : <Toggle on={on} onClick={onToggle} />}
+        ? <Toggle on={false} disabled label={label} />
+        : <Toggle on={on} onClick={onToggle} label={label} />}
     </div>
   )
 }
@@ -206,6 +207,7 @@ export default function HubTilesPage() {
                             }}
                             className={`relative w-10 h-6 rounded-full border-0 cursor-pointer shrink-0 p-0 transition-colors duration-[180ms] ${allOn ? TRACK_ON : TRACK_OFF}`}
                             aria-pressed={allOn}
+                            aria-label={`All ${group.label} features`}
                           >
                             <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-paperDark transition-all duration-[180ms]" style={{ left: allOn ? 18 : 2, boxShadow: KNOB_SHADOW }} />
                           </button>
@@ -233,6 +235,7 @@ export default function HubTilesPage() {
                                 className={`relative w-10 h-6 rounded-full border-0 shrink-0 p-0 transition-colors duration-[180ms] ${on ? TRACK_ON : TRACK_OFF}`}
                                 style={{ cursor: locked ? 'default' : 'pointer' }}
                                 aria-pressed={on}
+                                aria-label={feature.label}
                               >
                                 <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-paperDark transition-all duration-[180ms]" style={{ left: on ? 18 : 2, boxShadow: KNOB_SHADOW }} />
                               </button>

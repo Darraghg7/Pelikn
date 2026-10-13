@@ -246,7 +246,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1">
                 <label className="text-micro text-charcoal/35 dark:text-white/30 uppercase tracking-wider">Expiry Date</label>
-                <input
+                <input aria-label="Expiry Date"
                   type="date"
                   value={form.food_safety_cert_expiry}
                   onChange={(e) => set('food_safety_cert_expiry', e.target.value)}
@@ -255,7 +255,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-micro text-charcoal/35 dark:text-white/30 uppercase tracking-wider">Upload Certificate</label>
-                <input
+                <input aria-label="Upload Certificate"
                   type="file"
                   accept="image/*,.pdf,.doc,.docx"
                   onChange={(e) => { setCertFile(e.target.files[0] ?? null); setHasExistingCert(false) }}

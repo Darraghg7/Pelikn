@@ -153,7 +153,7 @@ export default function FridgeLogFormPage() {
         {/* Date / time — all users, defaults to now */}
         <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5">
           <SectionLabel>Date &amp; Time</SectionLabel>
-          <input
+          <input aria-label="Date & Time"
             type="datetime-local"
             value={loggedAt}
             max={nowDatetimeLocal()}

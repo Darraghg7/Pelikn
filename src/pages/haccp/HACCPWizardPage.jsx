@@ -389,7 +389,7 @@ export default function HACCPWizardPage() {
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30">Next Review Date</label>
-                <input
+                <input aria-label="Next Review Date"
                   type="date"
                   value={meta.review_date}
                   onChange={e => setMeta(m => ({ ...m, review_date: e.target.value }))}

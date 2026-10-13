@@ -44,12 +44,12 @@ const EMPTY = {
 // on each keystroke and focus is lost after the first character.
 function Field({ label, required, children }) {
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">
+    <label className="flex flex-col gap-1">
+      <span className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">
         {label}{required && <span className="text-danger ml-0.5">*</span>}
-      </label>
+      </span>
       {children}
-    </div>
+    </label>
   )
 }
 

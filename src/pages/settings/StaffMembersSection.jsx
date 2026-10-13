@@ -966,7 +966,7 @@ function ToggleRow({ title, hint, checked, onChange }) {
         <p className="text-body font-semibold text-ink dark:text-white">{title}</p>
         {hint && <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">{hint}</p>}
       </div>
-      <Toggle checked={checked} onChange={onChange} size="lg" />
+      <Toggle aria-label={title} checked={checked} onChange={onChange} size="lg" />
     </div>
   )
 }

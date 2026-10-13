@@ -158,7 +158,7 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
             </div>
             <div>
               <label className="text-xs font-medium text-charcoal/50 dark:text-white/40 mb-1 block">Date</label>
-              <input
+              <input aria-label="Date"
                 type="date" value={date}
                 onChange={e => setDate(e.target.value)}
                 className="w-full border border-charcoal/15 dark:border-white/15 rounded-control py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"

@@ -125,7 +125,7 @@ function PastLeaveForm({ staff, holiday, venueId, managerId, onClose, onSaved })
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35 block mb-1">Start date</label>
-          <input
+          <input aria-label="Start date"
             type="date"
             value={form.startDate}
             onChange={e => setForm(f => ({ ...f, startDate: e.target.value, endDate: f.endDate || e.target.value }))}
@@ -134,7 +134,7 @@ function PastLeaveForm({ staff, holiday, venueId, managerId, onClose, onSaved })
         </div>
         <div>
           <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35 block mb-1">End date</label>
-          <input
+          <input aria-label="End date"
             type="date"
             value={form.endDate}
             min={form.startDate}

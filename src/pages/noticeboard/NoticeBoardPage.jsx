@@ -136,6 +136,11 @@ function NewPostForm({ venueId, staffName, onPosted, onCancel }) {
 
       <label className="flex items-center gap-3 cursor-pointer select-none">
         <div
+          role="switch"
+          aria-checked={!!form.pinned}
+          aria-label="Pin this notice to the top"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); set('pinned', !form.pinned) } }}
           onClick={() => set('pinned', !form.pinned)}
           className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${form.pinned ? 'bg-accent' : 'bg-charcoal/20 dark:bg-transparent dark:ring-[1.5px] dark:ring-inset dark:ring-white/50'}`}
         >

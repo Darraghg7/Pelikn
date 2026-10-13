@@ -213,7 +213,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, breakDurationMins
                 They'll see their department's closing tasks — first to clock out checks them off, anyone after has to acknowledge it's done.
               </div>
             </div>
-            <Toggle checked={isClosing} onChange={() => setIsClosing((v) => !v)} />
+            <Toggle aria-label="Closing shift" checked={isClosing} onChange={() => setIsClosing((v) => !v)} />
           </div>
 
           {/* Start / End toggle */}
