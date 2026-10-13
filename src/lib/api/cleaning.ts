@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { rpcCannotRun } from '../queryErrors'
 
 export interface CleaningTask {
   id: string
@@ -44,6 +45,10 @@ export async function fetchCleaningTasks(venueId: string, before: string | null 
       }
     }
     if (error?.code === 'PGRST202') cleaningRpcMissing = true
+    // Only a function that can't run sends us to the per-table reads (one of
+    // which pulls 1,000 rows). A struggling database throws instead, so a slow
+    // call doesn't become two heavier ones on every device at once.
+    else if (error && !rpcCannotRun(error)) throw error
   }
 
   const [{ data: tData, error: tErr }, { data: cData, error: cErr }] = await Promise.all([

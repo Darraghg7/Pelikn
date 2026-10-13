@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { format, subDays, parseISO } from 'date-fns'
 import { supabase } from '../lib/supabase'
-import { throwIfError } from '../lib/queryErrors'
+import { throwIfError, rpcCannotRun } from '../lib/queryErrors'
 import { useVenue } from '../contexts/VenueContext'
 import { isCheckRequired } from '../lib/temperatureChecks'
 import { cleaningStatus, isVenueClosedOn } from './useCleaningTasks'
@@ -115,6 +115,8 @@ async function fetchViaRpc(vid: string, now: Date): Promise<NotificationData | n
     p_since_30d_start: w.since30dStart,
     p_edits_since:     w.editsSince,
   })
+  // A struggling database is not a reason to fire the 21-request fallback.
+  if (error && !rpcCannotRun(error)) throw error
   if (error || !data) return null
   return data as NotificationData
 }

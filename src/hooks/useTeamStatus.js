@@ -3,7 +3,7 @@ import { format, startOfWeek, endOfWeek } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { londonToday, londonWallTimeToInstant } from '../lib/time'
 import { readPersisted, writePersisted } from '../lib/persistedCache'
-import { throwIfError } from '../lib/queryErrors'
+import { throwIfError, rpcCannotRun } from '../lib/queryErrors'
 import { reportError } from '../lib/reportError'
 import { apiBackedOff, withJitter } from '../lib/apiHealth'
 
@@ -37,7 +37,8 @@ function cacheSet(key, data) {
  * Everything the Team hub reads, in one request (get_team_status, migration
  * 136) — it used to open with 10 at once, and a cold database slows down
  * with every extra request that arrives together. Falls back to the
- * per-table queries while 136 isn't applied, or if the call fails.
+ * per-table queries while 136 isn't applied or no longer fits the schema, but
+ * not when the call merely fails (timeout, 5xx): that would multiply the load.
  */
 let teamRpcMissing = false
 
@@ -70,6 +71,9 @@ async function fetchTeamRaw(venueId, today, todayStr, dayStart, dayEnd) {
       }
     }
     if (error?.code === 'PGRST202') teamRpcMissing = true
+    // A struggling database throws (the caller keeps its cached numbers)
+    // rather than turning one slow call into nine more.
+    else if (error && !rpcCannotRun(error)) throw error
   }
 
   const count = { count: 'exact', head: true }

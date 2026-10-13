@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { startOfDay, endOfDay, format } from 'date-fns'
 import { supabase } from '../lib/supabase'
-import { throwIfError } from '../lib/queryErrors'
+import { throwIfError, rpcCannotRun } from '../lib/queryErrors'
 import { reportError } from '../lib/reportError'
 import { readPersisted, writePersisted, clearPersisted } from '../lib/persistedCache'
 import { isActionDueToday } from './useTodaySummary'
@@ -64,6 +64,9 @@ async function fetchChecksRaw(venueId, dayStart, dayEnd) {
       }
     }
     if (error?.code === 'PGRST202') checksRpcMissing = true
+    // A struggling database throws (the caller keeps its cached statuses)
+    // rather than turning one slow call into four more.
+    else if (error && !rpcCannotRun(error)) throw error
   }
 
   const [fitnessRes, probeRes, deliveryRes, incidentRes] = await Promise.all([
