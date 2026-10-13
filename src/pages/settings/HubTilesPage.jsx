@@ -47,7 +47,7 @@ function Toggle({ on, onClick = undefined, disabled = false, label = undefined }
       disabled={disabled}
       aria-pressed={on}
       aria-label={label}
-      className={`relative w-10 h-6 rounded-full border-0 cursor-pointer disabled:cursor-default shrink-0 transition-colors duration-[180ms] p-0 ${on ? TRACK_ON : TRACK_OFF}`}
+      className={`relative after:absolute after:-inset-2 after:content-[''] w-10 h-6 rounded-full border-0 cursor-pointer disabled:cursor-default shrink-0 transition-colors duration-[180ms] p-0 ${on ? TRACK_ON : TRACK_OFF}`}
     >
       <span
         className="absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-paperDark transition-all duration-[180ms]"
@@ -205,7 +205,7 @@ export default function HubTilesPage() {
                                 : [...new Set([...(featuresConfig.enabled ?? []), ...groupIds])]
                               saveFeatures({ enabled: next })
                             }}
-                            className={`relative w-10 h-6 rounded-full border-0 cursor-pointer shrink-0 p-0 transition-colors duration-[180ms] ${allOn ? TRACK_ON : TRACK_OFF}`}
+                            className={`relative after:absolute after:-inset-2 after:content-[''] w-10 h-6 rounded-full border-0 cursor-pointer shrink-0 p-0 transition-colors duration-[180ms] ${allOn ? TRACK_ON : TRACK_OFF}`}
                             aria-pressed={allOn}
                             aria-label={`All ${group.label} features`}
                           >
@@ -232,7 +232,7 @@ export default function HubTilesPage() {
                                   saveFeatures({ enabled: next })
                                 }}
                                 disabled={locked}
-                                className={`relative w-10 h-6 rounded-full border-0 shrink-0 p-0 transition-colors duration-[180ms] ${on ? TRACK_ON : TRACK_OFF}`}
+                                className={`relative after:absolute after:-inset-2 after:content-[''] w-10 h-6 rounded-full border-0 shrink-0 p-0 transition-colors duration-[180ms] ${on ? TRACK_ON : TRACK_OFF}`}
                                 style={{ cursor: locked ? 'default' : 'pointer' }}
                                 aria-pressed={on}
                                 aria-label={feature.label}

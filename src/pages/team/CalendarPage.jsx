@@ -79,7 +79,7 @@ function CalToggle({ on, onClick, label }) {
       aria-checked={on}
       aria-label={label}
       onClick={onClick}
-      className={`shrink-0 relative border-none cursor-pointer transition-colors duration-200 rounded-card ${on ? 'bg-brand dark:bg-brand-400' : 'bg-line dark:bg-transparent dark:ring-[1.5px] dark:ring-inset dark:ring-white/50'}`}
+      className={`shrink-0 relative after:absolute after:-inset-y-2 after:inset-x-0 after:content-[''] border-none cursor-pointer transition-colors duration-200 rounded-card ${on ? 'bg-brand dark:bg-brand-400' : 'bg-line dark:bg-transparent dark:ring-[1.5px] dark:ring-inset dark:ring-white/50'}`}
       style={{ width: 48, height: 28, padding: 3 }}
     >
       <span

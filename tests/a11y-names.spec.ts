@@ -80,6 +80,22 @@ function findUnnamed() {
   return out
 }
 
+const STAFF_SCREENS: Array<[string, string]> = [
+  ['dashboard', '/dashboard'],
+  ['cleaning', '/cleaning'],
+  ['opening & closing', '/opening-closing'],
+  ['clock-in', '/clock-in'],
+  ['rota', '/rota'],
+  ['time off', '/time-off'],
+  ['tasks', '/tasks'],
+  ['noticeboard', '/noticeboard'],
+  ['fridge', '/fridge'],
+]
+
+// Screens whose "add / new / log" buttons open a dialog or sheet.
+const DIALOG_SCREENS = ['/corrective', '/complaints', '/recall', '/rota', '/time-off', '/training', '/waste', '/equipment-maintenance',
+  '/date-labelling', '/cleaning', '/probe', '/documents', '/staff', '/suppliers', '/orders', '/incidents', '/tips', '/fridge/history', '/pest-control']
+
 const report: Record<string, number> = {}
 
 for (const vp of VIEWPORTS) {
@@ -115,4 +131,65 @@ test('a modal is labelled, keeps focus inside, closes on Escape and gives focus 
   await page.keyboard.press('Escape')
   await expect(dialog).toHaveCount(0)
   await expect(opener).toBeFocused()
+})
+
+for (const vp of VIEWPORTS) {
+  test.describe(`accessible names, staff and signed-out — ${vp.name}`, () => {
+    test.use({ viewport: { width: vp.width, height: vp.height } })
+
+    test('PIN login screen', async ({ page }) => {
+      await goto(page, '', { signedOut: true })
+      await page.getByRole('button').first().waitFor({ timeout: 15000 })
+      expect(await page.getByRole('button').count(), 'login screen should list people').toBeGreaterThan(2)
+      let unnamed = await page.evaluate(findUnnamed)
+      expect(unnamed, 'Controls with no accessible name on the login screen').toEqual([])
+      // Pick the first person to bring up the PIN pad, and check that too.
+      await page.getByRole('button').first().click()
+      await page.waitForTimeout(500)
+      unnamed = await page.evaluate(findUnnamed)
+      expect(unnamed, 'Controls with no accessible name on the PIN pad').toEqual([])
+    })
+
+    for (const [name, path] of STAFF_SCREENS) {
+      test(`as staff: ${name}`, async ({ page }) => {
+        await goto(page, path, { asStaff: true })
+        expect(await page.evaluate(() => localStorage.getItem('pelikn_staff_role'))).not.toBe('manager')
+        const unnamed = await page.evaluate(findUnnamed)
+        expect(unnamed, `Controls with no accessible name on ${name} (staff)`).toEqual([])
+      })
+    }
+  })
+}
+
+test.describe('accessible names — dialogs opened from "add / new / log" buttons', () => {
+  test.setTimeout(240000)
+  for (const vp of VIEWPORTS) {
+    test(`dialogs, ${vp.name}`, async ({ page }) => {
+      await page.setViewportSize({ width: vp.width, height: vp.height })
+      const problems: string[] = []
+      let opened = 0
+      for (const path of DIALOG_SCREENS) {
+        await goto(page, path)
+        const buttons = page.getByRole('button', { name: /^\+?\s*(add|new|log|invite|report|edit|export|record)\b/i })
+        const count = Math.min(await buttons.count(), 4)
+        for (let i = 0; i < count; i++) {
+          const b = buttons.nth(i)
+          if (!(await b.isVisible().catch(() => false))) continue
+          await b.click({ timeout: 3000 }).catch(() => {})
+          await page.waitForTimeout(450)
+          const dlg = page.getByRole('dialog')
+          if (await dlg.count()) {
+            opened++
+            const unnamed = await page.evaluate(findUnnamed)
+            if (unnamed.length) problems.push(`${path} → "${(await b.innerText().catch(() => '')).trim()}": ${unnamed.join('; ')}`)
+            await page.keyboard.press('Escape')
+            await page.waitForTimeout(350)
+          }
+        }
+      }
+      console.log(`DIALOGS ${vp.name}: opened ${opened}; problems: ${problems.length}\n${problems.join('\n')}`)
+      expect(opened, 'expected to open at least a few dialogs').toBeGreaterThan(2)
+      expect(problems).toEqual([])
+    })
+  }
 })

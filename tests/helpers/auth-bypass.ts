@@ -53,8 +53,10 @@ interface RealSession {
 }
 
 let cached: Promise<RealSession> | null = null
+let cachedStaff: Promise<RealSession> | null = null
 
-async function realLogin(page: Page): Promise<RealSession> {
+/** `asStaff`: log in as the first non-manager in the test venue instead of the manager. */
+async function realLogin(page: Page, asStaff = false): Promise<RealSession> {
   const restHeaders = { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` }
 
   const venueRes = await page.request.get(
@@ -76,7 +78,9 @@ async function realLogin(page: Page): Promise<RealSession> {
   })
   if (rpcRes.ok()) {
     const list = await rpcRes.json()
-    staff = Array.isArray(list) ? list.find((s: { name: string }) => s.name === MANAGER_NAME) : undefined
+    staff = Array.isArray(list)
+      ? list.find((s: { name: string; role?: string }) => asStaff ? s.role === 'staff' : s.name === MANAGER_NAME)
+      : undefined
   } else {
     const staffRes = await page.request.get(
       `${SUPABASE_URL}/rest/v1/staff?venue_id=eq.${venue.id}&name=eq.${encodeURIComponent(MANAGER_NAME)}&select=id`,
@@ -85,7 +89,7 @@ async function realLogin(page: Page): Promise<RealSession> {
     const rows = await staffRes.json()
     staff = Array.isArray(rows) ? rows[0] : undefined
   }
-  if (!staff?.id) throw new Error(`[auth-bypass] Test manager "${MANAGER_NAME}" not found in venue "${VENUE_SLUG}"`)
+  if (!staff?.id) throw new Error(`[auth-bypass] Test ${asStaff ? 'staff member' : 'manager'} "${MANAGER_NAME}" not found in venue "${VENUE_SLUG}"`)
 
   const loginRes = await page.request.post(`${SUPABASE_URL}/functions/v1/pin-login`, {
     headers: { ...restHeaders, 'Content-Type': 'application/json' },
@@ -125,9 +129,15 @@ export async function getTestSession(page: Page): Promise<RealSession> {
  * the resulting real session into localStorage. Call this BEFORE navigating
  * to the page under test.
  */
-export async function injectManagerSession(page: Page) {
-  if (!cached) cached = realLogin(page)
-  const session = await cached
+export async function injectManagerSession(page: Page, asStaff = false) {
+  let session: RealSession
+  if (asStaff) {
+    if (!cachedStaff) cachedStaff = realLogin(page, true)
+    session = await cachedStaff
+  } else {
+    if (!cached) cached = realLogin(page)
+    session = await cached
+  }
 
   // Mock write/completion RPCs so tests can exercise the full UI flow
   // without leaving completion records behind in the real venue.
