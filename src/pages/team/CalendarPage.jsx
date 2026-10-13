@@ -71,9 +71,13 @@ function buildDayMap(events, staffLeave, otherClosures) {
   return map
 }
 
-function CalToggle({ on, onClick }) {
+function CalToggle({ on, onClick, label }) {
   return (
     <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
       onClick={onClick}
       className={`shrink-0 relative border-none cursor-pointer transition-colors duration-200 rounded-card ${on ? 'bg-brand dark:bg-brand-400' : 'bg-line dark:bg-transparent dark:ring-[1.5px] dark:ring-inset dark:ring-white/50'}`}
       style={{ width: 48, height: 28, padding: 3 }}
@@ -251,7 +255,7 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
             className="w-full flex items-center justify-between px-4 py-[15px] border-none border-b border-charcoal/6 dark:border-white/8 bg-transparent cursor-pointer"
           >
             <span className="text-body-lg font-medium text-charcoal dark:text-white">All day</span>
-            <CalToggle on={allDay} onClick={e => { e.stopPropagation(); setAllDay(!allDay) }} />
+            <CalToggle label="All day" on={allDay} onClick={e => { e.stopPropagation(); setAllDay(!allDay) }} />
           </button>
           <div className={`flex items-center justify-between px-4 py-[15px] ${allDay ? '' : 'border-b border-charcoal/6 dark:border-white/8'}`}>
             <span className="text-body-lg text-charcoal/50 dark:text-white/40 font-medium">Start</span>
@@ -308,7 +312,7 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
               <div className="text-sm font-medium text-charcoal dark:text-white">Backup reminder</div>
               <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 mt-0.5">Also 1 day before</div>
             </div>
-            <CalToggle on={backupReminder} onClick={e => { e.stopPropagation(); setBackupReminder(!backupReminder) }} />
+            <CalToggle label="Backup reminder" on={backupReminder} onClick={e => { e.stopPropagation(); setBackupReminder(!backupReminder) }} />
           </button>
         </div>
 

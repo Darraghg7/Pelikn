@@ -51,7 +51,7 @@ Production env vars live in Vercel → Project → Settings → Environment Vari
 |---|---|
 | `npm run dev` | Vite dev server |
 | `npm run build` / `npm run preview` | Production build to `dist/` / serve it locally |
-| `npm run lint` | ESLint over `src/` (rules-of-hooks is an error), then `lint:buttons` (raw `<button>` ratchet), `lint:queries` (direct database call ratchet), `lint:colours` (hard-coded colour ratchet) `lint:type` (one-off text size ratchet) and `lint:radius` (off-scale corner radius ratchet); see Conventions |
+| `npm run lint` | ESLint over `src/` (rules-of-hooks is an error), then `lint:buttons` (raw `<button>` ratchet), `lint:queries` (direct database call ratchet), `lint:colours` (hard-coded colour ratchet) `lint:type` (one-off text size ratchet) and `lint:radius` (off-scale corner radius ratchet) and `lint:a11y` (controls with no accessible name); see Conventions |
 | `npm run typecheck` | Both type checks: `typecheck:ts` (strict, `.ts` files) and `typecheck:js` (`.js`/`.jsx` against a baseline; see Conventions) |
 | `npm run test:unit` | Vitest unit tests (`test:unit:watch`, `test:unit:coverage` also exist) |
 | `npm test` | Playwright end-to-end tests (`test:ui`, `test:headed`, `test:report`) |
@@ -216,6 +216,7 @@ ios/  android/          Capacitor native projects
   | `rounded-full` | pill | avatars, dots, pills |
 
   An inner shape is never rounder than the one holding it. In an inline style use `radius.card` etc. from `src/lib/tokens.js` (`'50%'` and `999` stay fine for circles). `npm run lint:radius` (part of `npm run lint`) counts off-scale radii per file against `one-off-radii-baseline.json`, ignoring the two marketing files that draw phone frames: a file may not gain any, and when you remove some, run `npm run lint:radius -- --update` and commit the lowered baseline.
+- **Accessibility names**: every button, link, switch and form field needs a name a screen reader or voice control can use. An icon-only control gets a short, specific `aria-label` in UK English that says the action and, in a list, the item (`aria-label="Close"`, `` aria-label={`Delete shift: ${name}`} ``); a purely decorative icon gets `aria-hidden="true"`. `<Button iconOnly>` and `<Toggle>` must be given an `aria-label`. Every input, select and textarea needs a `<label>` around it, a `<label htmlFor>`, or an `aria-label`; `TimeSelect` takes a `label` prop. Use `aria-pressed` for on/off buttons, `aria-expanded` for accordions and `aria-current="page"` for the current tab. `npm run lint:a11y` (rule in `eslint-rules/accessible-name.js`) counts violations per file against `unnamed-controls-baseline.json`, which is empty: any new one fails, so fix it rather than baselining it. `tests/a11y-names.spec.ts` checks the same thing on the live pages, on a desktop and a phone screen. `Modal` labels itself from its title, moves focus inside, keeps Tab inside, closes on Escape and returns focus to what opened it.
 - **Dark mode**: Tailwind `darkMode: 'class'`, toggled by `ThemeContext`.
 - **Modals and sheets** use `z-[60]` or above. `MobileNav` is portaled at `z-50`, so a `z-50` sheet can lose taps to it.
 - **Mobile vs desktop**: some screens have separate mobile and desktop components (for example the rota and the manager dashboard). Check both when changing behaviour.

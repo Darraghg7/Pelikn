@@ -193,7 +193,7 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
 
       {/* Week strip */}
       <div className="flex items-center gap-1.5">
-        <button onClick={prevWeek} className="w-8 h-[60px] flex items-center justify-center rounded-control bg-white dark:bg-paperDark border border-charcoal/15 dark:border-white/15 text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors shrink-0">
+        <button onClick={prevWeek} aria-label="Previous week" className="relative after:absolute after:-inset-x-1.5 after:inset-y-0 after:content-[''] w-8 h-[60px] flex items-center justify-center rounded-control bg-white dark:bg-paperDark border border-charcoal/15 dark:border-white/15 text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors shrink-0">
           <svg width="10" height="14" viewBox="0 0 10 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 1L1 7l6 6"/></svg>
         </button>
         <div className="flex-1 grid grid-cols-7 gap-1">
@@ -220,7 +220,7 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
             )
           })}
         </div>
-        <button onClick={nextWeek} className="w-8 h-[60px] flex items-center justify-center rounded-control bg-white dark:bg-paperDark border border-charcoal/15 dark:border-white/15 text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors shrink-0">
+        <button onClick={nextWeek} aria-label="Next week" className="relative after:absolute after:-inset-x-1.5 after:inset-y-0 after:content-[''] w-8 h-[60px] flex items-center justify-center rounded-control bg-white dark:bg-paperDark border border-charcoal/15 dark:border-white/15 text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors shrink-0">
           <svg width="10" height="14" viewBox="0 0 10 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 1l6 6-6 6"/></svg>
         </button>
       </div>

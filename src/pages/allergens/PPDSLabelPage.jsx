@@ -63,7 +63,7 @@ export default function PPDSLabelPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1">
                 <label className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30">Made on</label>
-                <input
+                <input aria-label="Made on"
                   type="date"
                   value={madeOn}
                   onChange={e => setMadeOn(e.target.value)}
@@ -72,7 +72,7 @@ export default function PPDSLabelPage() {
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30">Use by</label>
-                <input
+                <input aria-label="Use by"
                   type="date"
                   value={useBy}
                   onChange={e => setUseBy(e.target.value)}

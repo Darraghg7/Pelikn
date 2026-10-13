@@ -314,6 +314,7 @@ function ManagerDeclarationsView({ venueId }) {
         ))}
         <input
           type="date"
+          aria-label="Choose a date"
           value={viewDate}
           max={format(new Date(), 'yyyy-MM-dd')}
           onChange={e => e.target.value && setViewDate(e.target.value)}

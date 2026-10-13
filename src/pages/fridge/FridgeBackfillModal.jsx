@@ -107,7 +107,7 @@ export default function FridgeBackfillModal({ open, onClose, fridge, dateStr, pe
           </div>
           <div>
             <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Time taken</label>
-            <input
+            <input aria-label="Time taken"
               type="time"
               value={time}
               onChange={e => setTime(e.target.value)}

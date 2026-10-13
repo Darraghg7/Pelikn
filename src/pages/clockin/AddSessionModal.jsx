@@ -74,7 +74,7 @@ export default function AddSessionModal({ open, onClose, staffList, initialStaff
         {/* Staff */}
         <div>
           <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Staff Member</label>
-          <select
+          <select aria-label="Staff Member"
             value={form.staffId}
             onChange={e => set('staffId', e.target.value)}
             className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
@@ -87,7 +87,7 @@ export default function AddSessionModal({ open, onClose, staffList, initialStaff
         {/* Date */}
         <div>
           <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Date</label>
-          <input
+          <input aria-label="Date"
             type="date"
             value={form.date}
             onChange={e => set('date', e.target.value)}
@@ -99,7 +99,7 @@ export default function AddSessionModal({ open, onClose, staffList, initialStaff
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Clock In</label>
-            <input
+            <input aria-label="Clock In"
               type="time"
               value={form.clockIn}
               onChange={e => set('clockIn', e.target.value)}
@@ -108,7 +108,7 @@ export default function AddSessionModal({ open, onClose, staffList, initialStaff
           </div>
           <div>
             <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Clock Out</label>
-            <input
+            <input aria-label="Clock Out"
               type="time"
               value={form.clockOut}
               onChange={e => set('clockOut', e.target.value)}
@@ -133,7 +133,7 @@ export default function AddSessionModal({ open, onClose, staffList, initialStaff
           <div className="grid grid-cols-2 gap-3 pl-7">
             <div>
               <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Break Start</label>
-              <input
+              <input aria-label="Break Start"
                 type="time"
                 value={form.breakStart}
                 onChange={e => set('breakStart', e.target.value)}
@@ -142,7 +142,7 @@ export default function AddSessionModal({ open, onClose, staffList, initialStaff
             </div>
             <div>
               <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Break End</label>
-              <input
+              <input aria-label="Break End"
                 type="time"
                 value={form.breakEnd}
                 onChange={e => set('breakEnd', e.target.value)}

@@ -618,7 +618,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
             {/* Photo */}
             <div>
               <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Delivery note photo</label>
-              <input type="file" accept="image/*" onChange={handlePhoto} className="text-sm" />
+              <input aria-label="Delivery note photo" type="file" accept="image/*" onChange={handlePhoto} className="text-sm" />
               {uploading && <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1">Uploading...</p>}
               {photoPath && <p className="text-xs text-success mt-1">Photo attached</p>}
             </div>
@@ -638,7 +638,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
             {/* Delivery date/time */}
             <div>
               <label className="text-xs text-charcoal/50 dark:text-white/40 mb-1 block">Delivery Date &amp; Time</label>
-              <input
+              <input aria-label="Delivery Date & Time"
                 type="datetime-local"
                 value={checkedAt}
                 max={nowDatetimeLocal()}

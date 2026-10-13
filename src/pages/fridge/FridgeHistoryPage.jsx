@@ -83,7 +83,7 @@ export default function FridgeHistoryPage() {
       <div className="bg-white dark:bg-paperDark rounded-card border-charcoal/10 dark:border-white/10 p-5 flex flex-wrap gap-4 items-end">
         <div>
           <SectionLabel>Fridge</SectionLabel>
-          <select
+          <select aria-label="Fridge"
             value={fridgeId}
             onChange={(e) => setFridgeId(e.target.value)}
             className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"

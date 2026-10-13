@@ -155,6 +155,7 @@ export default function CorrectiveActionsPage() {
           </button>
         ))}
         <select
+          aria-label="Filter by category"
           value={filterCat}
           onChange={e => setFilterCat(e.target.value)}
           className="px-3 py-1.5 rounded-control text-xs border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal/60 dark:text-white/50 focus:outline-none"

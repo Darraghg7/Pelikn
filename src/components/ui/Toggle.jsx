@@ -9,7 +9,7 @@
  * #111) and on is the solid accent (≥3.6:1 on both). The knob stays light —
  * bg-paper, not bg-white, because html.dark .bg-white is forced dark.
  */
-export default function Toggle({ checked, onChange, disabled = false, size = 'md' }) {
+export default function Toggle({ checked, onChange, disabled = false, size = 'md', ...rest }) {
   const sizes = {
     sm: { track: 'w-9 h-5',  knob: 'w-4 h-4' },
     md: { track: 'w-11 h-6', knob: 'w-5 h-5' },
@@ -22,10 +22,11 @@ export default function Toggle({ checked, onChange, disabled = false, size = 'md
       type="button"
       role="switch"
       aria-checked={checked}
+      {...rest}
       disabled={disabled}
       onClick={() => !disabled && onChange?.(!checked)}
       className={[
-        'relative rounded-full transition-colors duration-200 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40',
+        'relative rounded-full after:absolute after:-inset-2 after:content-[""] transition-colors duration-200 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40',
         track,
         checked
           ? 'bg-accent'
