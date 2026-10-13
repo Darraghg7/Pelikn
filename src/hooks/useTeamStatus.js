@@ -5,12 +5,14 @@ import { londonToday, londonWallTimeToInstant } from '../lib/time'
 import { readPersisted, writePersisted } from '../lib/persistedCache'
 import { throwIfError } from '../lib/queryErrors'
 import { reportError } from '../lib/reportError'
+import { apiBackedOff, withJitter } from '../lib/apiHealth'
 
 // SWR cache — 30 s stale (clock status changes frequently). Backed by
 // localStorage so a cold app open renders the last-known tiles immediately
 // while a background refresh fires.
 const _cache  = new Map()
 const STALE_MS = 30_000
+const REFRESH_EVERY_MS = 60_000
 const FRESH_MS = 10_000
 
 function cacheGet(key) {
@@ -232,8 +234,12 @@ export function useTeamStatus(venueId) {
 
     fetch()
     // Live "on shift" refresh. Skipped while the app is backgrounded — each
-    // tick is 8 queries against the shared database, for a screen nobody sees.
-    const interval = setInterval(() => { if (!document.hidden) fetch() }, STALE_MS)
+    // tick is 8 queries against the shared database, for a screen nobody sees —
+    // and while the database is failing requests (apiHealth). One minute, not
+    // thirty seconds, with a random stretch so devices don't tick together.
+    const interval = setInterval(() => {
+      if (!document.hidden && !apiBackedOff()) fetch()
+    }, withJitter(REFRESH_EVERY_MS))
     return () => { cancelled = true; clearInterval(interval) }
   // dateStr only changes at midnight; without it a dashboard left open
   // overnight kept filing the new day's numbers under yesterday's cache key.

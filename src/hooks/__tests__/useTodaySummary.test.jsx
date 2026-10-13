@@ -3,6 +3,13 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { useTodaySummary, invalidateSummaryCache } from '../useTodaySummary'
 import { supabase } from '../../lib/supabase'
 
+// Live updates are for managers only; the live-updates block flips this.
+const sessionState = vi.hoisted(() => ({ isManager: true }))
+vi.mock('../../contexts/SessionContext', () => ({ useSession: () => sessionState }))
+// A change from another device waits several seconds in production (so a
+// minute of checks is a few refreshes, not hundreds). Tests don't wait.
+vi.mock('../../lib/apiHealth', async (orig) => ({ ...(await orig()), withJitter: () => 50 }))
+
 const VENUE = 'venue-1'
 
 function snapshot(overrides = {}) {
@@ -490,6 +497,7 @@ describe('useTodaySummary — live updates', () => {
     channelNames = []
     removed = []
     statusCb = null
+    sessionState.isManager = true
     global.fetch = vi.fn(async (url) => {
       const u = typeof url === 'string' ? url : url?.url ?? ''
       if (u.includes('/rest/v1/rpc/get_dashboard_snapshot')) {
@@ -507,7 +515,7 @@ describe('useTodaySummary — live updates', () => {
     vi.restoreAllMocks()
   })
 
-  it('watches every summary table, scoped to the venue', async () => {
+  it('watches the tables staff write to, scoped to the venue', async () => {
     const h = renderHook(() => useTodaySummary(VENUE, [], {}))
     await waitFor(() => expect(h.result.current.summary).not.toBeNull())
 
@@ -522,7 +530,12 @@ describe('useTodaySummary — live updates', () => {
     const watched = bindings.map(b => b.table)
     expect(watched).toContain('fridge_temperature_logs')
     expect(watched).toContain('opening_closing_completions')
-    expect(watched).toContain('shifts')
+    expect(watched).toContain('clock_events')
+    // Setup tables are edited by a manager, so they aren't worth a listener
+    // per device (the database pays a security check for each one per change).
+    expect(watched).not.toContain('shifts')
+    expect(watched).not.toContain('fridges')
+    expect(watched).not.toContain('cleaning_tasks')
     // No venue_id column to filter on, so it must not be watched.
     expect(watched).not.toContain('duty_template_items')
 
@@ -554,6 +567,18 @@ describe('useTodaySummary — live updates', () => {
     await waitFor(() => expect(h.result.current.summary.checksToday).toBe(5))
     await new Promise(r => setTimeout(r, 400))
     expect(rpcCalls).toBe(2)
+    h.unmount()
+  })
+
+  it('opens no channel for a staff device, and still shows the summary', async () => {
+    sessionState.isManager = false
+    const h = renderHook(() => useTodaySummary(VENUE, [], {}))
+    await waitFor(() => expect(h.result.current.summary).not.toBeNull())
+
+    // Staff phones don't need to hear every other device's writes, and each
+    // listener costs the database work on every change.
+    expect(channelNames).toEqual([])
+    expect(bindings).toEqual([])
     h.unmount()
   })
 
