@@ -31,3 +31,25 @@ export function reportQueryError(error, query) {
   const label = query.queryKey.filter(k => typeof k === 'string' && !/^[0-9a-f-]{36}$/i.test(k)).slice(0, 3).join('/')
   reportError(error, { context: `query:${label}`, queryKey: query.queryKey })
 }
+
+/**
+ * After a one-call RPC (get_team_status, get_manager_notifications_data, ...)
+ * fails: is it worth running the old per-table queries instead?
+ *
+ * Yes when the function can't run as written: it isn't there (PGRST202, the
+ * migration isn't applied) or it no longer matches the schema (Postgres class 42:
+ * undefined function, column or table). The separate queries are a real way
+ * round that.
+ *
+ * No when the database is simply struggling: a timeout, a 5xx, a dropped
+ * connection, a statement cancelled for running too long. The fallbacks are
+ * many requests (21 for the notification bell) and fire on every device at
+ * once, so on 13 Oct 2026 they turned one slow call into a pile-on that kept a
+ * Nano instance down. The caller should throw instead and let React Query's
+ * own retry (and the apiHealth back-off) pace it.
+ * @param {{ code?: string } | null | undefined} error
+ */
+export function rpcCannotRun(error) {
+  const code = error?.code
+  return typeof code === 'string' && (code === 'PGRST202' || /^42[0-9A-Z]{3}$/.test(code))
+}
