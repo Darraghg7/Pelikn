@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
+import { apiBackedOff, withJitter } from '../lib/apiHealth'
 import type { CoolingLog } from '../lib/cooling'
 
 export {
@@ -76,7 +77,9 @@ export function useCoolingInProgress(): { batches: CoolingLog[]; loading: boolea
       .is('end_temp', null)
       .order('started_at', { ascending: true })),
     enabled: !!venueId,
-    refetchInterval: 60_000, // pick up batches started or finished on another device
+    // Picks up batches started or finished on another device. Stands down while
+    // the database is failing requests (apiHealth).
+    refetchInterval: () => (apiBackedOff() ? false : withJitter(90_000)),
   })
 
   const reload = () => queryClient.invalidateQueries({ queryKey })

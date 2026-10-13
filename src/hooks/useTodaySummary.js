@@ -6,6 +6,8 @@ import { readPersisted, writePersisted, clearPersisted } from '../lib/persistedC
 import { onDataWrite } from '../lib/cacheBus'
 import { captureSilent } from '../lib/reportError'
 import { isCheckRequired, getActivePeriods } from '../lib/temperatureChecks'
+import { useSession } from '../contexts/SessionContext'
+import { apiBackedOff, withJitter } from '../lib/apiHealth'
 
 // ── Module-level SWR cache ─────────────────────────────────────────────────
 // Survives component unmount/remount (single-page navigation), and is backed
@@ -106,19 +108,35 @@ function notifySubscribers() {
 // realtime echoes each one back, so this collapses a burst into one refresh.
 // Short enough to still read as instant.
 const REFRESH_DEBOUNCE_MS = 300
+// A change another device made (arriving over realtime) is not something this
+// person is waiting on, so it waits longer and a little at random. Every
+// manager screen refetching the whole summary on every single remote write
+// was a large share of the database's load (13 Oct 2026); a minute's checks
+// now land as a handful of refreshes, and devices don't all refetch together.
+const REMOTE_REFRESH_DEBOUNCE_MS = 4_000
+let _notifyAt = 0
 
-/** Drop the cache and refresh every mounted hook, coalescing bursts. */
-function scheduleSummaryRefresh() {
+/**
+ * Drop the cache and refresh every mounted hook, coalescing bursts. A refresh
+ * already waiting is only ever brought forward, never pushed back, so a slow
+ * remote change can't delay one this device's own write asked for.
+ */
+function scheduleSummaryRefresh(delayMs = REFRESH_DEBOUNCE_MS) {
   // Drop the cache immediately: a screen mounting inside the debounce window
   // must not be served numbers we already know are stale.
   invalidateSummaryCache(null)
 
+  const at = Date.now() + delayMs
+  if (_notifyTimer && at >= _notifyAt) return
   if (_notifyTimer) clearTimeout(_notifyTimer)
+  _notifyAt = at
   _notifyTimer = setTimeout(() => {
     _notifyTimer = null
     notifySubscribers()
-  }, REFRESH_DEBOUNCE_MS)
+  }, delayMs)
 }
+
+const scheduleRemoteRefresh = () => scheduleSummaryRefresh(withJitter(REMOTE_REFRESH_DEBOUNCE_MS, 0.5))
 
 onDataWrite((table) => {
   if (SUMMARY_TABLES.has(table)) scheduleSummaryRefresh()
@@ -136,7 +154,22 @@ onDataWrite((table) => {
 // every venue's edits, to every client. It is template config rather than
 // operational data, edited from this device when it changes at all, so the
 // write bus already covers the case that matters.
-const REALTIME_TABLES = [...SUMMARY_TABLES].filter(t => t !== 'duty_template_items')
+//
+// Only the tables staff write to while they work. Setup tables (fridges, the
+// checklist and cleaning task lists, shifts, duty assignments, closures) are
+// edited by a manager, so the write bus above covers the device that made the
+// change and the backstop poll covers a second manager. Each table costs the
+// database a security check per listening device on every change, and the
+// instance this runs on is small.
+const REALTIME_TABLES = [
+  'opening_closing_completions',
+  'fridge_temperature_logs',
+  'cleaning_completions',
+  'cooking_temp_logs', 'hot_holding_logs', 'cooling_logs',
+  'corrective_actions', 'time_off_requests',
+  'duty_item_completions',
+  'clock_events',
+]
 
 let _rtChannel   = null
 let _rtVenueId   = null
@@ -169,7 +202,7 @@ function acquireRealtime(venueId) {
         channel.on(
           'postgres_changes',
           { event: '*', schema: 'public', table, filter: `venue_id=eq.${venueId}` },
-          scheduleSummaryRefresh,
+          scheduleRemoteRefresh,
         )
       }
       channel.subscribe((status) => { _rtConnected = status === 'SUBSCRIBED' })
@@ -196,13 +229,19 @@ function acquireRealtime(venueId) {
 // as they are allowed to get, which is very different depending on whether the
 // live channel is actually up.
 const POLL_MS          = 30_000    // how often we consider refreshing
-const LIVE_MAX_AGE_MS  = 120_000   // channel up: pure backstop
-const DEAD_MAX_AGE_MS  = 30_000    // channel down: this is the update path
+const LIVE_MAX_AGE_MS  = 120_000   // channel up (or none by design): pure backstop
+const DEAD_MAX_AGE_MS  = 60_000    // channel wanted but down: this is the update path
+// One random stretch per device, so a room of tablets that opened together
+// don't keep refreshing on the same tick.
+const POLL_JITTER = 1 + Math.random() * 0.25
 
 if (typeof document !== 'undefined') {
   const refreshIfDue = (maxAgeMs) => {
     if (document.visibilityState !== 'visible') return
-    if (Date.now() - _lastRefreshAt < maxAgeMs) return
+    // The database is failing requests: stand down so it can recover. The tick
+    // comes round again, and one refresh going through clears this.
+    if (apiBackedOff()) return
+    if (Date.now() - _lastRefreshAt < maxAgeMs * POLL_JITTER) return
     notifySubscribers()
   }
   // Coming back to the app is the moment the numbers are most likely stale,
@@ -214,7 +253,9 @@ if (typeof document !== 'undefined') {
   // what rolls the dashboard onto the new day at midnight: the nudge re-renders
   // the hook, which recomputes todayStr and with it the cache key.
   setInterval(() => {
-    refreshIfDue(_rtConnected ? LIVE_MAX_AGE_MS : DEAD_MAX_AGE_MS)
+    // No channel at all means this device never asked for one (staff phones):
+    // the slow backstop is its normal rhythm, not a fallback.
+    refreshIfDue(_rtConnected || !_rtChannel ? LIVE_MAX_AGE_MS : DEAD_MAX_AGE_MS)
   }, POLL_MS)
 }
 
@@ -299,10 +340,13 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
 
   // Join the venue's live channel. Shared across every mounted hook, so the
   // three on a manager dashboard cost one subscription between them.
+  // Managers only: a staff phone doesn't need to hear every other device's
+  // writes, and each listener costs the database work on every change.
+  const isManager = !!useSession()?.isManager
   useEffect(() => {
-    if (!venueId) return
+    if (!venueId || !isManager) return
     return acquireRealtime(venueId)
-  }, [venueId])
+  }, [venueId, isManager])
 
   // Read in the fetch effect without making `summary` a dependency of it —
   // depending on the value it sets would re-run the effect on every fetch.

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
+import { useSession } from '../contexts/SessionContext'
+import { apiBackedOff, withJitter } from '../lib/apiHealth'
 import { useAppSettings } from './useSettings'
 import useVenueClosures from './useVenueClosures'
 import { useWidgetFetchGate } from './useWidgetFetchGate'
@@ -113,7 +115,12 @@ export function cleaningDueLabel(
 // remount — a manager with /cleaning open on a tablet never saw a tick land.
 // One channel per venue, shared by every mounted consumer (sidebar badge,
 // page, widget), since they all read the same query.
-const LIVE_TABLES = ['cleaning_completions', 'cleaning_tasks']
+//
+// Only completions: that is what staff do while the manager watches. The task
+// list itself is edited by a manager, whose own device already refreshes
+// through the write bus. Every table a device listens to costs the database a
+// security check per change.
+const LIVE_TABLES = ['cleaning_completions']
 const POLL_WHEN_DOWN_MS = 60_000
 
 const _live = {
@@ -193,10 +200,13 @@ export function useCleaningTasks(
 
   const active = !!venueId && gateOpen && enabled
   const queryClient = useQueryClient()
+  // Managers only: staff tick their own tasks and don't need to hear everyone
+  // else's, and each listener costs the database work on every change.
+  const isManager = !!((useSession() ?? {}) as { isManager?: boolean }).isManager
   useEffect(() => {
-    if (!active) return
+    if (!active || !isManager) return
     return acquireLive(venueId!, queryClient)
-  }, [active, venueId, queryClient])
+  }, [active, isManager, venueId, queryClient])
 
   // Viewing a past day (Tasks page) needs each task's last completion as of
   // that day, not today — a separate query with a cutoff. Today and future
@@ -210,8 +220,14 @@ export function useCleaningTasks(
     queryKey: ['cleaningTasks', venueId, before],
     queryFn: () => fetchCleaningTasks(venueId!, before),
     enabled: active,
-    // Realtime is the live path; this only kicks in while the channel is down.
-    refetchInterval: () => (_live.connected ? false : POLL_WHEN_DOWN_MS),
+    // Realtime is the live path; this only kicks in while a channel this device
+    // asked for is down. A device that never asked for one (staff) refreshes on
+    // open and on focus instead of polling. It also stands down while the
+    // database is failing requests (apiHealth).
+    refetchInterval: () => {
+      if (_live.connected || !_live.channel || apiBackedOff()) return false
+      return withJitter(POLL_WHEN_DOWN_MS)
+    },
     // A tablet woken from sleep has missed every event while it was suspended.
     refetchOnWindowFocus: true,
   })

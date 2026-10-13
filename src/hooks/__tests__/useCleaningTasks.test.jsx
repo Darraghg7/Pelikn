@@ -7,6 +7,8 @@ import { supabase } from '../../lib/supabase'
 const VENUE = 'venue-1'
 
 vi.mock('../../contexts/VenueContext', () => ({ useVenue: () => ({ venueId: 'venue-1' }) }))
+const sessionState = vi.hoisted(() => ({ isManager: true }))
+vi.mock('../../contexts/SessionContext', () => ({ useSession: () => sessionState }))
 const settings = { closedDays: [], cleaningVisibleToAll: false }
 vi.mock('../useSettings', () => ({ useAppSettings: () => settings }))
 vi.mock('../useVenueClosures', () => ({ default: () => ({ closures: [] }) }))
@@ -48,6 +50,7 @@ describe('useCleaningTasks — live updates', () => {
     bindings = []
     channelNames = []
     removed = []
+    sessionState.isManager = true
     global.fetch = vi.fn(async (url) => {
       const u = typeof url === 'string' ? url : url?.url ?? ''
       if (u.includes('/rest/v1/cleaning_tasks')) return json([TASK])
@@ -81,12 +84,23 @@ describe('useCleaningTasks — live updates', () => {
     h.unmount()
   })
 
-  it('watches both tables, scoped to the venue', async () => {
+  it('opens no channel for a staff device, and still lists the tasks', async () => {
+    sessionState.isManager = false
+    const h = renderHook(() => useCleaningTasks(), { wrapper })
+    await waitFor(() => expect(h.result.current.tasks).toHaveLength(1))
+
+    expect(channelNames).toEqual([])
+    expect(bindings).toEqual([])
+    h.unmount()
+  })
+
+  it('watches completions only, scoped to the venue', async () => {
     const h = renderHook(() => useCleaningTasks(), { wrapper })
     await waitFor(() => expect(h.result.current.tasks).toHaveLength(1))
 
     expect(channelNames).toEqual([`cleaning:${VENUE}`])
-    expect(bindings.map(b => b.table).sort()).toEqual(['cleaning_completions', 'cleaning_tasks'])
+    // The task list is edited by a manager; completions are what staff do.
+    expect(bindings.map(b => b.table)).toEqual(['cleaning_completions'])
     for (const b of bindings) expect(b.filter).toBe(`venue_id=eq.${VENUE}`)
     h.unmount()
   })

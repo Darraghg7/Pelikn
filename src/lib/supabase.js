@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { emitDataWrite } from './cacheBus'
 import { reportError } from './reportError'
+import { recordApiResult } from './apiHealth'
 
 export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
   || 'https://djwgyyerxvxovicixxrp.supabase.co'
@@ -289,6 +290,9 @@ function makeRetryFetch(timeoutMs = 20_000, maxWriteRetries = 2) {
     while (true) {
       try {
         const response = await doFetch(url, options)
+        // Feeds the background-refresh back-off (apiHealth). A 5xx means the
+        // database is struggling; a 4xx is our own mistake and doesn't count.
+        if (isRest) recordApiResult(response.status < 500)
 
         // Reactive recovery (once): an injected token was rejected (expired in
         // the moment, or its session revoked — 146). Re-issue and retry with
@@ -338,6 +342,7 @@ function makeRetryFetch(timeoutMs = 20_000, maxWriteRetries = 2) {
       } catch (err) {
         // Only retry on network / abort errors (not 4xx/5xx — those aren't thrown)
         const retryable = err?.name === 'AbortError' || err?.name === 'TypeError'
+        if (isRest && retryable) recordApiResult(false)
         if (isWrite && retryable && writeRetries < maxWriteRetries) {
           writeRetries += 1
           console.warn(`[Pelikn] Write attempt ${writeRetries} failed (${err.message}), retrying…`)
