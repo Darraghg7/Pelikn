@@ -10,7 +10,7 @@ export const colors = {
   // Ink scale
   ink:   '#0d1a14',
   ink2:  '#3d4a44',
-  ink3:  '#76817b',
+  ink3:  '#656f69', // 5.2:1 on white, 4.7:1 on bg (was #76817b, 4.0:1 / 3.6:1, below AA)
   ink4:  '#b3b9b5',
   inkDark: '#e8e4dc',   // body text in dark mode
 
@@ -60,7 +60,7 @@ export const colors = {
   good:     '#1a7a4c',
   goodBg:   '#e3f0e7',
   goodDark: '#7fd1a4',
-  warn:     '#a85d12',
+  warn:     '#9a5410', // 5.0:1 on warnBg (was #a85d12, 4.3:1)
   warnBg:   '#fbeedc',
   warnDark: '#e8b06a',
   bad:      '#b3331c',
