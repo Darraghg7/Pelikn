@@ -243,7 +243,8 @@ test.describe('Login page — sliding venue tabs (multi-venue device)', () => {
   test('active tab has white text style', async ({ page }) => {
     const activeTab = page.locator('button').filter({ hasText: /brew.*bloom/i }).first()
     await expect(activeTab).toBeVisible({ timeout: 8000 })
-    const color = await activeTab.evaluate(el => (el as HTMLElement).style.color)
+    // Styled with the text-white class (no inline style), so read the computed colour.
+    const color = await activeTab.evaluate(el => getComputedStyle(el).color)
     expect(color).toBe('rgb(255, 255, 255)')
   })
 

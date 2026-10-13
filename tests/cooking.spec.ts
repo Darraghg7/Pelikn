@@ -42,8 +42,9 @@ test.describe('Cooking temperatures', () => {
     await page.getByRole('button', { name: /save|submit|add|log/i }).last().click()
 
     // Unique per run, so only this test's own submission can satisfy it.
-    // exact: the confirmation toast also contains the name, so match the list row itself
-    await expect(page.getByText(TEST_FOOD, { exact: true })).toBeVisible({ timeout: 10000 })
+    // exact: the confirmation toast also contains the name, so match the list row itself.
+    // The new reading can now show in more than one place on the page, so take the first.
+    await expect(page.getByText(TEST_FOOD, { exact: true }).first()).toBeVisible({ timeout: 10000 })
   })
 })
 
