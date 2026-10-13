@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { format, addWeeks, isToday, differenceInCalendarWeeks } from 'date-fns'
-import { updateShift, insertShift, deleteShift, updateShiftStaff, insertShifts } from '../../lib/api/shifts'
+import { updateShift, insertShift, deleteShift, insertShifts } from '../../lib/api/shifts'
 import { useVenue } from '../../contexts/VenueContext'
 import { useShifts, useStaffList } from '../../hooks/useShifts'
 import { useAppSettings } from '../../hooks/useSettings'
@@ -25,7 +25,6 @@ const HOURS   = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
 const MINUTES = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55']
 
 function fmtT(t) { const [h, m] = t.split(':'); return m === '00' ? h : `${h}:${m}` }
-function fmtRange(s, e) { return `${fmtT(s)}–${fmtT(e)}` }
 function durLabel(s, e) {
   const [sh, sm] = s.split(':').map(Number)
   const [eh, em] = e.split(':').map(Number)
@@ -361,86 +360,6 @@ function SwapSheet({ swaps, onClose, onResolved }) {
   )
 }
 
-// ── Auto-fill Sheet ────────────────────────────────────────────────────────────
-function AutoFillSheet({ openShifts, staff, unavailability = {}, venueId, onClose, onFilled }) {
-  const [filling, setFilling] = useState(false)
-  const toast = useToast()
-
-  const fill = async () => {
-    if (!openShifts.length) return
-    setFilling(true)
-    let skipped = 0
-    for (const o of openShifts) {
-      if (!o.id) continue
-      const dateStr = format(o._day, 'yyyy-MM-dd')
-      // Never suggest someone who has booked the day off.
-      const free = staff.filter(s => !unavailability[`${s.id}:${dateStr}`])
-      const oStation = stationFromRole(o.role_label)
-      const suggested = free.find(s => stationFromRole(s.job_title) === oStation) || free[0]
-      if (suggested) {
-        await updateShiftStaff(o.id, suggested.id)
-      } else {
-        skipped++
-      }
-    }
-    setFilling(false)
-    const drafted = openShifts.length - skipped
-    toast(
-      skipped
-        ? `Auto-fill drafted ${drafted} of ${openShifts.length} — ${skipped} left open, nobody free`
-        : `Auto-fill drafted ${drafted} ${drafted === 1 ? 'shift' : 'shifts'} — review & publish`
-    )
-    onFilled?.()
-    onClose()
-  }
-
-  return (
-    <>
-      <div onClick={onClose} className="fixed inset-0 z-[52] bg-ink/45 [animation:fadeIn_.2s_ease_both]" />
-      <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface dark:bg-paperDark rounded-t-sheet px-4 pb-8 pt-[10px] max-h-[90%] overflow-y-auto [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both] shadow-[0_-12px_40px_theme(colors.ink/22%)]">
-        <div className="w-[38px] h-1 rounded-tag bg-charcoal/10 dark:bg-white/10 mx-auto mb-[14px]" />
-        <div className="flex items-center gap-[11px]">
-          <span className="w-10 h-10 rounded-control flex items-center justify-center shrink-0 bg-accent/10 text-accent">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/></svg>
-          </span>
-          <div className="flex-1 min-w-0">
-            <div className="text-title-sm font-semibold tracking-[-0.015em] text-charcoal dark:text-white">Auto-fill gaps</div>
-            <div className="text-xs text-charcoal/50 dark:text-white/40 mt-px">Matches free staff to empty shifts by role</div>
-          </div>
-        </div>
-        <div className="mt-[14px] font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.07em] font-semibold">{openShifts.length} gaps to cover</div>
-        <div className="flex flex-col gap-2 mt-[9px]">
-          {openShifts.length === 0 && <div className="py-5 text-center text-charcoal/50 dark:text-white/40 text-body-sm">Week is fully covered.</div>}
-          {openShifts.map((o, idx) => {
-            const col = STATION_COLOR[stationFromRole(o.role_label)] || colors.brand.DEFAULT
-            return (
-              <div key={o.id ?? idx} className="flex items-center gap-[11px] px-[13px] py-[11px] bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-control">
-                <span className="w-[9px] h-8 rounded-tag shrink-0" style={{ background: col + '26', borderLeft: `3px solid ${col}` }} />
-                <div className="flex-1 min-w-0">
-                  <div className="text-body-sm font-semibold text-charcoal dark:text-white">{o.role_label} · {fmtRange(o.start_time.slice(0,5), o.end_time.slice(0,5))}</div>
-                  <div className="font-mono text-[10px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.03em] mt-px">{format(o._day, 'EEE d MMM')}</div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-        <Button
-          variant="accent"
-          size="lg"
-          fullWidth
-          onClick={fill}
-          disabled={filling || openShifts.length === 0}
-          className="mt-4"
-        >
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/></svg>
-          {filling ? 'Filling…' : `Draft ${openShifts.length || ''} suggestions`}
-        </Button>
-        <div className="font-mono text-[10px] text-charcoal/30 dark:text-white/30 text-center mt-[9px] tracking-[0.02em]">Added to draft — nothing sent until you publish</div>
-      </div>
-    </>
-  )
-}
-
 // ── Shared bits ───────────────────────────────────────────────────────────────
 const CARD = 'bg-white dark:bg-paperDark rounded-card border border-line dark:border-white/10'
 const SECTION = 'font-mono text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 px-1'
@@ -718,31 +637,6 @@ function DayView({ week, dayIndex, setDayIndex, shifts, breakDurationMins, showC
   )
 }
 
-// ── Open (unassigned) shifts ──────────────────────────────────────────────────
-function OpenShifts({ openShifts, onFill }) {
-  if (!openShifts.length) return null
-  return (
-    <>
-      <p className={`${SECTION} pt-1 !text-bad`}>{openShifts.length} {openShifts.length === 1 ? 'shift needs' : 'shifts need'} filling</p>
-      <div className={`${CARD} overflow-hidden divide-y divide-line dark:divide-white/10`}>
-        {openShifts.map((o, idx) => {
-          const col = stationColor(o.role_label)
-          return (
-            <div key={o.id ?? idx} className="flex items-center gap-3 px-3.5 py-2">
-              <span className="w-[3px] self-stretch rounded-full shrink-0" style={{ background: col }} />
-              <span className="flex-1 min-w-0">
-                <span className="block text-body-sm font-semibold text-ink dark:text-white truncate">{o.role_label || 'Shift'} · {fmtRange(o.start_time.slice(0, 5), o.end_time.slice(0, 5))}</span>
-                <span className="block text-caption text-ink3 dark:text-white/45 mt-0.5">{format(o._day, 'EEE d MMM')} · unassigned</span>
-              </span>
-              <Button size="sm" onClick={() => onFill(o)}>Fill</Button>
-            </div>
-          )
-        })}
-      </div>
-    </>
-  )
-}
-
 function StationLegend() {
   return (
     <div className="flex items-center gap-4 px-1 flex-wrap">
@@ -772,7 +666,6 @@ export default function RotaMobileGrid() {
   const [dayIndex, setDayIndex] = useState(() => { const i = getWeekDays(getWeekStart()).findIndex(d => isToday(d)); return i < 0 ? 0 : i })
   const [shiftSheet, setShiftSheet] = useState(null)
   const [showSwaps, setShowSwaps]   = useState(false)
-  const [showAutoFill, setShowAutoFill] = useState(false)
   const [showCost, setShowCost]     = useState(false)
   // Unpublished edits made this session, newest last. Each entry lets Discard
   // undo the change: { type: 'add', id } | { type: 'edit', before } | { type: 'delete', before }
@@ -809,10 +702,6 @@ export default function RotaMobileGrid() {
     () => buildRotaWeek({ weekStart, shifts: weekShifts, staff, unavailability, closedDays, closedDates, breakDurationMins }),
     [weekStart, shifts, swaps, staff, unavailability, closedDays, closedDates, breakDurationMins], // eslint-disable-line react-hooks/exhaustive-deps -- weekShifts is derived from shifts and swaps
   )
-
-  const openShifts = weekShifts
-    .filter(s => !s.staff_id)
-    .map(s => ({ ...s, _day: days.find(d => format(d, 'yyyy-MM-dd') === s.shift_date) ?? days[0] }))
 
   const weekHours = week.dayTotals.reduce((a, t) => a + t.paidHours, 0)
   const weekCost  = week.dayTotals.reduce((a, t) => a + t.cost, 0)
@@ -913,14 +802,6 @@ export default function RotaMobileGrid() {
         <Segmented label="View" options={[['week', 'Week'], ['day', 'Day']]} value={view} onChange={setView} />
         <div className="flex-1" />
         <Segmented label="Show" options={[[false, 'Hours'], [true, '£']]} value={showCost} onChange={setShowCost} />
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => setShowAutoFill(true)}
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6" /></svg>
-          Auto-fill
-        </Button>
       </div>
 
       {/* Swap requests */}
@@ -950,7 +831,6 @@ export default function RotaMobileGrid() {
         />
       )}
 
-      {!isLoading && !loadFailed && <OpenShifts openShifts={openShifts} onFill={(o) => openSheet(o, null, o._day)} />}
       {!isLoading && <StationLegend />}
 
       {/* ── Sheets ── */}
@@ -972,24 +852,6 @@ export default function RotaMobileGrid() {
           swaps={swaps}
           onClose={() => setShowSwaps(false)}
           onResolved={() => { reloadSwaps(); reload() }}
-        />
-      )}
-      {showAutoFill && (
-        <AutoFillSheet
-          openShifts={openShifts}
-          staff={staff}
-          unavailability={unavailability}
-          venueId={venueId}
-          onClose={() => setShowAutoFill(false)}
-          onFilled={() => {
-            // Auto-fill assigns staff to previously-open shifts; record each as an
-            // edit so Discard can unassign them (revert staff_id back to null).
-            const changes = openShifts
-              .filter(o => o.id)
-              .map(o => ({ type: 'edit', before: { id: o.id, staff_id: null, start_time: o.start_time, end_time: o.end_time, role_label: o.role_label ?? null } }))
-            setSessionChanges(c => [...c, ...changes])
-            reload()
-          }}
         />
       )}
     </div>

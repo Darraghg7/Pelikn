@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import RotaMobileGrid from './RotaMobileGrid'
+import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { format, addDays, addWeeks, parseISO } from 'date-fns'
 import {
   deleteVenueClosure, insertVenueClosures,
@@ -44,6 +45,7 @@ export default function RotaPage() {
   const { session, isManager, isRestricted } = useSession()
   const [searchParams] = useSearchParams()
   const personalView = searchParams.get('personal') === '1'
+  const isDesktop = useIsDesktop()
 
   const [weekStart, setWeekStart] = useState(() => getWeekStart())
   const [numWeeks, setNumWeeks]   = useState(1)
@@ -407,8 +409,9 @@ export default function RotaPage() {
     )
   }
 
-  // Mobile: render the purpose-built mobile grid
-  if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+  // Phones and narrow windows get the purpose-built mobile grid; it swaps live
+  // if the window is resized across the breakpoint.
+  if (!isDesktop) {
     return <RotaMobileGrid />
   }
 
