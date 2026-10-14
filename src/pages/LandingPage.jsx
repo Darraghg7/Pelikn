@@ -188,6 +188,7 @@ export default function LandingPage() {
 
           <div className="pelikn-ios-brand">
             <div className="pelikn-ios-mark"><Logo variant="mark" height={44} tone="onBrand" /></div>
+            <p>Sign in to Pelikn</p>
           </div>
 
           {view === 'picker' && pendingVenues ? (

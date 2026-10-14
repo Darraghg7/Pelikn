@@ -302,12 +302,10 @@ table { border-spacing: 0; }
 }
 
 .pelikn-ios-brand p {
-  margin-top: 8px;
-  color: theme(colors.white/60%);
-  font-size: 12px;
-  line-height: 1.2;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
+  margin-top: -8px;
+  color: theme(colors.white/70%);
+  font-size: 15px;
+  line-height: 22px;
 }
 
 .pelikn-ios-form,
