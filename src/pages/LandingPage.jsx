@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
-import Logo from '../components/ui/Logo'
+import Logo, { LogoLoader } from '../components/ui/Logo'
 
 export const LAST_VENUE_KEY = 'pelikn_last_venue'
 
@@ -175,7 +175,7 @@ export default function LandingPage() {
   if (authLoading) {
     return (
       <div className="min-h-dvh bg-brand flex items-center justify-center">
-        <Logo variant="mark" size="xl" tone="onBrand" className="animate-pulse" />
+        <LogoLoader tone="onBrand" />
       </div>
     )
   }
@@ -187,7 +187,7 @@ export default function LandingPage() {
           <div className="pelikn-ios-flow pelikn-ios-flow-one" aria-hidden="true" />
 
           <div className="pelikn-ios-brand">
-            <h1 className="m-0"><Logo variant="mark" height={80} tone="onBrand" /></h1>
+            <div className="pelikn-ios-mark"><Logo variant="mark" height={44} tone="onBrand" /></div>
           </div>
 
           {view === 'picker' && pendingVenues ? (

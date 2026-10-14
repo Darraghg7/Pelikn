@@ -42,3 +42,13 @@ export default function Logo({ variant = "mark", size = "md", height, tone = "au
     </svg>
   )
 }
+
+/** Animated mark for full-screen loading states. */
+export function LogoLoader({ tone = "auto" }) {
+  const colour = tone === "onBrand" ? "text-white" : "text-brand dark:text-white"
+  return (
+    <span className={`pelikn-loader ${colour}`}>
+      <Logo variant="mark" height={48} tone={tone} />
+    </span>
+  )
+}
