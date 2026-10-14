@@ -10,7 +10,7 @@
 //                                              (npm run colours:sync)
 //
 // Launch/splash backgrounds are pine, so the native splash image
-// (scripts/render-ios-splash.mjs), Capacitor and index.html all match and the
+// (scripts/render-native-icons.mjs), Capacitor and index.html all match and the
 // app doesn't flash between greens on open. The status bar matches the brand
 // top bar (src/main.jsx sets the same at runtime).
 

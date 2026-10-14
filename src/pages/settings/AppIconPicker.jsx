@@ -1,22 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { useToast } from '../../components/ui/Toast'
 import { appIconColors } from '../../lib/tokens'
+import Logo from '../../components/ui/Logo'
 
 const ICON_VARIANTS = [
   { id: 'light', label: 'Light', bg: appIconColors.white, fg: appIconColors.green, iconName: null },
   { id: 'dark',  label: 'Dark',  bg: appIconColors.green, fg: appIconColors.white, iconName: 'AppIconDark' },
   { id: 'mint',  label: 'Mint',  bg: appIconColors.black, fg: appIconColors.mint, iconName: 'AppIconMint' },
 ]
-
-function MortarSVG({ fg }) {
-  return (
-    <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-      <line x1="82" y1="272" x2="322" y2="272" stroke={fg} strokeWidth="26" strokeLinecap="round"/>
-      <path d="M 110 272 C 103 316 101 364 202 368 C 303 364 301 316 294 272" stroke={fg} strokeWidth="26" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-      <path d="M 180 338 L 287 222 C 299 207 317 190 336 173 C 357 154 374 128 370 104 C 366 79 342 68 318 78 C 296 87 284 110 288 133 C 292 156 303 174 301 191" stroke={fg} strokeWidth="26" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-    </svg>
-  )
-}
 
 export default function AppIconPicker() {
   const [isNative, setIsNative] = useState(false)
@@ -68,9 +59,7 @@ export default function AppIconPicker() {
               ].join(' ')}
               style={{ backgroundColor: v.bg }}
             >
-              <span className="w-8 h-8">
-                <MortarSVG fg={v.fg} />
-              </span>
+              <span style={{ color: v.fg }}><Logo variant="mark" height={28} className="!text-current" /></span>
             </span>
             <span className={`text-micro font-medium ${active === v.id ? 'text-charcoal dark:text-white' : 'text-charcoal/40 dark:text-white/35'}`}>
               {v.label}
