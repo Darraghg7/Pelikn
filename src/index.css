@@ -609,20 +609,6 @@ button, a, input, select, textarea, [role="button"] {
   overflow: hidden;
 }
 
-/* ── Text readability: boost muted charcoal opacities ──────────────────── */
-/* The default palette uses very low-opacity charcoal for secondary text    */
-/* (e.g. /35, /40) which is hard to read on mobile screens. These rules    */
-/* remap them to higher opacities globally, making labels and helper text   */
-/* noticeably easier to parse without touching every component.              */
-.text-charcoal\/20 { color: theme(colors.charcoal/38%) !important; }
-.text-charcoal\/25 { color: theme(colors.charcoal/44%) !important; }
-.text-charcoal\/30 { color: theme(colors.charcoal/50%) !important; }
-.text-charcoal\/35 { color: theme(colors.charcoal/57%) !important; }
-.text-charcoal\/40 { color: theme(colors.charcoal/63%) !important; }
-.text-charcoal\/50 { color: theme(colors.charcoal/70%) !important; }
-.text-charcoal\/60 { color: theme(colors.charcoal/76%) !important; }
-.text-charcoal\/70 { color: theme(colors.charcoal/83%) !important; }
-
 /* ── Dark mode global overrides ─────────────────────────────────────────── */
 html.dark body {
   background: theme(colors.bgDark);
@@ -653,7 +639,8 @@ html.dark .bg-cream\/50 {
   background-color: theme(colors.white/6%) !important;
 }
 
-/* Text: charcoal → light */
+/* Text: charcoal → light. Nothing here goes below 55%: that is the least    */
+/* inkDark that still reads at 4.5:1 on the dark surfaces (npm run lint:contrast). */
 html.dark .text-charcoal {
   color: theme(colors.inkDark) !important;
 }
@@ -676,37 +663,37 @@ html.dark .text-charcoal\/55 {
   color: theme(colors.inkDark/55%) !important;
 }
 html.dark .text-charcoal\/50 {
-  color: theme(colors.inkDark/50%) !important;
+  color: theme(colors.inkDark/55%) !important;
 }
 html.dark .text-charcoal\/45 {
-  color: theme(colors.inkDark/45%) !important;
+  color: theme(colors.inkDark/55%) !important;
 }
 html.dark .text-charcoal\/40 {
-  color: theme(colors.inkDark/40%) !important;
+  color: theme(colors.inkDark/55%) !important;
 }
 html.dark .text-charcoal\/35 {
-  color: theme(colors.inkDark/35%) !important;
+  color: theme(colors.inkDark/55%) !important;
 }
 html.dark .text-charcoal\/30 {
-  color: theme(colors.inkDark/30%) !important;
+  color: theme(colors.inkDark/55%) !important;
 }
 html.dark .text-charcoal\/28 {
-  color: theme(colors.inkDark/28%) !important;
+  color: theme(colors.inkDark/55%) !important;
 }
 html.dark .text-charcoal\/25 {
-  color: theme(colors.inkDark/25%) !important;
+  color: theme(colors.inkDark/55%) !important;
 }
 html.dark .text-charcoal\/22 {
-  color: theme(colors.inkDark/22%) !important;
+  color: theme(colors.inkDark/55%) !important;
 }
 html.dark .text-charcoal\/20 {
-  color: theme(colors.inkDark/20%) !important;
+  color: theme(colors.inkDark/55%) !important;
 }
 html.dark .text-charcoal\/16 {
-  color: theme(colors.inkDark/16%) !important;
+  color: theme(colors.inkDark/55%) !important;
 }
 html.dark .text-charcoal\/15 {
-  color: theme(colors.inkDark/15%) !important;
+  color: theme(colors.inkDark/55%) !important;
 }
 
 /* Borders */
@@ -768,7 +755,7 @@ html.dark textarea {
 }
 html.dark input::placeholder,
 html.dark textarea::placeholder {
-  color: theme(colors.inkDark/30%);
+  color: theme(colors.inkDark/55%);
 }
 
 /* Dividers */

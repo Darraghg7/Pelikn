@@ -67,7 +67,7 @@ export default function VenueCodeSection({ venueId, sessionToken }) {
           <LoadError what="your venue code" onRetry={() => setAttempt(a => a + 1)} />
         ) : (
           <div className="flex items-center gap-3 px-5 py-4 rounded-control bg-brand/5 border border-brand/20">
-            <span className="font-mono text-2xl font-bold tracking-[0.25em] text-brand dark:text-accent flex-1">
+            <span className="font-mono text-2xl font-bold tracking-[0.25em] text-brand dark:text-accentDark flex-1">
               {code}
             </span>
             <Button

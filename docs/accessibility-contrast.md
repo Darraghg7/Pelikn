@@ -1,40 +1,24 @@
-# Colour contrast audit (13 Oct 2026)
+# Colour contrast (last verified 14 Oct 2026)
 
-Measured, not fixed: changing these is a design decision. WCAG AA wants 4.5:1 for normal text (the 11–13px labels all count as normal) and 3:1 for large text and icons.
+WCAG 2.1 AA wants 4.5:1 for normal text (all the 11-13px labels count) and 3:1 for large text and meaningful icons. `npm run lint:contrast` (`scripts/contrast.mjs`, part of `npm run lint`) measures this on every run; `node scripts/contrast.mjs --report` prints the full tables.
 
-## Token pairs (tokens in `src/lib/tokens.js`)
+## What the check measures
+- Every text colour token on the surfaces it is used on (paper, page grey, cream inputs, brand tint, status tints; dark card and page; dark-green cards and sidebar).
+- Every `text-<colour>/NN` class found in `src/`, as it actually renders. Plain `text-charcoal/NN` in dark mode is turned into `inkDark/NN` by `index.css`; the check reads those rules too.
+- `disabled:` text is skipped (inactive controls are exempt from WCAG). `dark:text-ink` / `dark:text-charcoal` on a white chip are skipped.
 
-| Pair | Ratio | AA |
-|---|---|---|
-| `ink` / `ink2` on white | 13+ / 9.3 | pass |
-| `brand` on white | 13.2 | pass |
-| `good`, `bad`, `info` on their `*Bg` tints | 4.55, 5.3, 8.0 | pass (good only just) |
-| `warn` on `warnBg` | 4.33 | **fail, narrowly** |
-| `accent` on white | 4.53 | pass (only just) |
-| `ink3` on white | 4.04 | **fail** |
-| `ink3` on the page background `bg` | 3.63 | **fail** |
-| `ink4` on white | 2.00 | **fail** (fine for borders and disabled text, not for reading) |
-| `*Dark` status colours on `paperDark` | 7.7–9.2 | pass |
+## What changed (14 Oct 2026)
+Before: 79 text classes failed on 4,700 uses (most: `text-charcoal/30-55`, `dark:text-white/25-45`, `text-white/40` on green cards). `ink3` and `warn` had already been darkened (earlier PR, 4.0 to 5.2:1 and 4.3 to 5.0:1).
+1. **Readable-text floor** (`textAlphaFloor` in `tokens.js`, applied to every `text-*` class by `tailwind.config.js`): charcoal 62%, white 52%, cream 55%, brand 70%; translucent status text (`text-danger/70`) is drawn solid. The old hand-made "boost muted charcoal" block in `index.css` is gone (its 50/60/70 steps live in `textAlphaLift`); the dark-mode charcoal rules there no longer go below 55%.
+2. `accent` `#c94f2a` to `#bb4624` (4.0 to 4.6:1 on its tint). New `accentDark` `#ec7f62` for accent text in dark mode (was 3.2:1); 11 `dark:text-accent` classes now say `dark:text-accentDark`.
+3. Legacy `warning` token matches `warn` (`#9a5410`).
+4. `ink4` used as text is drawn as `ink3` (placeholders, "no data" marks). It stays light for borders.
+5. Decorative chevrons and the compliance ring track moved from `text-charcoal/25` to `stroke-charcoal/45`, so the floor does not darken them.
 
-## Opacity text (the bigger problem)
+## Known gaps
+- About nine `text-ink3` uses have no dark-mode partner and show `ink3` on dark (3.2:1). Mostly the marketing mock (light only) and two rota arrows.
+- The floor also darkens any other `currentColor` icon that used a faint `text-*` class; use `stroke-*`/`fill-*` for decoration.
+- Contrast is measured on the worst surface for each colour family, not per element.
 
-Text set with an opacity on `charcoal` (light mode) or `white` (dark mode) is used far more than the tokens above.
-
-| Class | Ratio | AA |
-|---|---|---|
-| `text-charcoal/60` and darker | 4.55+ | pass |
-| `text-charcoal/55` | 3.9 | fail |
-| `text-charcoal/50` | 3.4 | fail |
-| `text-charcoal/40` | 2.5 | fail |
-| `text-charcoal/30` | 1.9 | fail |
-| dark mode `text-white/55` | 5.9 | pass |
-| dark mode `text-white/45` | 4.4 | fail, narrowly |
-| dark mode `text-white/40` | 3.8 | fail |
-| dark mode `text-white/35` | 3.2 | fail |
-
-Usage counts in `src/`: about 1,280 `text-charcoal/<=55`-style classes, 1,390 `dark:text-white/<50`-style classes, 222 `text-ink3`, 39 `text-ink4`.
-
-## What a fix would look like (needs a design call)
-- Darken `ink3` from `#76817b` to about `#656f69` (4.7:1 on the page background, 5.2:1 on white). One line in tokens.js, and the secondary text looks a little darker everywhere it is used.
-- Move text-only uses of `text-charcoal/30–55` up to `/60` and `dark:text-white/<50` up to `/55`. Mechanical, but about 2,600 edits and a visible change in how quiet the UI feels. A ratchet like `lint:colours` would stop it creeping back.
-- Darken `warn` slightly (`#a85d12` to about `#9a5410`) for the badge-on-tint case.
+## Exceptions
+None. Add to `KNOWN_EXCEPTIONS` in `scripts/contrast.mjs` with a reason if one is ever needed.

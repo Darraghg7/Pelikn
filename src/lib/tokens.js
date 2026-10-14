@@ -11,7 +11,7 @@ export const colors = {
   ink:   '#0d1a14',
   ink2:  '#3d4a44',
   ink3:  '#656f69', // 5.2:1 on white, 4.7:1 on bg (was #76817b, 4.0:1 / 3.6:1, below AA)
-  ink4:  '#b3b9b5',
+  ink4:  '#b3b9b5', // borders, dividers, disabled. As text it is drawn as ink3 (see textColor in tailwind.config.js)
   inkDark: '#e8e4dc',   // body text in dark mode
 
   // Surfaces
@@ -52,7 +52,8 @@ export const colors = {
     deep:    '#1a3d35',
     glow:    '#4a7d6e',
   },
-  accent:   '#c94f2a',
+  accent:   '#bb4624', // 4.6:1 on accentBg (was #c94f2a, 4.0:1)
+  accentDark: '#ec7f62', // accent text on dark surfaces
   accentBg: '#faeee9',
 
   // Status. *Bg = light tint behind status text. *Dark = status text on dark
@@ -99,7 +100,7 @@ export const colors = {
   navpill:  '#eef4f0',
   midgreen: '#1a7a4c',
   danger:   { DEFAULT: '#b3331c', light: '#fbeae6' },
-  warning:  { DEFAULT: '#a85d12', light: '#fbeedc' },
+  warning:  { DEFAULT: '#9a5410', light: '#fbeedc' },
   success:  { DEFAULT: '#1a7a4c', light: '#e3f0e7' },
 }
 
@@ -177,3 +178,40 @@ export function alpha(hex, a) {
 /** White or black at some opacity — overlays on coloured surfaces. */
 export const white = a => (a == null ? '#ffffff' : `rgba(255,255,255,${a})`)
 export const black = a => (a == null ? '#000000' : `rgba(0,0,0,${a})`)
+
+// Readable-text floor. WCAG AA wants 4.5:1 for small text, and a grey made with
+// `text-charcoal/40` (or `dark:text-white/35`) is nowhere near. Rather than edit
+// ~2,000 class names, text colours below these opacities are drawn at the floor:
+// tailwind.config.js applies `effectiveTextAlpha` to every `text-*` utility.
+// It only touches text (backgrounds, borders and `disabled:` states keep the
+// opacity they ask for), and `npm run lint:contrast` proves each floor still
+// passes on the darkest/lightest surface that colour sits on.
+//   charcoal  grey text on white, page grey, cream inputs and brand tints
+//   white     text on dark-green cards and in dark mode
+//   cream     text on dark-green cards
+//   brand     brand-green text on its tint
+//   status    translucent status text (text-danger/70) is drawn solid
+export const textAlphaFloor = {
+  charcoal: 0.62,
+  white:    0.52,
+  cream:    0.55,
+  brand:    0.70,
+  accent:   1,
+  danger:   1,
+  warning:  1,
+  success:  1,
+}
+
+// Steps above the floor that were already boosted by hand (this replaces the
+// old "boost muted charcoal opacities" block in index.css, same values).
+export const textAlphaLift = {
+  charcoal: { 0.5: 0.70, 0.6: 0.76, 0.7: 0.83 },
+}
+
+/** Opacity a `text-<name>/<a>` class is actually drawn at. */
+export function effectiveTextAlpha(name, a) {
+  const lifted = textAlphaLift[name]?.[a]
+  if (lifted != null) return lifted
+  const f = textAlphaFloor[name]
+  return f == null ? a : Math.max(a, f)
+}

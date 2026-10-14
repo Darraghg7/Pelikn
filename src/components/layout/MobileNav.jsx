@@ -442,7 +442,7 @@ export default function MobileNav() {
         }}>
           <NavLink
             to={backRoute}
-            className="inline-flex items-center gap-1.5 text-body-sm font-semibold text-brand dark:text-accent no-underline"
+            className="inline-flex items-center gap-1.5 text-body-sm font-semibold text-brand dark:text-accentDark no-underline"
           >
             <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 1L1 5l4 4"/>
@@ -499,7 +499,7 @@ export default function MobileNav() {
                     aria-label={tab.label}
                     className={[
                       'flex flex-col items-center justify-center flex-1 gap-0.5 transition-colors relative focus-visible:outline-none',
-                      isActive ? 'text-brand dark:text-accent' : 'text-charcoal/40 dark:text-white/35 active:text-charcoal/60 dark:active:text-white/55',
+                      isActive ? 'text-brand dark:text-accentDark' : 'text-charcoal/40 dark:text-white/35 active:text-charcoal/60 dark:active:text-white/55',
                     ].join(' ')}
                   >
                     <span className={[

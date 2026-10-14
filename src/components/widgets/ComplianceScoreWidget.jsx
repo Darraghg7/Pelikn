@@ -26,7 +26,7 @@ export function ComplianceGauge({ score }) {
   return (
     <svg width="112" height="112" viewBox="0 0 112 112" style={{ flexShrink: 0 }} className={tier.cls} fontFamily="Geist,ui-sans-serif,sans-serif">
       {/* Track */}
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="currentColor" className="text-charcoal/7 dark:text-white/10" strokeWidth="11" />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="currentColor" className="stroke-charcoal/7 dark:stroke-white/10" strokeWidth="11" />
       {/* Progress arc */}
       <circle
         cx={cx} cy={cy} r={r}
