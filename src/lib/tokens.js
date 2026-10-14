@@ -152,7 +152,7 @@ export const radius = {
 // The app icon choices mirror the real icon image files in ios/ and android/.
 export const appIconColors = {
   white: '#ffffff',
-  green: '#1e3a2f',
+  green: colors.brand.DEFAULT,
   black: '#1a1a18',
   mint:  '#5eeaaa',
 }
