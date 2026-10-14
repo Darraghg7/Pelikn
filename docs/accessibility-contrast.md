@@ -15,10 +15,17 @@ Before: 79 text classes failed on 4,700 uses (most: `text-charcoal/30-55`, `dark
 4. `ink4` used as text is drawn as `ink3` (placeholders, "no data" marks). It stays light for borders.
 5. Decorative chevrons and the compliance ring track moved from `text-charcoal/25` to `stroke-charcoal/45`, so the floor does not darken them.
 
+## Dark-mode gaps closed (14 Oct 2026)
+- The check also reports any line that uses `text-ink`, `text-ink2` or `text-ink3` with no `dark:text-` partner. Those colours do not swap in dark mode and showed at about 3.2:1 (ink3) or worse.
+- Five lines in the app had the gap (two staff-reorder arrows, two time-off balance figures, the "to" in the timesheet date range). Each now has `dark:text-white/45`, which the floor draws at AA.
+- The public marketing page was the other source. It has no dark styles of its own, but the global dark rules turned its white mock-up cards dark on a cream page, leaving dark text on dark cards. It is now drawn light-only on purpose (`src/hooks/useForceLight.js` takes the `dark` class off `<html>` while it is shown), and `src/pages/marketing/` is the one documented exemption in the check (`LIGHT_ONLY_DIRS`).
+
 ## Known gaps
-- About nine `text-ink3` uses have no dark-mode partner and show `ink3` on dark (3.2:1). Mostly the marketing mock (light only) and two rota arrows.
 - The floor also darkens any other `currentColor` icon that used a faint `text-*` class; use `stroke-*`/`fill-*` for decoration.
 - Contrast is measured on the worst surface for each colour family, not per element.
+- The partner check is per line, so a line that has a `dark:text-` for one element and a bare `text-ink3` for another is not caught.
+
+Last verified: 14 Oct 2026 (`npm run lint:contrast`: 105 classes, 28 token pairs, no missing partners).
 
 ## Exceptions
 None. Add to `KNOWN_EXCEPTIONS` in `scripts/contrast.mjs` with a reason if one is ever needed.

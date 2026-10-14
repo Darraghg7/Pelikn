@@ -9,6 +9,7 @@ import {
 import { STARTER_FEATURES, PRO_FEATURES, PLAN_ORDER, PLAN_DETAILS, STARTER_STAFF_LIMIT } from '../../lib/plans'
 import { PLANS } from '../../lib/constants'
 import DesktopDashboardMock, { BrowserFrame, ScaledCanvas } from './DesktopDashboardMock'
+import useForceLight from '../../hooks/useForceLight'
 import { colors, alpha, white, black, radius } from '../../lib/tokens'
 
 /* ─── Keyframes ─────────────────────────────────────────────────────────── */
@@ -761,6 +762,7 @@ function Pricing() {
    PAGE
    ══════════════════════════════════════════════════════════════════════════ */
 export default function MarketingPage() {
+  useForceLight()
   const [navScrolled, setNavScrolled] = useState(false)
   useEffect(() => {
     const h = () => setNavScrolled(window.scrollY > 20)
