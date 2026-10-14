@@ -45,7 +45,7 @@ export const colors = {
     panel: '#243a34',
   },
   // Login + launch screen. Must match the native splash (index.html,
-  // scripts/render-ios-splash.mjs) or the app flashes on open.
+  // scripts/render-native-icons.mjs) or the app flashes on open.
   pine: {
     DEFAULT: '#2a4a40',
     light:   '#2d5449',
