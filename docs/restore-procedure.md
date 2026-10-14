@@ -2,7 +2,7 @@
 
 _Last verified against `.github/workflows/db-backup.yml`: 14 Oct 2026._
 
-**Last restore test: unknown — not recorded. Darragh to fill in** (the July 2026 audit said it had never been rehearsed end to end; see the drill log at the bottom).
+**Last restore test: none on record.** The July 2026 audit said the restore had never been rehearsed end to end, and nothing since has been logged. Until a drill is done and added to the log at the bottom, treat this procedure as untested.
 
 ## What the backup is
 
