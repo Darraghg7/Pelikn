@@ -899,7 +899,7 @@ export default function TimesheetPage() {
             {period === 'custom' && (
               <span className="flex items-center gap-2 w-full sm:w-auto">
                 <input type="date" aria-label="From" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="flex-1 h-8 px-3 rounded-control border border-line dark:border-white/10 bg-white dark:bg-paperDark text-body-sm" />
-                <span className="text-body-sm text-ink3">to</span>
+                <span className="text-body-sm text-ink3 dark:text-white/45">to</span>
                 <input type="date" aria-label="To" value={customTo} min={customFrom} onChange={e => setCustomTo(e.target.value)} className="flex-1 h-8 px-3 rounded-control border border-line dark:border-white/10 bg-white dark:bg-paperDark text-body-sm" />
               </span>
             )}

@@ -105,6 +105,23 @@ for (const file of walk(path.join(root, 'src'))) {
 const css = readFileSync(path.join(root, 'src/index.css'), 'utf8')
 const charcoalInDark = new Map([...css.matchAll(/html\.dark \.text-charcoal\\\/(\d+)\s*\{\s*color: theme\(colors\.inkDark\/(\d+)%\)/g)].map(m => [Number(m[1]) / 100, Number(m[2]) / 100]))
 
+// ── Dark-mode partners ──────────────────────────────────────────────────
+// text-ink / ink2 / ink3 are dark-on-light colours with no automatic dark-mode
+// swap. A line that uses one without any `dark:text-` partner would show it on a
+// dark surface at ~1.2-3.2:1. The public marketing page is exempt: it is drawn
+// light-only (useForceLight takes the `dark` class off <html> while it is shown).
+const LIGHT_ONLY_DIRS = ['src/pages/marketing/']
+const missingPartner = []
+for (const file of walk(path.join(root, 'src'))) {
+  const rel = path.relative(root, file).split(path.sep).join('/')
+  if (LIGHT_ONLY_DIRS.some(d => rel.startsWith(d))) continue
+  readFileSync(file, 'utf8').split('\n').forEach((line, i) => {
+    if (/dark:text-/.test(line)) return
+    const hit = line.match(/(?<![\w:-])text-(ink[23]?)(?![\w/-])/)
+    if (hit) missingPartner.push(`${rel}:${i + 1}  text-${hit[1]} has no dark:text- partner`)
+  })
+}
+
 // ── Measure ─────────────────────────────────────────────────────────────
 const rows = []
 for (const { mode, name, a, count } of usage.values()) {
@@ -165,11 +182,12 @@ if (report) {
 
 // ink4 is a border/divider/decorative colour. As text it is remapped (tokens.js
 // textColor), so the raw token pair is informational only and never fails.
-if (fails.length || pairFails.length) {
+if (fails.length || pairFails.length || missingPartner.length) {
   console.error('\nContrast check failed (WCAG AA wants 4.5:1 for text):')
   for (const r of pairFails) console.error(`  ${r.cls}  ${f1(r.r)}:1`)
+  for (const m of missingPartner) console.error(`  ${m}`)
   for (const r of fails) console.error(`  ${label(r)}  ${f1(r.r)}:1  (${r.count} uses)`)
   console.error('\nFix the token in src/lib/tokens.js (colour or textAlphaFloor), or — for a deliberate exception — add it to KNOWN_EXCEPTIONS in scripts/contrast.mjs with a reason.')
   process.exit(1)
 }
-if (!report) console.log(`contrast: all ${rows.length} text colour classes and ${pairRows.length} token pairs pass AA`)
+if (!report) console.log(`contrast: all ${rows.length} text colour classes and ${pairRows.length} token pairs pass AA; no ink text lacks a dark-mode partner`)

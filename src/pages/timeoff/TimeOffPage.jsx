@@ -735,7 +735,7 @@ function OwnBalanceCard({ balance, year, holiday }) {
       <div className={`${CARD} px-3.5 sm:px-3.5 py-2.5`}>
         <div className="flex items-baseline justify-between gap-2.5 flex-wrap">
           <p className="flex items-baseline gap-2">
-            <span className={`font-mono text-title leading-none font-semibold ${holiday ? balanceTone(holiday.balance) : 'text-ink3'}`}>
+            <span className={`font-mono text-title leading-none font-semibold ${holiday ? balanceTone(holiday.balance) : 'text-ink3 dark:text-white/45'}`}>
               {holiday ? fmtHours(holiday.balance) : '—'}
             </span>
             <span className="text-body font-semibold text-ink dark:text-white">holiday left</span>
@@ -900,7 +900,7 @@ function TeamBalanceRow({ balance: b, holiday, settingsPath, onLogPast, onOpen }
       left = <span className="text-body-sm text-ink3 dark:text-white/45">Self-employed</span>
     } else {
       left = (
-        <span className={`font-mono text-body font-semibold ${holiday ? balanceTone(holiday.balance) : 'text-ink3'}`}>
+        <span className={`font-mono text-body font-semibold ${holiday ? balanceTone(holiday.balance) : 'text-ink3 dark:text-white/45'}`}>
           {holiday ? `${fmtHours(holiday.balance)} left` : '…'}
         </span>
       )

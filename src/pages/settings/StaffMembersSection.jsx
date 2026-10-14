@@ -454,8 +454,8 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
           </button>
           {/* Rota order — desktop, on hover (as before) */}
           <div className="hidden sm:flex flex-col pr-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button type="button" aria-label={`Move ${s.name} up`} onClick={() => moveStaff(s.id, 'up')} disabled={idx === 0} className="w-6 h-5 flex items-center justify-center text-ink3 hover:text-ink disabled:opacity-0 text-micro">▲</button>
-            <button type="button" aria-label={`Move ${s.name} down`} onClick={() => moveStaff(s.id, 'down')} disabled={idx === staff.length - 1} className="w-6 h-5 flex items-center justify-center text-ink3 hover:text-ink disabled:opacity-0 text-micro">▼</button>
+            <button type="button" aria-label={`Move ${s.name} up`} onClick={() => moveStaff(s.id, 'up')} disabled={idx === 0} className="w-6 h-5 flex items-center justify-center text-ink3 dark:text-white/45 hover:text-ink dark:hover:text-white disabled:opacity-0 text-micro">▲</button>
+            <button type="button" aria-label={`Move ${s.name} down`} onClick={() => moveStaff(s.id, 'down')} disabled={idx === staff.length - 1} className="w-6 h-5 flex items-center justify-center text-ink3 dark:text-white/45 hover:text-ink dark:hover:text-white disabled:opacity-0 text-micro">▼</button>
           </div>
         </div>
       )
