@@ -37,7 +37,7 @@ const JSON_TARGETS = {
 // [regex with the value in group 2, token value]
 const TEXT_TARGETS = {
   'index.html': [
-    [/(<meta name="theme-color" content=")(#[0-9a-fA-F]+)(")/, colors.charcoal],
+    [/(<meta name="theme-color" content=")(#[0-9a-fA-F]+)(")/, colors.brand.DEFAULT],
     [/(--pk-launch-bg: )(#[0-9a-fA-F]+)(;)/, colors.pine.DEFAULT],
   ],
 }
