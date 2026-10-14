@@ -12,6 +12,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import TimeSelect from '../../components/ui/TimeSelect'
 import VenuesSection from './VenuesSection'
 import AppIconPicker from './AppIconPicker'
+import TabIconPicker from './TabIconPicker'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 import Button from '../../components/ui/Button'
 
@@ -385,6 +386,8 @@ export default function VenueSettingsPage() {
               ))}
             </div>
           </div>
+          {/* Renders nothing in the native app (no browser tab there) */}
+          <TabIconPicker />
           {/* Renders nothing outside the native iOS/Android app */}
           <AppIconPicker />
         </Group>

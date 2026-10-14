@@ -6,6 +6,7 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 import { attachSentry } from './lib/reportError'
 import { colors } from './lib/tokens'
+import { applyTabIcon } from './lib/tabIcon'
 
 function mountApp() {
   const root = document.getElementById('root')
@@ -24,6 +25,7 @@ function mountApp() {
     </React.StrictMode>
   )
 
+  applyTabIcon()
   initNative()
   initSentry()
 }
