@@ -122,7 +122,7 @@ export default function SignupFlowPage() {
       <div className="border-b border-charcoal/8 dark:border-white/8 bg-white dark:bg-paperDark">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 h-14 flex items-center justify-between">
           <Link to="/" aria-label="Pelikn home" className="hover:opacity-80 transition-opacity">
-            <Logo size="sm" />
+            <Logo height={28} />
           </Link>
           <div className="flex items-center gap-1.5 text-micro text-charcoal/35 dark:text-white/30">
             <IconLock />

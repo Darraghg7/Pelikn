@@ -766,7 +766,7 @@ export default function MarketingPage() {
       {/* ── Nav ─────────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 transition-all duration-500" style={{ background: navScrolled ? white(0.95) : alpha(colors.brand.DEFAULT, 0.76), backdropFilter: 'blur(24px) saturate(200%)', borderBottom: navScrolled ? `1px solid ${alpha(colors.charcoal, 0.07)}` : `1px solid ${white(0.07)}` }}>
         <div className="max-w-5xl mx-auto px-6 sm:px-10 h-14 flex items-center justify-between">
-          <Logo size="sm" tone={navScrolled ? 'auto' : 'onBrand'} />
+          <Logo variant="full" size="md" tone={navScrolled ? 'auto' : 'onBrand'} />
           <nav className="hidden sm:flex items-center gap-1">
             {[['Compliance','#compliance'],['Team','#team'],['Pricing','#pricing']].map(([l,h])=>(
               <a key={l} href={h} className={`text-sm px-3 py-2 rounded-control transition-colors duration-200 cursor-pointer ${navScrolled?'text-charcoal/40 hover:text-charcoal':'text-cream/45 hover:text-cream/80'}`}>{l}</a>
@@ -1113,7 +1113,7 @@ export default function MarketingPage() {
       {/* ── Footer ───────────────────────────────────────────────────────── */}
       <footer className="bg-white border-t border-charcoal/8">
         <div className="max-w-5xl mx-auto px-6 sm:px-10 py-7 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Logo size="sm" />
+          <Logo variant="full" size="md" />
           <a href="mailto:hello@get-pelikn.com" className="text-xs text-charcoal/30 hover:text-charcoal transition-colors">hello@get-pelikn.com</a>
           <div className="flex items-center gap-6">
             {[['Privacy','/privacy'],['Terms','/terms'],['Sign in','/login']].map(([l,h])=>(

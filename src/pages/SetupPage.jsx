@@ -47,7 +47,7 @@ export default function SetupPage() {
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="m-0 mb-2 flex justify-center"><Logo size="lg" /></h1>
+          <h1 className="m-0 mb-2 flex justify-center"><Logo height={56} /></h1>
           <p className="text-charcoal/50 dark:text-white/40 text-sm">Setup required</p>
         </div>
 

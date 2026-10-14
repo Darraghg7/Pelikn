@@ -30,7 +30,7 @@ export default function NotFoundPage() {
   return (
     <div className="min-h-dvh bg-surface dark:bg-bgDark flex flex-col items-center justify-center px-4 py-10 font-sans">
       <Link to="/" className="mb-6 text-center" aria-label="Pelikn home">
-        <Logo size="lg" />
+        <Logo height={56} />
       </Link>
 
       <main className="w-full max-w-sm bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 shadow-sm p-6 text-center">

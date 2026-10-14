@@ -23,7 +23,7 @@ export default function TermsPage() {
       <header className="border-b border-charcoal/8 dark:border-white/8 bg-white dark:bg-paperDark">
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" aria-label="Pelikn home">
-            <Logo size="sm" />
+            <Logo height={28} />
           </Link>
           <span className="text-xs text-charcoal/40 dark:text-white/35">Terms of Service</span>
         </div>
