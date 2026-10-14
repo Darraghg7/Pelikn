@@ -1085,6 +1085,25 @@ export default function MarketingPage() {
         </div>
       </section>
 
+      {/* ── Trusted by ───────────────────────────────────────────────────── */}
+      <section aria-label="Venues using Pelikn" className="bg-white border-t border-charcoal/8">
+        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-12 flex flex-col items-center gap-5">
+          <p className="text-caption font-semibold tracking-[0.18em] uppercase text-charcoal/60">Trusted by</p>
+          <span
+            role="img"
+            aria-label="Nomad"
+            className="block bg-charcoal/80"
+            style={{
+              width: 180, height: 50,
+              WebkitMaskImage: 'url(/marketing/nomad-wordmark.png)', maskImage: 'url(/marketing/nomad-wordmark.png)',
+              WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat',
+              WebkitMaskSize: 'contain', maskSize: 'contain',
+              WebkitMaskPosition: 'center', maskPosition: 'center',
+            }}
+          />
+        </div>
+      </section>
+
       {/* ── Final CTA ────────────────────────────────────────────────────── */}
       <section className="bg-brand relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none" aria-hidden style={{ backgroundImage:`radial-gradient(${white(0.06)} 1px, transparent 1px)`, backgroundSize:'28px 28px' }} />
