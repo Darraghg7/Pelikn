@@ -21,6 +21,9 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    // A live service worker (production build) takes over mid-test and
+    // reloads the page via UpdateBanner's controllerchange, wiping forms.
+    serviceWorkers: 'block',
     actionTimeout: 15000,
     navigationTimeout: 25000,
   },
