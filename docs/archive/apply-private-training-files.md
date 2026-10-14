@@ -1,3 +1,5 @@
+> **Historical document.** Migration 086_private_training_files was written 2 Aug 2026; check the migration state before following this. Kept for reference, not maintained.
+
 # Applying `086_private_training_files.sql`
 
 > **Two migrations are numbered 086.** This is the one committed 2026-07-31.

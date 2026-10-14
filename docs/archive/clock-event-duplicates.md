@@ -1,3 +1,5 @@
+> **Historical document.** Incident write-up from 16 Sep 2026; migrations 105/106 fixed the cause. Kept for reference, not maintained.
+
 # Duplicate clock punches — diagnosis and repair
 
 Written up after the Nomad manager reported that a staff member's hours weren't

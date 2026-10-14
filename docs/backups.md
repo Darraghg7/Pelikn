@@ -1,4 +1,8 @@
-# Venue Data Backups
+# Venue Data Backups (manual export)
+
+_Last verified against `scripts/backup-venue-data.mjs`: 14 Oct 2026._
+
+This is the **manual, single-venue** export. The automatic daily whole-database backup is separate; see `docs/restore-procedure.md`.
 
 Use this when Supabase project-level backups are unavailable. It exports the key payroll/rota tables for a venue into timestamped JSON and CSV files under `backups/`.
 

@@ -1,3 +1,5 @@
+> **Historical document.** Migration 091 was applied on 16 Jul 2026 and later corrected; this guide is no longer needed to run it. Kept for reference, not maintained.
+
 # Enabling venue isolation (migration 091 + client)
 
 **What this does:** locks every venue's data to that venue. Today the database says "anyone with the app's public key may read/write any venue" (`USING (true)`); afterwards, every venue-scoped policy checks `has_venue_access(venue_id)` — true only if the row belongs to **your** venue (staff, via the venue stamp in their login token) **or you own that venue** (owners, via their email login). No venue's data is ever modified — only the *access rules* change (plus a `venue_id` column added and backfilled on 7 child tables).

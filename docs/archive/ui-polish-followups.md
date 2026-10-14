@@ -1,3 +1,5 @@
+> **Historical document.** To-do list from 24 Jun 2026; the colour-token and type-scale work it lists has since been done. The rota dense-grid decision still stands. Kept for reference, not maintained.
+
 # UI polish — follow-ups
 
 A calibrated type-floor polish pass landed on branch `polish/ui-calibrated-type-floor`: focus-ring bug fix, background/token consolidation, and the Home (mobile manager) dashboard. The standard it follows is documented in `.impeccable.md`. These are the deliberately-deferred items.

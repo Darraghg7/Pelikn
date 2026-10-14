@@ -89,7 +89,7 @@ Migrations live in `supabase/migrations/` as `NNN_description.sql`, numbered in 
 - **Rollbacks**: newer migrations come with an `NNN_rollback.sql` that reverses them. Write one for every new migration.
 - **Numbering quirks**: `085` and `086` each have two unrelated files, and a few early files have letter suffixes. See [`supabase/migrations/README.md`](supabase/migrations/README.md). A unit test stops new clashes.
 - **Busy tables**: start migrations that alter policies on busy tables with `SET lock_timeout`. Prefer `ALTER POLICY` to drop-and-recreate.
-- **Per-migration runbooks** are in `docs/` (for example `apply-migration-091.md`, `apply-private-training-files.md`, `clock-event-duplicates.md`).
+- **Old per-migration runbooks** are kept in `docs/archive/` (for example `apply-migration-091.md`, `apply-private-training-files.md`, `clock-event-duplicates.md`); they are historical. See `docs/README.md`.
 
 `supabase/seed/demo_seed_function.sql` is a reference copy of the demo-account rebuild function (read its header, don't run it as-is). `supabase/config.toml` holds edge-function settings only.
 
@@ -175,7 +175,7 @@ supabase/
   seed/                 Demo seed scripts
 tests/                  Playwright e2e specs + helpers (cleanup, auth)
 scripts/                Node scripts: venue backup, OG image / iOS splash rendering
-docs/                   Runbooks: backups, restore, migration guides, Stripe setup, audits
+docs/                   Living runbooks (backups, restore, Stripe), accessibility notes, archive/ for finished guides; index in docs/README.md
 ios/  android/          Capacitor native projects
 ```
 

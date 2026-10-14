@@ -9,7 +9,7 @@ By hand. Open the Supabase dashboard → SQL Editor, paste the file, run it, in 
 - Never run `supabase db push` against this project.
 - Code that depends on a new migration should be merged only once the migration has been run, or written so it still works before then.
 - On busy tables, start with `SET lock_timeout` and prefer `ALTER POLICY` to dropping and recreating a policy.
-- Some migrations have a runbook in `docs/` (for example `apply-migration-091.md`, `apply-private-training-files.md`).
+- Some migrations have a runbook in `docs/archive/` (for example `apply-migration-091.md`, `apply-private-training-files.md`); these are historical.
 
 ## Naming
 
