@@ -44,6 +44,7 @@ export default function Logo({ variant = "mark", size = "md", height, tone = "au
 }
 
 /** Animated mark for full-screen loading states. */
+/** @param {{ tone?: "auto" | "onBrand" }} props */
 export function LogoLoader({ tone = "auto" }) {
   const colour = tone === "onBrand" ? "text-white" : "text-brand dark:text-white"
   return (
