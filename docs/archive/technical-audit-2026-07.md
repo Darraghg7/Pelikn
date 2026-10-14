@@ -1,3 +1,5 @@
+> **Historical document.** Point-in-time audit from 2 Jul 2026 (last updated 20 Sep 2026); several items have since been fixed. Kept for reference, not maintained.
+
 # Pelikn — Launch Readiness Notes
 
 Originally compiled 2 July 2026 as a pre-launch technical review; updated
@@ -53,7 +55,7 @@ on it, since the codebase moves fast.
 - A handful of pages are large (`RotaPage.jsx`, `StaffMembersSection.jsx`,
   `AppShell.jsx`) and would benefit from splitting.
 - Style tokens: some hardcoded hex values and `!important` usages remain,
-  tracked separately in `docs/ui-polish-followups.md`.
+  tracked separately in `docs/archive/ui-polish-followups.md`.
 - Test coverage: unit tests pass; Playwright covers auth/onboarding and a
   meaningful slice of core flows, but not all features have E2E coverage
   (offline queue sync is a notable gap).
