@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import Logo from '../../components/ui/Logo'
 import { Link } from 'react-router-dom'
 import {
   STARTER_PRICE, PRO_PRICE, EXTRA_VENUE_PRICE,
@@ -123,18 +124,6 @@ function FadeUp({ children, delay = 0, className = '', dir = 'up' }) {
   return (
     <div ref={ref} className={className} style={{ opacity:v?1:0, transform:v?'none':(t[dir]??t.up), transition:`opacity 0.65s cubic-bezier(.16,1,.3,1) ${delay}ms, transform 0.65s cubic-bezier(.16,1,.3,1) ${delay}ms` }}>
       {children}
-    </div>
-  )
-}
-
-/* ─── Logo ──────────────────────────────────────────────────────────────── */
-function PeliknLogo({ light = false }) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <div className={light ? 'ring-2 ring-white/30 rounded-control shadow-lg' : ''}>
-        <img src="/icons/icon.svg" className="w-7 h-7 rounded-control" alt="" />
-      </div>
-      <span className={`text-sm tracking-[0.18em] uppercase ${light ? 'text-white font-bold drop-shadow-[0_1px_3px_theme(colors.black/40%)]' : 'text-charcoal font-bold'}`}>Pelikn</span>
     </div>
   )
 }
@@ -777,7 +766,7 @@ export default function MarketingPage() {
       {/* ── Nav ─────────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 transition-all duration-500" style={{ background: navScrolled ? white(0.95) : alpha(colors.brand.DEFAULT, 0.76), backdropFilter: 'blur(24px) saturate(200%)', borderBottom: navScrolled ? `1px solid ${alpha(colors.charcoal, 0.07)}` : `1px solid ${white(0.07)}` }}>
         <div className="max-w-5xl mx-auto px-6 sm:px-10 h-14 flex items-center justify-between">
-          <PeliknLogo light={!navScrolled} />
+          <Logo variant="full" size="md" tone={navScrolled ? 'auto' : 'onBrand'} />
           <nav className="hidden sm:flex items-center gap-1">
             {[['Compliance','#compliance'],['Team','#team'],['Pricing','#pricing']].map(([l,h])=>(
               <a key={l} href={h} className={`text-sm px-3 py-2 rounded-control transition-colors duration-200 cursor-pointer ${navScrolled?'text-charcoal/40 hover:text-charcoal':'text-cream/45 hover:text-cream/80'}`}>{l}</a>
@@ -1124,7 +1113,7 @@ export default function MarketingPage() {
       {/* ── Footer ───────────────────────────────────────────────────────── */}
       <footer className="bg-white border-t border-charcoal/8">
         <div className="max-w-5xl mx-auto px-6 sm:px-10 py-7 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <PeliknLogo />
+          <Logo variant="full" size="md" />
           <a href="mailto:hello@get-pelikn.com" className="text-xs text-charcoal/30 hover:text-charcoal transition-colors">hello@get-pelikn.com</a>
           <div className="flex items-center gap-6">
             {[['Privacy','/privacy'],['Terms','/terms'],['Sign in','/login']].map(([l,h])=>(

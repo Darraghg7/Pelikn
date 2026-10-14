@@ -301,20 +301,11 @@ table { border-spacing: 0; }
   animation: pelikn-mark-ring-outer 3s 0.5s ease-in-out infinite;
 }
 
-.pelikn-ios-brand h1 {
-  font-size: 36px;
-  line-height: 1;
-  font-weight: 700;
-  letter-spacing: 0;
-}
-
 .pelikn-ios-brand p {
-  margin-top: 8px;
-  color: theme(colors.white/60%);
-  font-size: 12px;
-  line-height: 1.2;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
+  margin-top: -8px;
+  color: theme(colors.white/70%);
+  font-size: 15px;
+  line-height: 22px;
 }
 
 .pelikn-ios-form,
@@ -553,6 +544,14 @@ table { border-spacing: 0; }
   0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
   50% { transform: translate3d(1.25rem, 2.5rem, 0) scale(1.2); }
 }
+@keyframes pelikn-figma-ring {
+  0%, 100% { opacity: 0.34; transform: scale(0.96); }
+  50% { opacity: 0.85; transform: scale(1.08); }
+}
+@keyframes pelikn-figma-logo-in {
+  from { opacity: 0; transform: scale3d(0, 0, 1); }
+  to   { opacity: 1; transform: scale3d(1, 1, 1); }
+}
 @keyframes pelikn-figma-glow {
   0%, 100% { box-shadow: 0 0 20px theme(colors.white/25%), 0 0 0 theme(colors.goodDark/0%); }
   50% { box-shadow: 0 0 35px theme(colors.white/50%), 0 0 56px theme(colors.goodDark/18%); }
@@ -565,17 +564,17 @@ table { border-spacing: 0; }
   0%, 100% { opacity: 0; transform: scale(0.96); }
   50% { opacity: 0.4; transform: scale(1.1); }
 }
-@keyframes pelikn-figma-ring {
-  0%, 100% { opacity: 0.34; transform: scale(0.96); }
-  50% { opacity: 0.85; transform: scale(1.08); }
-}
-@keyframes pelikn-figma-logo-in {
-  from { opacity: 0; transform: scale3d(0, 0, 1); }
-  to   { opacity: 1; transform: scale3d(1, 1, 1); }
-}
 @keyframes pelikn-mark-pop {
   from { transform: scale3d(0.72, 0.72, 1); }
   to   { transform: scale3d(1, 1, 1); }
+}
+@keyframes pelikn-loader-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50%      { transform: scale(1.06); opacity: 1; }
+}
+@keyframes pelikn-loader-ring {
+  0%   { transform: scale(0.8); opacity: 0.5; }
+  100% { transform: scale(1.5); opacity: 0; }
 }
 @keyframes pelikn-figma-brand {
   from { opacity: 0; transform: translate3d(0, -20px, 0); }
@@ -828,4 +827,31 @@ html.dark .bg-danger\/8 {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Loading screens: the bird breathes while a soft ring spreads out from it. */
+.pelikn-loader {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
+}
+.pelikn-loader::before,
+.pelikn-loader::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: 999px;
+  border: 1.5px solid currentColor;
+  opacity: 0;
+  animation: pelikn-loader-ring 2.2s ease-out infinite;
+}
+.pelikn-loader::after { animation-delay: 1.1s; }
+.pelikn-loader > svg { animation: pelikn-loader-breathe 2.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .pelikn-loader::before,
+  .pelikn-loader::after,
+  .pelikn-loader > svg { animation: none; }
+  .pelikn-loader > svg { opacity: 1; }
 }

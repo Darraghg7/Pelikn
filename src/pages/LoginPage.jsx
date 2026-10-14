@@ -1,4 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react'
+import Logo from '../components/ui/Logo'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useSession } from '../contexts/SessionContext'
@@ -642,8 +643,8 @@ export default function LoginPage() {
         className="mb-5 sm:mb-8 text-center shrink-0"
         style={ready ? { animation: 'login-logo-enter 0.45s cubic-bezier(.22,.9,.28,1) both', willChange: 'transform, opacity' } : { opacity: 0 }}
       >
-        <h1 className="font-bold text-brand dark:text-white text-4xl tracking-tight">Pelikn</h1>
-        <p className="text-xs tracking-widest text-charcoal/40 dark:text-white/35 uppercase mt-1">Built for Hospitality</p>
+        <h1 className="m-0 flex justify-center"><Logo variant="mark" height={64} /></h1>
+        <p className="text-caption text-charcoal/50 dark:text-white/45 mt-2">Built for hospitality</p>
       </div>
 
       {/* Sliding venue tabs */}

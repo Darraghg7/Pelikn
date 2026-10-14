@@ -1,4 +1,5 @@
 import React from 'react'
+import Logo from '../components/ui/Logo'
 
 const steps = [
   {
@@ -46,7 +47,7 @@ export default function SetupPage() {
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-charcoal dark:text-white mb-1">Pelikn</h1>
+          <h1 className="m-0 mb-2 flex justify-center"><Logo height={56} /></h1>
           <p className="text-charcoal/50 dark:text-white/40 text-sm">Setup required</p>
         </div>
 
