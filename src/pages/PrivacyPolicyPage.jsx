@@ -1,4 +1,5 @@
 import React from 'react'
+import Logo from '../components/ui/Logo'
 import { Link } from 'react-router-dom'
 
 const EFFECTIVE_DATE = '5 October 2026'
@@ -30,8 +31,8 @@ export default function PrivacyPolicyPage() {
       {/* Header */}
       <header className="border-b border-charcoal/8 dark:border-white/8 bg-white dark:bg-paperDark">
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="text-sm font-bold tracking-tight text-charcoal dark:text-white">
-            Pelikn
+          <Link to="/" aria-label="Pelikn home">
+            <Logo size="sm" />
           </Link>
           <span className="text-xs text-charcoal/40 dark:text-white/35">Privacy Policy</span>
         </div>

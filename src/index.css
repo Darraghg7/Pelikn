@@ -258,56 +258,6 @@ table { border-spacing: 0; }
   animation: pelikn-figma-brand 0.5s ease-out both;
 }
 
-.pelikn-ios-mark {
-  position: relative;
-  width: 96px;
-  height: 96px;
-  aspect-ratio: 1;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  margin-bottom: 24px;
-  background: theme(colors.white/10%);
-  border: 1px solid theme(colors.white/15%);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transform: scale3d(0.72, 0.72, 1);
-  will-change: transform;
-}
-.landing-ready .pelikn-ios-mark {
-  animation: pelikn-mark-pop 0.45s cubic-bezier(0.2, 1.25, 0.35, 1) both,
-             pelikn-figma-glow 3s 0.5s ease-in-out infinite;
-}
-.pelikn-ios-mark::after {
-  content: "";
-  position: absolute;
-  inset: -4px;
-  border-radius: 999px;
-  border: 1.5px solid theme(colors.white/20%);
-  opacity: 0;
-}
-.landing-ready .pelikn-ios-mark::after {
-  animation: pelikn-mark-ring-pulse 3s 0.5s ease-in-out infinite;
-}
-.pelikn-ios-mark::before {
-  content: "";
-  position: absolute;
-  inset: -12px;
-  border-radius: 999px;
-  border: 1px solid theme(colors.white/8%);
-  opacity: 0;
-}
-.landing-ready .pelikn-ios-mark::before {
-  animation: pelikn-mark-ring-outer 3s 0.5s ease-in-out infinite;
-}
-
-.pelikn-ios-brand h1 {
-  font-size: 36px;
-  line-height: 1;
-  font-weight: 700;
-  letter-spacing: 0;
-}
-
 .pelikn-ios-brand p {
   margin-top: 8px;
   color: theme(colors.white/60%);
@@ -553,18 +503,6 @@ table { border-spacing: 0; }
   0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
   50% { transform: translate3d(1.25rem, 2.5rem, 0) scale(1.2); }
 }
-@keyframes pelikn-figma-glow {
-  0%, 100% { box-shadow: 0 0 20px theme(colors.white/25%), 0 0 0 theme(colors.goodDark/0%); }
-  50% { box-shadow: 0 0 35px theme(colors.white/50%), 0 0 56px theme(colors.goodDark/18%); }
-}
-@keyframes pelikn-mark-ring-pulse {
-  0%, 100% { opacity: 0.2; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.06); }
-}
-@keyframes pelikn-mark-ring-outer {
-  0%, 100% { opacity: 0; transform: scale(0.96); }
-  50% { opacity: 0.4; transform: scale(1.1); }
-}
 @keyframes pelikn-figma-ring {
   0%, 100% { opacity: 0.34; transform: scale(0.96); }
   50% { opacity: 0.85; transform: scale(1.08); }
@@ -572,10 +510,6 @@ table { border-spacing: 0; }
 @keyframes pelikn-figma-logo-in {
   from { opacity: 0; transform: scale3d(0, 0, 1); }
   to   { opacity: 1; transform: scale3d(1, 1, 1); }
-}
-@keyframes pelikn-mark-pop {
-  from { transform: scale3d(0.72, 0.72, 1); }
-  to   { transform: scale3d(1, 1, 1); }
 }
 @keyframes pelikn-figma-brand {
   from { opacity: 0; transform: translate3d(0, -20px, 0); }

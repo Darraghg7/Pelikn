@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import Logo from '../../components/ui/Logo'
 import { Link, useSearchParams } from 'react-router-dom'
 import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase'
 import StepPlan from './StepPlan'
@@ -120,8 +121,8 @@ export default function SignupFlowPage() {
       {/* Header */}
       <div className="border-b border-charcoal/8 dark:border-white/8 bg-white dark:bg-paperDark">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 h-14 flex items-center justify-between">
-          <Link to="/" className="font-bold text-brand text-lg tracking-tight hover:opacity-80 transition-opacity">
-            Pelikn
+          <Link to="/" aria-label="Pelikn home" className="hover:opacity-80 transition-opacity">
+            <Logo size="sm" />
           </Link>
           <div className="flex items-center gap-1.5 text-micro text-charcoal/35 dark:text-white/30">
             <IconLock />

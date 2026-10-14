@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import Logo from '../../components/ui/Logo'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
@@ -453,7 +454,7 @@ export default function OnboardingPage() {
 
       {/* Topbar */}
       <div className="sticky top-0 z-10 bg-white dark:bg-paperDark border-b border-charcoal/8 dark:border-white/8 h-[52px] flex items-center justify-between px-5 shrink-0">
-        <span className="font-extrabold text-title-sm text-brand dark:text-white tracking-tight">Pelikn</span>
+        <Logo size="sm" />
         <div className="flex items-center gap-2.5">
           <span className={`text-micro font-bold tracking-widest uppercase px-2.5 py-1 rounded-tag ${isPro ? 'bg-accent/12 text-accent' : 'bg-brand/9 text-brand dark:bg-white/10 dark:text-white'}`}>
             {isPro ? 'Pro' : 'Starter'}
