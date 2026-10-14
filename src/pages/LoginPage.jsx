@@ -643,7 +643,7 @@ export default function LoginPage() {
         className="mb-5 sm:mb-8 text-center shrink-0"
         style={ready ? { animation: 'login-logo-enter 0.45s cubic-bezier(.22,.9,.28,1) both', willChange: 'transform, opacity' } : { opacity: 0 }}
       >
-        <h1 className="m-0 flex justify-center"><Logo size="lg" /></h1>
+        <h1 className="m-0 flex justify-center"><Logo variant="mark" height={64} /></h1>
         <p className="text-caption text-charcoal/50 dark:text-white/45 mt-2">Built for hospitality</p>
       </div>
 

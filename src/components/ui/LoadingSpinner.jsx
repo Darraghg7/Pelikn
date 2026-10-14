@@ -1,4 +1,5 @@
 import React from 'react'
+import Logo from './Logo'
 
 export default function LoadingSpinner({ size = 'md', className = '' }) {
   const sizes = { sm: 'w-4 h-4', md: 'w-6 h-6', lg: 'w-10 h-10' }
@@ -10,7 +11,7 @@ export default function LoadingSpinner({ size = 'md', className = '' }) {
 export function FullPageLoader() {
   return (
     <div className="min-h-dvh flex items-center justify-center bg-surface dark:bg-bgDark">
-      <LoadingSpinner size="lg" />
+      <Logo variant="mark" size="xl" className="animate-pulse" />
     </div>
   )
 }

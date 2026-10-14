@@ -175,7 +175,7 @@ export default function LandingPage() {
   if (authLoading) {
     return (
       <div className="min-h-dvh bg-brand flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+        <Logo variant="mark" size="xl" tone="onBrand" className="animate-pulse" />
       </div>
     )
   }
@@ -187,7 +187,7 @@ export default function LandingPage() {
           <div className="pelikn-ios-flow pelikn-ios-flow-one" aria-hidden="true" />
 
           <div className="pelikn-ios-brand">
-            <h1 className="m-0"><Logo size="xl" tone="onBrand" /></h1>
+            <h1 className="m-0"><Logo variant="mark" height={80} tone="onBrand" /></h1>
           </div>
 
           {view === 'picker' && pendingVenues ? (
