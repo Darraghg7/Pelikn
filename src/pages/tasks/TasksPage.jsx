@@ -486,7 +486,7 @@ function TaskItemRow({ item, assignmentId, toggleItem }) {
         {item.title}
       </span>
       {!item.completed && (
-        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 dark:text-white/25 shrink-0">
+        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="stroke-charcoal/45 dark:stroke-white/30 shrink-0">
           <path d="M1 1l4 4-4 4"/>
         </svg>
       )}
@@ -788,7 +788,7 @@ function AllergensTab({ venueSlug }) {
         >
           <span className="w-[22px] h-[22px] rounded-tag border-[1.5px] border-charcoal/25 dark:border-white/25 shrink-0" />
           <p className="text-body font-medium text-charcoal dark:text-white flex-1">View and confirm today's allergen sheet</p>
-          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 dark:text-white/25 shrink-0">
+          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="stroke-charcoal/45 dark:stroke-white/30 shrink-0">
             <path d="M1 1l4 4-4 4"/>
           </svg>
         </Link>
@@ -806,7 +806,7 @@ function AllergensTab({ venueSlug }) {
             <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
           </svg>
           <span className="text-body font-medium text-charcoal dark:text-white flex-1">Full allergen matrix</span>
-          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 dark:text-white/25 shrink-0">
+          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="stroke-charcoal/45 dark:stroke-white/30 shrink-0">
             <path d="M1 1l4 4-4 4"/>
           </svg>
         </Link>

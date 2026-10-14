@@ -88,7 +88,7 @@ function MobileRow({ s, actionIds, expiringIds, onClick }) {
       ) : (
         <span className="w-[6px] h-[6px] rounded-full bg-success shrink-0" />
       )}
-      <svg width="7" height="11" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 dark:text-white/25 shrink-0"><path d="M1 1l4 4-4 4"/></svg>
+      <svg width="7" height="11" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="stroke-charcoal/45 dark:stroke-white/30 shrink-0"><path d="M1 1l4 4-4 4"/></svg>
     </button>
   )
 }

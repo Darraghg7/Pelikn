@@ -180,7 +180,7 @@ export default function BillingSettingsPage() {
           /* Venues from before self-serve billing are invoiced by hand. */
           <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card px-4 py-[14px] text-body-sm text-charcoal/60 dark:text-white/50 leading-[1.5]">
             Your account is billed directly by Pelikn. To change plan, add a venue or cancel, email{' '}
-            <a href="mailto:hello@get-pelikn.com?subject=Plan change" className="text-brand dark:text-accent font-medium">hello@get-pelikn.com</a>.
+            <a href="mailto:hello@get-pelikn.com?subject=Plan change" className="text-brand dark:text-accentDark font-medium">hello@get-pelikn.com</a>.
           </div>
         ) : !canManage ? (
           <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-card px-4 py-[14px] text-body-sm text-charcoal/60 dark:text-white/50 leading-[1.5]">

@@ -77,7 +77,7 @@ export default function PlanGate({ feature, children }) {
       </div>
 
       <p className="text-caption text-charcoal/30 dark:text-white/30 mt-5">
-        Current plan: <strong className="text-brand dark:text-accent">Starter</strong> · {STARTER_PRICE}/month
+        Current plan: <strong className="text-brand dark:text-accentDark">Starter</strong> · {STARTER_PRICE}/month
       </p>
     </div>
   )

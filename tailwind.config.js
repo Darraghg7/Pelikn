@@ -1,4 +1,18 @@
-import { colors, alpha, fontSize, radius } from './src/lib/tokens.js'
+import { colors, alpha, fontSize, radius, textAlphaFloor, effectiveTextAlpha } from './src/lib/tokens.js'
+
+// Text colours that honour the readable-text floor in tokens.js. Everything else
+// about the colour (and every non-text use of it) is unchanged.
+const hexToRgb = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)).join(' ')
+const flooredText = (name, hex) => ({ opacityValue }) => {
+  const a = Number(opacityValue)
+  return `rgb(${hexToRgb(hex)} / ${Number.isNaN(a) ? 'var(--tw-text-opacity, 1)' : effectiveTextAlpha(name, a)})`
+}
+const textColor = Object.fromEntries(Object.keys(textAlphaFloor).map(name => {
+  const c = name === 'white' ? '#ffffff' : colors[name]
+  return [name, typeof c === 'string' ? flooredText(name, c) : { DEFAULT: flooredText(name, c.DEFAULT) }]
+}))
+// ink4 is a border/divider grey; used as text it reads as ink3.
+textColor.ink4 = colors.ink3
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -11,6 +25,7 @@ export default {
     extend: {
       // All colours live in src/lib/tokens.js — add or change them there.
       colors,
+      textColor,
       // Tailwind's default scale only has 5-step opacities (5, 10, 15 …), so
       // classes like bg-charcoal/8 or border-charcoal/12 silently generated no
       // CSS. These are the extra steps used across src/ — add any new one here.

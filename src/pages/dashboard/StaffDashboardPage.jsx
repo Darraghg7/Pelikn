@@ -314,7 +314,7 @@ function DutyItemRow({ item, assignmentId, toggleItem }) {
         {item.title}
       </span>
       {!item.completed && (
-        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 dark:text-white/25 shrink-0">
+        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="stroke-charcoal/45 dark:stroke-white/30 shrink-0">
           <path d="M1 1l4 4-4 4"/>
         </svg>
       )}

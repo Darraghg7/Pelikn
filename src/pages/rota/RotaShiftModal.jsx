@@ -93,7 +93,7 @@ export default function RotaShiftModal({
                     <p className="text-xs text-charcoal/50 dark:text-white/40 mt-0.5 flex items-center gap-1.5">
                       {sh.role_label}
                       {sh.is_closing && (
-                        <span className="text-micro font-bold tracking-wide uppercase text-brand dark:text-accent">· Closing</span>
+                        <span className="text-micro font-bold tracking-wide uppercase text-brand dark:text-accentDark">· Closing</span>
                       )}
                     </p>
                   </div>

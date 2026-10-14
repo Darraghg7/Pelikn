@@ -239,7 +239,7 @@ function CheckSection({ type, label, departmentId, departmentName, checks, compl
       <div className="flex items-center justify-between px-5 pt-4 pb-3">
         <div>
           {departmentName && (
-            <p className="text-micro font-bold tracking-widest uppercase text-brand dark:text-accent mb-1">{departmentName}</p>
+            <p className="text-micro font-bold tracking-widest uppercase text-brand dark:text-accentDark mb-1">{departmentName}</p>
           )}
           <p className="text-micro font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40">{label}</p>
           <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">

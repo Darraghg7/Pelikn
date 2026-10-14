@@ -66,7 +66,7 @@ export default function NotFoundPage() {
         Need a hand? Email{' '}
         <a
           href={`mailto:${HELP_EMAIL}`}
-          className="text-brand dark:text-accent font-medium underline-offset-2 hover:underline"
+          className="text-brand dark:text-accentDark font-medium underline-offset-2 hover:underline"
         >
           {HELP_EMAIL}
         </a>

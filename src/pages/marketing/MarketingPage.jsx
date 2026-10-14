@@ -428,21 +428,21 @@ function MockMobileHome() {
             <div className="w-0.5 self-stretch bg-accent shrink-0" />
             <div className="flex-1 px-3 py-2.5 flex items-center justify-between border-b border-charcoal/6">
               <span className="text-[10px] font-semibold text-accent">4 cleaning tasks overdue</span>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25"><polyline points="9 18 15 12 9 6"/></svg>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="stroke-charcoal/45"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
           </div>
           <div className="flex items-center gap-0">
             <div className="w-0.5 self-stretch bg-info shrink-0" />
             <div className="flex-1 px-3 py-2.5 flex items-center justify-between border-b border-charcoal/6">
               <span className="text-[10px] font-semibold text-info">2 leave requests pending</span>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25"><polyline points="9 18 15 12 9 6"/></svg>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="stroke-charcoal/45"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
           </div>
           <div className="flex items-center gap-0">
             <div className="w-0.5 self-stretch bg-brand shrink-0" />
             <div className="flex-1 px-3 py-2.5 flex items-center justify-between">
               <span className="text-[10px] font-semibold text-brand">Fridge B temp not logged</span>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25"><polyline points="9 18 15 12 9 6"/></svg>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="stroke-charcoal/45"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
           </div>
         </div>

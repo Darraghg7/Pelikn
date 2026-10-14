@@ -26,7 +26,7 @@ export default function StaffLimitNotice() {
           : `${used} of ${staffLimit} staff included with Starter.`}
       </p>
       {isManager && (
-        <Link to={`/v/${venueSlug}/settings/billing`} className="shrink-0 text-body-sm font-semibold text-brand dark:text-accent">
+        <Link to={`/v/${venueSlug}/settings/billing`} className="shrink-0 text-body-sm font-semibold text-brand dark:text-accentDark">
           {full ? 'Upgrade to add more' : 'Go unlimited'}
         </Link>
       )}
