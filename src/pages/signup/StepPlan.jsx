@@ -6,164 +6,160 @@ import {
 import { IconCheck, IconQR, IconArrow, IconLock } from './SignupIcons'
 import { STARTER_FEATURES, PRO_FEATURES, PLAN_DETAILS } from '../../lib/plans'
 import Button from '../../components/ui/Button'
+import { HEADLINE } from './styles'
+
+const PRICE = { fontSize: 'clamp(56px, 6vw, 88px)', lineHeight: 0.9, letterSpacing: '-0.055em', fontWeight: 500 }
+
+// A card that behaves as one radio option. A div, not a <button>, because the
+// Pro card holds its own buttons (the venue stepper) and buttons can't nest.
+function PlanCard({ id, selected, onSelect, dark = false, children }) {
+  const on = selected === id
+  return (
+    <div
+      role="radio"
+      aria-checked={on}
+      tabIndex={0}
+      onClick={() => onSelect(id)}
+      onKeyDown={e => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onSelect(id) } }}
+      className={`relative rounded-sheet p-8 sm:p-10 text-left cursor-pointer transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4 focus-visible:ring-offset-cream ${
+        dark ? 'bg-brand text-cream' : 'bg-paper text-charcoal'
+      } ${on ? 'ring-2 ring-charcoal ring-offset-4 ring-offset-cream' : 'opacity-90 hover:opacity-100'}`}
+    >
+      <span
+        aria-hidden="true"
+        className={`absolute top-6 right-6 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+          on ? (dark ? 'bg-cream text-brand' : 'bg-charcoal text-cream') : (dark ? 'border border-cream/40' : 'border border-charcoal/25')
+        }`}
+      >
+        {on && <IconCheck size={14} />}
+      </span>
+      {children}
+    </div>
+  )
+}
 
 export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenues, qrAddon, onQrAddon, onNext }) {
   return (
-    <div className="flex flex-col gap-8 w-full max-w-3xl mx-auto">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold sm:text-4xl text-brand mb-2">Choose your plan</h1>
-        <p className="text-sm text-charcoal/50 dark:text-white/40">Start with a 7-day free trial. No card required.</p>
+    <div className="flex flex-col gap-10 w-full">
+      <div>
+        <h1 className="text-charcoal" style={HEADLINE}>Choose your plan.</h1>
+        <p className="text-title-sm sm:text-title text-charcoal/75 mt-6 max-w-md leading-[1.4]">Start with a 7-day free trial. No card required.</p>
       </div>
 
       {/* Plan cards — Starter then Pro, matching PLAN_ORDER (plans.test.ts checks) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div role="radiogroup" aria-label="Plan" className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         {/* Starter */}
-        <button
-          onClick={() => onSelect('starter')}
-          className={`relative rounded-card border-2 p-6 text-left transition-all duration-200 ${
-            selected === 'starter'
-              ? 'border-brand bg-brand/5 shadow-md shadow-brand/10'
-              : 'border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark hover:border-charcoal/25 dark:hover:border-white/25 hover:shadow-sm'
-          }`}
-        >
-          {selected === 'starter' && (
-            <span className="absolute top-4 right-4 w-6 h-6 rounded-full bg-brand flex items-center justify-center">
-              <IconCheck size={12} color="white" />
-            </span>
-          )}
-          <p className="text-micro tracking-widest uppercase font-semibold text-brand mb-2">{PLAN_DETAILS.starter.name}</p>
-          <div className="flex items-baseline gap-1 mb-1">
-            <span className="text-2xl font-bold text-charcoal dark:text-white">{STARTER_PRICE}</span>
-            <span className="text-charcoal/40 dark:text-white/35 text-sm">/month</span>
+        <PlanCard id="starter" selected={selected} onSelect={onSelect}>
+          <p className="font-mono text-micro tracking-[0.12em] uppercase text-charcoal/70 mb-8">{PLAN_DETAILS.starter.name}</p>
+          <div className="flex items-baseline gap-2 mb-2">
+            <span style={PRICE}>{STARTER_PRICE}</span>
+            <span className="text-charcoal/70 text-title-sm">/month</span>
           </div>
-          <p className="text-caption text-charcoal/40 dark:text-white/35 mb-4">{PLAN_DETAILS.starter.venueNote}</p>
-          <p className="text-xs text-charcoal/50 dark:text-white/40 mb-4 leading-relaxed">
-            Digital compliance essentials — everything you need to pass an EHO inspection.
+          <p className="text-body-lg text-charcoal/75">{PLAN_DETAILS.starter.venueNote}</p>
+          <p className="text-body-lg text-charcoal/75 leading-[1.5] border-y border-charcoal/12 py-5 my-8">
+            Digital compliance essentials. Everything you need to pass an EHO inspection.
           </p>
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-3">
             {STARTER_FEATURES.map(f => (
-              <li key={f} className="flex items-start gap-2 text-xs text-charcoal/55 dark:text-white/45">
-                <span className="text-success mt-0.5 shrink-0"><IconCheck size={13} /></span>
+              <li key={f} className="flex items-start gap-3 text-body-lg text-charcoal/80">
+                <span className="text-good mt-1 shrink-0"><IconCheck size={15} /></span>
                 {f}
               </li>
             ))}
           </ul>
-        </button>
+        </PlanCard>
 
         {/* Pro */}
-        <button
-          onClick={() => onSelect('pro')}
-          className={`relative rounded-card border-2 p-6 text-left transition-all duration-200 ${
-            selected === 'pro'
-              ? 'border-accent bg-accent/5 shadow-md shadow-accent/15'
-              : 'border-accent/30 bg-white dark:bg-paperDark hover:border-accent/50 hover:shadow-sm'
-          }`}
-        >
-          {selected === 'pro' && (
-            <span className="absolute top-4 right-4 w-6 h-6 rounded-full bg-accent flex items-center justify-center">
-              <IconCheck size={12} color="white" />
-            </span>
-          )}
-
-          <p className="text-micro tracking-widest uppercase font-semibold text-accent mb-2">{PLAN_DETAILS.pro.name}</p>
-          <div className="flex items-baseline gap-1 mb-1">
-            <span className="text-2xl font-bold text-accent">{PRO_PRICE}</span>
-            <span className="text-charcoal/40 dark:text-white/35 text-sm">/month</span>
+        <PlanCard id="pro" selected={selected} onSelect={onSelect} dark>
+          <p className="font-mono text-micro tracking-[0.12em] uppercase text-cream/80 mb-8">{PLAN_DETAILS.pro.name}</p>
+          <div className="flex items-baseline gap-2 mb-2">
+            <span style={PRICE}>{PRO_PRICE}</span>
+            <span className="text-cream/75 text-title-sm">/month</span>
           </div>
-          <p className="text-caption text-charcoal/40 dark:text-white/35 mb-4">{PLAN_DETAILS.pro.venueNote} · {EXTRA_VENUE_PRICE}/mo each additional</p>
-          <p className="text-xs text-charcoal/50 dark:text-white/40 mb-4 leading-relaxed">
-            Full compliance plus rota, timesheets, training records & team management — all in one place.
+          <p className="text-body-lg text-cream/80">{PLAN_DETAILS.pro.venueNote} · {EXTRA_VENUE_PRICE}/mo each additional</p>
+          <p className="text-body-lg text-cream/80 leading-[1.5] border-y border-cream/20 py-5 my-8">
+            Full compliance plus rota, timesheets, training records and team management, all in one place.
           </p>
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-3">
             {PRO_FEATURES.map((f, i) => (
-              <li key={f} className="flex items-start gap-2 text-xs text-charcoal/55 dark:text-white/45">
-                <span className="text-accent mt-0.5 shrink-0"><IconCheck size={13} /></span>
-                {i === 0 ? <strong className="text-charcoal/65 dark:text-white/55">{f}</strong> : f}
+              <li key={f} className="flex items-start gap-3 text-body-lg text-cream/85">
+                <span className="text-goodDark mt-1 shrink-0"><IconCheck size={15} /></span>
+                {i === 0 ? <strong className="font-semibold text-cream">{f}</strong> : f}
               </li>
             ))}
           </ul>
 
           {/* Extra venues stepper — only shown when Pro is selected */}
           {selected === 'pro' && (
-            <div
-              className="mt-4 pt-4 border-t border-accent/15"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between">
+            <div className="mt-8 pt-6 border-t border-cream/20" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs font-medium text-charcoal/70 dark:text-white/60">How many venues?</p>
-                  <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">
+                  <p className="text-body-lg font-medium">How many venues?</p>
+                  <p className="text-body text-cream/75 mt-0.5">
                     {extraVenues === 0 ? 'Just 1 for now, add more later' : `${extraVenues + 1} venues · £${PRO_PRICE_NUM + extraVenues * EXTRA_VENUE_PRICE_NUM}/mo`}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => onExtraVenues(Math.max(0, extraVenues - 1))}
-                    className="w-7 h-7 rounded-control border border-accent/25 text-accent/60 hover:border-accent/50 hover:text-accent flex items-center justify-center text-sm font-bold transition-colors"
+                    className="w-11 h-11 rounded-full border border-cream/40 text-cream hover:bg-cream/10 flex items-center justify-center text-title-sm font-medium transition-colors"
                     aria-label="Remove venue"
                   >−</button>
-                  <span className="w-6 text-center text-sm font-semibold text-accent tabular-nums">
-                    {extraVenues + 1}
-                  </span>
+                  <span className="w-6 text-center text-title-sm font-medium tabular-nums">{extraVenues + 1}</span>
                   <button
                     type="button"
                     onClick={() => onExtraVenues(Math.min(9, extraVenues + 1))}
-                    className="w-7 h-7 rounded-control border border-accent/25 text-accent/60 hover:border-accent/50 hover:text-accent flex items-center justify-center text-sm font-bold transition-colors"
+                    className="w-11 h-11 rounded-full border border-cream/40 text-cream hover:bg-cream/10 flex items-center justify-center text-title-sm font-medium transition-colors"
                     aria-label="Add venue"
                   >+</button>
                 </div>
               </div>
             </div>
           )}
-        </button>
+        </PlanCard>
       </div>
 
       {/* QR Add-on */}
       <div
+        role="switch"
+        aria-checked={qrAddon}
+        aria-label="QR Table Cards add-on"
+        tabIndex={0}
         onClick={() => onQrAddon(!qrAddon)}
-        className={`rounded-control border-2 p-5 cursor-pointer transition-all duration-200 ${
-          qrAddon
-            ? 'border-brand bg-brand/5 shadow-sm'
-            : 'border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark hover:border-charcoal/25 dark:hover:border-white/25'
-        }`}
+        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onQrAddon(!qrAddon) } }}
+        className={`rounded-sheet bg-paper p-6 sm:p-8 cursor-pointer transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4 focus-visible:ring-offset-cream ${qrAddon ? 'ring-2 ring-charcoal ring-offset-4 ring-offset-cream' : ''}`}
       >
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className={`w-10 h-10 rounded-control flex items-center justify-center shrink-0 ${qrAddon ? 'bg-brand/10 text-brand' : 'bg-charcoal/6 dark:bg-white/8 text-charcoal/40 dark:text-white/35'}`}>
+        <div className="flex items-start justify-between gap-6">
+          <div className="flex items-start gap-5">
+            <div className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 transition-colors ${qrAddon ? 'bg-brand text-cream' : 'bg-cream text-charcoal/70'}`}>
               <IconQR />
             </div>
             <div>
-              <div className="flex items-center gap-2 mb-0.5">
-                <p className="text-sm font-semibold text-charcoal dark:text-white">QR Table Cards</p>
-                <span className="text-micro tracking-widest uppercase font-semibold text-brand bg-brand/8 px-2 py-0.5 rounded-full">Add-on</span>
+              <div className="flex items-center gap-3 mb-1">
+                <p className="text-title font-medium tracking-[-0.025em]">QR Table Cards</p>
+                <span className="font-mono text-micro tracking-[0.12em] uppercase font-semibold text-brand bg-brand/8 px-3 py-1 rounded-full">Add-on</span>
               </div>
-              <p className="text-xs text-charcoal/50 dark:text-white/40 leading-relaxed">
-                Generate printable allergen QR cards for your tables. Customers scan to view your live allergen matrix — with your logo.
+              <p className="text-body-lg text-charcoal/75 leading-[1.5] max-w-xl">
+                Generate printable allergen QR cards for your tables. Customers scan to view your live allergen matrix, with your logo.
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="text-right">
-              <p className="text-sm font-semibold text-charcoal dark:text-white">{QR_ADDON_PRICE}<span className="text-charcoal/40 dark:text-white/35 font-normal text-xs">/mo</span></p>
-            </div>
-            {/* Toggle */}
-            <div className={`relative w-10 h-6 rounded-full transition-colors duration-200 ${qrAddon ? 'bg-brand' : 'bg-charcoal/15 dark:bg-white/15'}`}>
-              <span className={`absolute top-1 w-4 h-4 rounded-full bg-white dark:bg-paperDark shadow transition-all duration-200 ${qrAddon ? 'left-5' : 'left-1'}`} />
+          <div className="flex items-center gap-4 shrink-0">
+            <p className="text-body-lg font-medium whitespace-nowrap">{QR_ADDON_PRICE}<span className="text-charcoal/70 font-normal">/mo</span></p>
+            <div aria-hidden="true" className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${qrAddon ? 'bg-brand' : 'bg-charcoal/20'}`}>
+              <span className={`absolute top-1 w-5 h-5 rounded-full bg-paper shadow transition-all duration-200 ${qrAddon ? 'left-6' : 'left-1'}`} />
             </div>
           </div>
         </div>
       </div>
 
-      <div className="text-center">
-        <Button
-          size="lg"
-          onClick={onNext}
-        >
+      <div>
+        <Button pill size="lg" onClick={onNext} className="px-8">
           Continue with {selected === 'pro' ? 'Pro' : 'Starter'}
           <IconArrow />
         </Button>
-        <div className="flex items-center justify-center gap-1.5 text-micro text-charcoal/35 dark:text-white/30 mt-3">
+        <div className="flex items-center gap-2 text-body-sm text-charcoal/70 mt-5">
           <IconLock />
           <span>7-day free trial · No card required · Cancel any time</span>
         </div>

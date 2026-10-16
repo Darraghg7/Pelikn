@@ -43,6 +43,7 @@ const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 
 // Onboarding
 const OnboardingPage = lazy(() => import('./pages/onboarding/OnboardingPage'))
+const SetPinPage = lazy(() => import('./pages/signup/SetPinPage'))
 
 // Staff management
 const StaffPage = lazy(() => import('./pages/staff/StaffPage'))
@@ -419,6 +420,9 @@ function VenueRoutes() {
                 venue-scoped (113), and the picker reads the few columns it
                 needs via list_venue_staff_for_login(). */}
             <Route index element={<LoginPage />} />
+
+            {/* Owner who left signup before choosing a PIN (migration 155) */}
+            <Route path="set-pin" element={<SetPinPage />} />
 
             {/* Onboarding wizard — shown once after signup */}
             <Route path="setup" element={wrap(OnboardingPage, RequireManager)} />
