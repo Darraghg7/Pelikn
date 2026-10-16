@@ -75,7 +75,7 @@ Regenerate `package-lock.json` with **npm 10** (`npx npm@10 install`), never npm
 ## CI and deployment
 
 - **CI** (`.github/workflows/ci.yml`) runs on every PR and every push to `main`: `npm ci`, lint, typecheck, unit tests. Fix a failing check; don't skip it.
-- **Backups** (`.github/workflows/db-backup.yml`) run daily at 02:00 UTC: `pg_dump` of the `public` and `auth` schemas, encrypted with AES-256, uploaded to Cloudflare R2, with a 30-day encrypted copy kept as a GitHub artifact. See `docs/restore-procedure.md` to restore.
+- **Backups** (`.github/workflows/db-backup.yml`) run daily at 02:00 UTC: `pg_dump` of the `public` and `auth` schemas, encrypted with AES-256, uploaded to Cloudflare R2, with a 30-day encrypted copy kept as a GitHub artifact. A second job (`.github/workflows/storage-backup.yml`, 03:00 UTC) copies uploaded files from Supabase Storage to R2, each file encrypted, with a manifest; deleted files are kept 30 days. See `docs/restore-procedure.md` to restore both. Neither has had a restore drill yet.
 - **Deploy**: merging to `main` deploys to Vercel. Branches get Vercel preview URLs. `vercel.json` handles the SPA rewrite and security headers, including the Content-Security-Policy. A new external service (API, font or script host) must be added to the CSP or the browser will block it. That includes requests made by the service worker.
 - **Database migrations and edge functions are not deployed by CI.** See below.
 
@@ -174,7 +174,7 @@ supabase/
   functions/            Deno edge functions
   seed/                 Demo seed scripts
 tests/                  Playwright e2e specs + helpers (cleanup, auth)
-scripts/                Node scripts: venue backup, OG image / iOS splash rendering
+scripts/                Node scripts: venue backup, nightly storage backup, OG image / iOS splash rendering
 docs/                   Living runbooks (backups, restore, Stripe), accessibility notes, archive/ for finished guides; index in docs/README.md
 ios/  android/          Capacitor native projects
 ```

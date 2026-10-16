@@ -6,7 +6,7 @@ Anything outside `archive/` is meant to be still true. "Verified" is the date it
 | Doc | What it is | Verified |
 |---|---|---|
 | [backups.md](backups.md) | Manual one-venue export (`npm run backup:venue`) | 14 Oct 2026 |
-| [restore-procedure.md](restore-procedure.md) | Daily encrypted backup to Cloudflare R2 and how to restore it. Last restore test: none on record | 14 Oct 2026 |
+| [restore-procedure.md](restore-procedure.md) | Daily encrypted database backup and nightly uploaded-files backup to Cloudflare R2, how to restore both, drill checklist. Last restore test: none on record. File backup written 16 Oct 2026, not yet run against the real project | DB part 14 Oct 2026; files part 16 Oct 2026 (untested) |
 | [stripe-billing-setup.md](stripe-billing-setup.md) | How billing works and the one-time Stripe setup | Written 3 Oct 2026, not re-checked |
 | [feature-usage-query.sql](feature-usage-query.sql) | Read-only query for the Supabase SQL editor: which venues use which side features | Written 8 Oct 2026, not re-checked |
 
