@@ -203,6 +203,15 @@ export default function PrivacyPolicyPage() {
               including your IP address.
             </li>
             <li>
+              <Term>GitHub</Term> — runs Pelikn's automated nightly backup. It keeps an encrypted
+              copy of the database backup for up to 30 days. We hold the encryption key, so GitHub
+              can't read the contents.
+            </li>
+            <li>
+              <Term>Cloudflare</Term> — stores our encrypted backups of the database and uploaded
+              files. We hold the encryption key, so Cloudflare can't read the contents.
+            </li>
+            <li>
               <Term>Resend</Term> — sends Pelikn's emails. Sees the recipient's email address and
               the email content, such as rotas and weekly venue reports. Leave reasons are never
               included in emails.
@@ -233,7 +242,7 @@ export default function PrivacyPolicyPage() {
           <p>
             Our main database is in the EU, which the UK recognises as giving adequate protection.
             Some of the companies above are based in the United States or may handle data there
-            (for example Vercel, Resend, Google and Apple). Where that happens, we rely on
+            (for example Vercel, Resend, GitHub, Cloudflare, Google and Apple). Where that happens, we rely on
             the safeguards UK law allows: the UK–US data bridge where the company is certified
             under it, or contract terms approved for UK transfers (the UK International Data
             Transfer Agreement or Addendum).
@@ -259,7 +268,7 @@ export default function PrivacyPolicyPage() {
           </p>
           <p>
             When a venue closes its account, it can export its data first. We then delete it
-            within 30 days, and it is cleared from backups within 90 days, unless the law
+            within 30 days, and it is cleared from backups within about 60 days of closure, unless the law
             requires us to keep it.
           </p>
           <p>
