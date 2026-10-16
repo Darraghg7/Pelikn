@@ -13,98 +13,53 @@ import DesktopDashboardMock, { BrowserFrame, ScaledCanvas } from './DesktopDashb
 import useForceLight from '../../hooks/useForceLight'
 import { colors, alpha, white, black, radius } from '../../lib/tokens'
 
+/* ─── Type ──────────────────────────────────────────────────────────────────
+   Big, light, tightly-tracked headlines carry the whole page (the scale is
+   deliberately outside the app's type scale: this is the one public page).
+   Sizes are fluid so the same line works on a phone and a 27" screen.      */
+const HUGE = { fontSize: 'clamp(54px, 11vw, 176px)', lineHeight: 0.9, letterSpacing: '-0.055em', fontWeight: 500 }
+const BIG  = { fontSize: 'clamp(40px, 7vw, 112px)',  lineHeight: 0.95, letterSpacing: '-0.05em',  fontWeight: 500 }
+const MID  = { fontSize: 'clamp(32px, 4.6vw, 72px)', lineHeight: 1,    letterSpacing: '-0.045em', fontWeight: 500 }
+
+const PILL = 'inline-flex items-center justify-center rounded-full font-medium transition-all duration-200 active:scale-[0.97] cursor-pointer whitespace-nowrap'
+const PILL_LG = `${PILL} text-body-lg px-8 py-4`
+
 /* ─── Keyframes ─────────────────────────────────────────────────────────── */
 function GlobalCSS() {
   return (
     <style>{`
       @keyframes pkIn {
-        from { opacity:0; transform:translateY(16px) scale(0.98); }
-        to   { opacity:1; transform:translateY(0) scale(1); }
+        from { opacity:0; transform:translateY(24px); }
+        to   { opacity:1; transform:translateY(0); }
       }
       @keyframes pkRise {
-        from { opacity:0; transform:translateY(56px) scale(0.96); }
-        to   { opacity:1; transform:translateY(0) scale(1); }
+        from { opacity:0; transform:translateY(120px); }
+        to   { opacity:1; transform:translateY(0); }
       }
-      @keyframes pkPulse {
-        0%,100% { opacity:1; box-shadow:0 0 0 0 ${alpha(colors.good, 0.5)}; }
-        60%      { opacity:0.55; box-shadow:0 0 0 5px ${alpha(colors.good, 0)}; }
+      @keyframes pkFloat {
+        0%,100% { transform:translateY(0); }
+        50%     { transform:translateY(-10px); }
       }
-      /* Scrolling ticker — seamless loop */
-      @keyframes pkTicker {
+      @keyframes pkMarquee {
         from { transform:translateX(0); }
         to   { transform:translateX(-50%); }
       }
-      .pk-ticker-track { animation: pkTicker 28s linear infinite; }
-      .pk-ticker-track:hover { animation-play-state: paused; }
-      /* Reduced motion: no scrolling — show one wrapped, static list instead */
+      .pk-marquee-track { animation: pkMarquee 40s linear infinite; }
+      .pk-float   { animation: pkFloat 6s ease-in-out infinite; }
+      .pk-float-b { animation: pkFloat 7.5s ease-in-out -2s infinite; }
+      .pk-float-c { animation: pkFloat 6.8s ease-in-out -4s infinite; }
       @media (prefers-reduced-motion: reduce) {
-        .pk-ticker-track { animation: none; white-space: normal; }
-        .pk-ticker-pass { flex-shrink: 1; flex-wrap: wrap; gap: 4px 20px; padding-right: 24px; }
-        .pk-ticker-pass > li { margin: 0; }
-        .pk-ticker-dup { display: none; }
-        .pk-ticker-label { box-shadow: none; }
-        .pk-hero-visual { animation: none !important; }
+        .pk-marquee-track { animation: none; white-space: normal; flex-wrap: wrap; }
+        .pk-marquee-dup { display: none; }
+        .pk-float, .pk-float-b, .pk-float-c { animation: none; }
+        .pk-rise { animation: none !important; }
       }
     `}</style>
   )
 }
 
-/* ─── "Replaces" strip ──────────────────────────────────────────────────── */
-const REPLACED_TOOLS = ['Rota spreadsheets','WhatsApp groups','Paper temp logs','Training folders','Tip calculators','Compliance binders','Shift-swap texts','Clocking-in sheets']
-
-// Things Pelikn replaces, not features: a "Replaces" label and struck-through
-// items, never ticks. The second pass only exists for the seamless loop, so it
-// is hidden from screen readers.
-function ReplacesStrip() {
-  return (
-    <div className="bg-surface border-y border-charcoal/8 py-4 select-none flex items-center">
-      <span aria-hidden="true" className="pk-ticker-label relative z-10 shrink-0 pl-6 sm:pl-10 pr-4 sm:pr-6 font-mono text-micro tracking-[0.12em] uppercase font-semibold text-charcoal/55 bg-surface shadow-[12px_0_12px_theme(colors.surface)]">Replaces</span>
-      <div className="overflow-hidden flex-1">
-        <div className="flex pk-ticker-track whitespace-nowrap">
-          {[0, 1].map(pass => (
-            <ul
-              key={pass}
-              className={`pk-ticker-pass flex items-center shrink-0 ${pass === 1 ? 'pk-ticker-dup' : ''}`}
-              aria-label={pass === 0 ? 'What Pelikn replaces' : undefined}
-              aria-hidden={pass === 1 ? 'true' : undefined}
-            >
-              {REPLACED_TOOLS.map(item => (
-                <li key={item} className="mx-7 text-body font-medium text-charcoal/45 line-through decoration-charcoal/30">{item}</li>
-              ))}
-            </ul>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* ─── iPhone frame ──────────────────────────────────────────────────────── */
-// The phone mock-ups are pictures: hidden from screen readers, nothing focusable.
-function IPhoneFrame({ children }) {
-  return (
-    <div
-      aria-hidden="true"
-      className="relative shrink-0 transition-transform duration-500 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-2"
-      style={{ width:300, background:colors.charcoal, borderRadius:52, padding:14, boxShadow:`0 40px 80px ${black(0.4)}, inset 0 0 0 1.5px ${white(0.13)}` }}
-    >
-      {/* Side buttons */}
-      <div style={{ position:'absolute', right:-3, top:100, width:3, height:34, background:colors.ink2, borderRadius:'0 3px 3px 0' }}/>
-      <div style={{ position:'absolute', left:-3, top:88,  width:3, height:26, background:colors.ink2, borderRadius:'3px 0 0 3px' }}/>
-      <div style={{ position:'absolute', left:-3, top:122, width:3, height:26, background:colors.ink2, borderRadius:'3px 0 0 3px' }}/>
-      <div style={{ position:'absolute', left:-3, top:156, width:3, height:52, background:colors.ink2, borderRadius:'3px 0 0 3px' }}/>
-      {/* Screen — fixed height for realistic iPhone 15 proportions */}
-      <div style={{ borderRadius:40, overflow:'hidden', background:colors.surface, position:'relative', height:572 }}>
-        {/* Dynamic island */}
-        <div style={{ position:'absolute', top:12, left:'50%', transform:'translateX(-50%)', width:100, height:28, background:colors.charcoal, borderRadius:radius.card, zIndex:10 }}/>
-        {children}
-      </div>
-    </div>
-  )
-}
-
 /* ─── Scroll-reveal ─────────────────────────────────────────────────────── */
-function FadeUp({ children, delay = 0, className = '', dir = 'up' }) {
+function FadeUp({ children, delay = 0, className = '' }) {
   const ref = useRef(null)
   const [v, setV] = useState(false)
   useEffect(() => {
@@ -115,22 +70,96 @@ function FadeUp({ children, delay = 0, className = '', dir = 'up' }) {
     )
     ob.observe(el); return () => ob.disconnect()
   }, [])
-  const t = {
-    up:    'translateY(20px) scale(0.99)',
-    down:  'translateY(-14px)',
-    left:  'translateX(-22px)',
-    right: 'translateX(22px)',
-  }
   return (
-    <div ref={ref} className={className} style={{ opacity:v?1:0, transform:v?'none':(t[dir]??t.up), transition:`opacity 0.65s cubic-bezier(.16,1,.3,1) ${delay}ms, transform 0.65s cubic-bezier(.16,1,.3,1) ${delay}ms` }}>
+    <div ref={ref} className={className} style={{ opacity: v ? 1 : 0, transform: v ? 'none' : 'translateY(28px)', transition: `opacity 0.8s cubic-bezier(.16,1,.3,1) ${delay}ms, transform 0.8s cubic-bezier(.16,1,.3,1) ${delay}ms` }}>
       {children}
     </div>
   )
 }
 
+/* A sentence that lights up word by word as you scroll through it. */
+function ScrollWords({ text, className = '', style }) {
+  const ref = useRef(null)
+  const [p, setP] = useState(0)
+  const words = text.split(' ')
+  useEffect(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { setP(1); return }
+    let raf = 0
+    const tick = () => {
+      raf = 0
+      const el = ref.current; if (!el) return
+      const r = el.getBoundingClientRect()
+      const vh = window.innerHeight
+      // 0 when the block's top sits at 85% of the screen, 1 once its bottom reaches 35%
+      setP(Math.min(1, Math.max(0, (vh * 0.85 - r.top) / (vh * 0.5 + r.height))))
+    }
+    const on = () => { if (!raf) raf = requestAnimationFrame(tick) }
+    tick()
+    window.addEventListener('scroll', on, { passive: true })
+    window.addEventListener('resize', on)
+    return () => { window.removeEventListener('scroll', on); window.removeEventListener('resize', on); if (raf) cancelAnimationFrame(raf) }
+  }, [])
+  return (
+    <p ref={ref} className={className} style={style}>
+      {words.map((w, i) => {
+        const a = Math.min(1, Math.max(0, p * (words.length + 4) - i))
+        return <span key={i} style={{ opacity: 0.16 + a * 0.84, transition: 'opacity 0.25s linear' }}>{w}{' '}</span>
+      })}
+    </p>
+  )
+}
+
+/* ─── iPhone frame ──────────────────────────────────────────────────────── */
+// The phone mock-ups are pictures: hidden from screen readers, nothing focusable.
+function IPhoneFrame({ children }) {
+  return (
+    <div
+      aria-hidden="true"
+      className="relative shrink-0"
+      style={{ width:300, background:colors.charcoal, borderRadius:52, padding:14, boxShadow:`0 50px 100px ${black(0.35)}, inset 0 0 0 1.5px ${white(0.13)}` }}
+    >
+      <div style={{ position:'absolute', right:-3, top:100, width:3, height:34, background:colors.ink2, borderRadius:'0 3px 3px 0' }}/>
+      <div style={{ position:'absolute', left:-3, top:88,  width:3, height:26, background:colors.ink2, borderRadius:'3px 0 0 3px' }}/>
+      <div style={{ position:'absolute', left:-3, top:122, width:3, height:26, background:colors.ink2, borderRadius:'3px 0 0 3px' }}/>
+      <div style={{ position:'absolute', left:-3, top:156, width:3, height:52, background:colors.ink2, borderRadius:'3px 0 0 3px' }}/>
+      <div style={{ borderRadius:40, overflow:'hidden', background:colors.surface, position:'relative', height:572 }}>
+        <div style={{ position:'absolute', top:12, left:'50%', transform:'translateX(-50%)', width:100, height:28, background:colors.charcoal, borderRadius:radius.card, zIndex:10 }}/>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+/* A phone drawn at any width (the frame is drawn at 300×600 and scaled). */
+function Phone({ children, className = '', label = 'The Pelikn app on a phone' }) {
+  return (
+    <ScaledCanvas width={300} height={600} clip={false} label={label} className={className}>
+      <IPhoneFrame>{children}</IPhoneFrame>
+    </ScaledCanvas>
+  )
+}
+
+/* A small floating status pill that sits on top of a phone. */
+function Chip({ tone = 'paper', className = '', children }) {
+  const tones = {
+    paper: 'bg-paper text-charcoal',
+    good:  'bg-goodBg text-good',
+    dark:  'bg-charcoal text-cream',
+    accent:'bg-accent text-cream',
+  }
+  return (
+    <div aria-hidden="true" className={`absolute inline-flex items-center gap-2.5 whitespace-nowrap rounded-full px-4 py-2.5 text-body font-medium shadow-[0_18px_40px_theme(colors.black/18%)] ${tones[tone]} ${className}`}>
+      {children}
+    </div>
+  )
+}
+const Tick = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+)
+
 /* ─── SVG icon ──────────────────────────────────────────────────────────── */
-const Ico = ({ d, size = 18, cls = '' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={cls}>
+const Ico = ({ d, size = 24, cls = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={cls}>
     {typeof d === 'string' ? <path d={d} /> : d}
   </svg>
 )
@@ -138,131 +167,6 @@ const Ico = ({ d, size = 18, cls = '' }) => (
 /* ══════════════════════════════════════════════════════════════════════════
    MOCK SCREENS — faithful to real screenshots, names anonymised
    ══════════════════════════════════════════════════════════════════════════ */
-
-/* Desktop dashboard */
-function MockDashboard() {
-  return (
-    <div aria-hidden="true" className="flex bg-surface" style={{ minHeight: 360, fontSize: 10 }}>
-      {/* Icon rail */}
-      <div className="bg-brand flex flex-col items-center pt-3 pb-3 gap-3.5 shrink-0" style={{ width: 50 }}>
-        <div className="w-7 h-7 rounded-control bg-cream/15 flex items-center justify-center mb-1">
-          <span className="text-[9px] font-bold text-cream">C</span>
-        </div>
-        {[
-          { d:'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z', a:true,  badge:null },
-          { d:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 3h6v4H9z', a:false, badge:13 },
-          { d:'M12 2L2 7l10 5 10-5-10-5z M2 17l10 5 10-5 M2 12l10 5 10-5', a:false, badge:null },
-          { d:'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M9 7a4 4 0 100 8 4 4 0 000-8z', a:false, badge:3 },
-          { d:'M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09', a:false, badge:null },
-        ].map(({ d, a, badge }, i) => (
-          <div key={i} className="relative">
-            <div className={`w-7 h-7 rounded-control flex items-center justify-center ${a ? 'bg-cream/15' : ''}`}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={a ? 'text-cream' : 'text-cream/28'}><path d={d}/></svg>
-            </div>
-            {badge && <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-accent rounded-full text-[6px] font-bold text-white flex items-center justify-center">{badge > 9 ? '9+' : badge}</span>}
-          </div>
-        ))}
-      </div>
-      {/* Sub-nav */}
-      <div className="flex flex-col pt-3 shrink-0" style={{ width: 145, background: alpha(colors.brand.DEFAULT, 0.96) }}>
-        <div className="px-3 mb-3">
-          <p className="text-[7px] tracking-widest uppercase text-cream/25">THE FORGE</p>
-          <p className="text-[8px] text-cream/50 mt-0.5">Today · 4 items</p>
-        </div>
-        {[
-          { l:'Dashboard', s:"Today's checks & open issues", a:true },
-          { l:'Open / Close', s:'Daily routines', a:false },
-          { l:'Tasks', s:'All open tasks', a:false },
-          { l:'Fitness to Work', s:'Staff readiness checks', a:false },
-        ].map(({ l, s, a }) => (
-          <div key={l} className={`px-3 py-2 ${a ? 'bg-cream/10' : ''}`}>
-            <p className={`text-[9px] font-semibold ${a ? 'text-cream' : 'text-cream/40'}`}>{l}</p>
-            <p className={`text-[7px] mt-0.5 ${a ? 'text-cream/38' : 'text-cream/18'}`}>{s}</p>
-          </div>
-        ))}
-      </div>
-      {/* Main */}
-      <div className="flex-1 p-3.5 overflow-hidden">
-        <div className="flex items-start justify-between mb-2.5">
-          <div>
-            <p className="text-[7px] tracking-widest uppercase text-charcoal/30">WEDNESDAY, 24 JUNE</p>
-            <h3 className="text-body-lg font-bold text-charcoal mt-0.5">Good afternoon, Sarah</h3>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="text-[7px] text-charcoal/45">THE FORGE</span>
-              <span className="text-[7px] font-bold bg-brand text-cream px-1.5 py-0.5 rounded-tag tracking-wide">PRO</span>
-              <span className="text-[7px] text-charcoal/30">· 0 of 14 daily checks complete</span>
-            </div>
-          </div>
-          <span className="text-center text-[7px] font-medium text-charcoal/40 border border-charcoal/15 px-2 py-1 rounded-tag">Export</span>
-        </div>
-        {/* Alert */}
-        <div className="flex items-center gap-1.5 bg-accentBg border border-accent/20 rounded-control px-2.5 py-1.5 mb-2.5">
-          <div className="w-1.5 h-1.5 rounded-full bg-accent" style={{ animation:'pkPulse 2s infinite' }} />
-          <span className="text-[8px] font-semibold text-accent">13 overdue cleans</span>
-        </div>
-        {/* Top stats */}
-        <div className="grid grid-cols-4 gap-1.5 mb-1.5">
-          {[
-            { l:'ON SHIFT', v:'1', c:'text-charcoal' },
-            { l:'CHECKS DONE', v:'0/14', c:'text-charcoal' },
-            { l:'FRIDGES DUE', v:'—', c:'text-charcoal/30' },
-            { l:'MY CLOCK', v:null },
-          ].map(({ l, v, c }) => (
-            <div key={l} className="bg-white border border-charcoal/8 rounded-control p-2">
-              <p className="text-[6px] tracking-widest uppercase text-charcoal/28 mb-1">{l}</p>
-              {v !== null
-                ? <p className={`text-lg font-bold ${c} tabular-nums leading-none`}>{v}</p>
-                : <div><p className="text-[7px] text-charcoal/35 mb-1">Not Clocked In</p><span className="inline-block text-center w-full bg-charcoal text-cream text-[7px] font-semibold py-0.5 rounded-tag">Clock In</span></div>
-              }
-            </div>
-          ))}
-        </div>
-        {/* Bottom stats */}
-        <div className="grid grid-cols-3 gap-1.5 mb-1.5">
-          {[
-            { l:'OVERDUE CLEANS', v:'13', c:'text-accent', dot:'bg-accent' },
-            { l:'CRITICAL', v:'0', c:'text-charcoal', dot:'bg-charcoal/20' },
-            { l:'TIME OFF', v:'1', c:'text-warn', dot:'bg-warn' },
-          ].map(({ l, v, c, dot }) => (
-            <div key={l} className="bg-white border border-charcoal/8 rounded-control p-2">
-              <div className="flex items-center gap-1 mb-1"><div className={`w-1 h-1 rounded-full ${dot}`}/><p className="text-[6px] tracking-widest uppercase text-charcoal/28">{l}</p></div>
-              <p className={`text-lg font-bold ${c} tabular-nums leading-none`}>{v}</p>
-            </div>
-          ))}
-        </div>
-        {/* Widgets */}
-        <div className="grid grid-cols-3 gap-1.5">
-          <div className="bg-white border border-charcoal/8 rounded-control p-2">
-            <div className="flex items-center justify-between mb-1"><div className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-good"/><p className="text-[6px] tracking-widest uppercase text-charcoal/28">COMPLIANCE SCORE</p></div><span className="text-[6px] text-brand/40">VIEW ›</span></div>
-            <p className="text-2xl font-bold text-good tabular-nums">100%</p>
-            <div className="flex items-center gap-1 mt-0.5"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke={colors.good} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span className="text-[7px] text-good font-semibold">All checks on track</span></div>
-            <p className="text-[6px] text-charcoal/22 mt-1">30-DAY AVERAGE</p>
-          </div>
-          <div className="bg-white border border-charcoal/8 rounded-control p-2">
-            <div className="flex items-center justify-between mb-1.5"><div className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-warn"/><p className="text-[6px] tracking-widest uppercase text-charcoal/28">FRIDGE STATUS</p></div><span className="text-[6px] text-brand/40">VIEW ›</span></div>
-            {[['Readings today','4'],['Out of range','0'],['Not yet checked','0']].map(([l,v])=>(
-              <div key={l} className="flex justify-between py-0.5"><span className="text-[7px] text-charcoal/45">{l}</span><span className="text-[7px] font-semibold text-charcoal">{v}</span></div>
-            ))}
-          </div>
-          <div className="bg-white border border-charcoal/8 rounded-control p-2">
-            <div className="flex items-center gap-1 mb-1.5"><div className="w-1 h-1 rounded-full bg-accent"/><p className="text-[6px] tracking-widest uppercase text-charcoal/28">STAFF NOTIFICATIONS</p></div>
-            {[
-              ['Claire: Leave Request','23 Jul – 24 Jul 2026'],
-              ['Swap: Amy → Beth','Shift swap pending approval'],
-              ['Swap: Dan → Jenna','Shift swap pending approval'],
-              ['8 training records unsigned','Awaiting employee signature'],
-            ].map(([t,s])=>(
-              <div key={t} className="flex items-start gap-1 mb-1 last:mb-0">
-                <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0 mt-0.5"/>
-                <div><p className="text-[7px] font-semibold text-charcoal leading-tight">{t}</p><p className="text-[6px] text-charcoal/30">{s}</p></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 /* Mobile app chrome shared by the phone mocks */
 function MockAppHeader() {
@@ -634,18 +538,55 @@ function MockRota() {
   )
 }
 
+/* ─── Shared bits ───────────────────────────────────────────────────────── */
+const Arrow = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+)
+
+const WRAP = 'max-w-[1400px] mx-auto px-6 sm:px-10'
+
+/* ─── "Replaces" marquee ────────────────────────────────────────────────── */
+const REPLACED_TOOLS = ['Rota spreadsheets','WhatsApp groups','Paper temp logs','Training folders','Tip calculators','Compliance binders','Shift-swap texts','Clocking-in sheets']
+
+// Things Pelikn replaces, not features: struck through, never ticked. The
+// second pass only exists for the seamless loop, so screen readers skip it.
+function Replaces() {
+  return (
+    <section className="bg-accent text-cream overflow-hidden py-20 sm:py-28 select-none">
+      <p className={`${WRAP} font-mono text-micro tracking-[0.12em] uppercase text-cream/80 mb-8`}>What Pelikn replaces</p>
+      <div className="flex whitespace-nowrap pk-marquee-track">
+        {[0, 1].map(pass => (
+          <ul
+            key={pass}
+            className={`flex items-center shrink-0 ${pass === 1 ? 'pk-marquee-dup' : ''}`}
+            aria-label={pass === 0 ? 'What Pelikn replaces' : undefined}
+            aria-hidden={pass === 1 ? 'true' : undefined}
+          >
+            {REPLACED_TOOLS.map(item => (
+              <li key={item} className="flex items-center" style={{ ...BIG, fontSize: 'clamp(48px, 8vw, 128px)' }}>
+                <span className="line-through decoration-[0.06em]">{item}</span>
+                <span className="mx-[0.45em] opacity-60" aria-hidden="true">·</span>
+              </li>
+            ))}
+          </ul>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 /* ─── FAQ ───────────────────────────────────────────────────────────────── */
 function Faq({ q, a }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="border-b border-charcoal/8 last:border-0">
-      <button onClick={() => setOpen(o => !o)} className="w-full flex items-center justify-between py-4 text-left gap-4 cursor-pointer">
-        <span className="text-sm font-medium text-charcoal">{q}</span>
-        <span className="shrink-0 text-charcoal/30 transition-transform duration-300" style={{ transform: open ? 'rotate(180deg)' : 'none' }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    <div className="border-b border-charcoal/12">
+      <button onClick={() => setOpen(o => !o)} aria-expanded={open} className="w-full flex items-center justify-between py-7 text-left gap-6 cursor-pointer">
+        <span className="text-title sm:text-display font-medium tracking-[-0.025em] text-charcoal">{q}</span>
+        <span className="shrink-0 w-10 h-10 rounded-full border border-charcoal/20 flex items-center justify-center text-charcoal transition-transform duration-300" style={{ transform: open ? 'rotate(45deg)' : 'none' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </span>
       </button>
-      {open && <p className="text-sm text-charcoal/50 pb-4 leading-relaxed">{a}</p>}
+      {open && <p className="text-body-lg sm:text-title-sm text-charcoal/70 pb-8 leading-[1.6] max-w-2xl">{a}</p>}
     </div>
   )
 }
@@ -659,89 +600,80 @@ function Pricing() {
   const ppn = annual ? PRO_ANNUAL_NUM : PRO_PRICE_NUM
   const epn = annual ? EXTRA_VENUE_ANNUAL_NUM : EXTRA_VENUE_PRICE_NUM
   const sfx = annual ? '/yr' : '/mo'
-  const Chk = ({ green }) => (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={green ? 'text-good' : 'text-brand/60'}>
-      <polyline points="20 6 9 17 4 12"/>
-    </svg>
-  )
 
   return (
     <section id="pricing" className="bg-surface">
-      <div className="max-w-4xl mx-auto px-6 sm:px-10 py-20 sm:py-28">
+      <div className={`${WRAP} py-28 sm:py-36`}>
         <FadeUp>
-          <h2 className="text-4xl sm:text-5xl font-bold text-charcoal tracking-tight leading-tight mb-2">One price. No surprises.</h2>
-          <p className="text-charcoal/45 text-base mb-8 max-w-xs leading-relaxed">Priced per venue, not per head. No hidden charges. Cancel any time.</p>
+          <h2 className="text-charcoal" style={BIG}>One price.<br />No surprises.</h2>
+          <p className="text-charcoal/70 text-title-sm sm:text-title mt-8 max-w-md leading-[1.45]">Priced per venue, not per head. No hidden charges. Cancel any time.</p>
         </FadeUp>
-        <FadeUp delay={50}>
-          <div className="inline-flex items-center bg-white rounded-control p-1 gap-1 mb-8 shadow-sm border border-charcoal/8">
+        <FadeUp delay={60}>
+          <div className="inline-flex items-center bg-paper rounded-full p-1.5 gap-1 mt-12 mb-12">
             {[['Monthly',false],['Annual',true]].map(([label,val])=>(
-              <button key={label} onClick={()=>setAnnual(val)} className={`text-sm font-medium px-5 py-2.5 rounded-control transition-all cursor-pointer flex items-center gap-2 ${annual===val?'bg-brand text-cream shadow-sm':'text-charcoal/45 hover:text-charcoal'}`}>
+              <button key={label} onClick={()=>setAnnual(val)} className={`text-body-lg font-medium px-6 py-3 rounded-full transition-all cursor-pointer flex items-center gap-2 ${annual===val?'bg-charcoal text-cream':'text-charcoal/65 hover:text-charcoal'}`}>
                 {label}
-                {label==='Annual' && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${annual?'bg-white/20 text-cream':'bg-accent/10 text-accent'}`}>2 mo. free</span>}
+                {label==='Annual' && <span className={`text-micro font-semibold px-2 py-0.5 rounded-full ${annual?'bg-cream/20 text-cream':'bg-accentBg text-accent'}`}>2 months free</span>}
               </button>
             ))}
           </div>
         </FadeUp>
-        <div className="grid sm:grid-cols-2 gap-5 max-w-2xl">
+        <div className="grid lg:grid-cols-2 gap-5">
           {PLAN_ORDER.map((id, idx) => (
-            <FadeUp key={id} delay={70 + idx * 60}>
+            <FadeUp key={id} delay={80 + idx * 70} className="h-full">
               {id === PLANS.PRO ? (
-                <div className="bg-white rounded-control border-2 border-brand shadow-[0_8px_24px_theme(colors.brand/10%)] p-7 flex flex-col h-full">
-                  <p className="text-[10px] tracking-widest uppercase text-brand font-semibold mb-4">{PLAN_DETAILS.pro.name}</p>
-                  <div className="flex items-baseline gap-1 mb-1">
-                    <span className="text-4xl font-bold text-charcoal">{pp}</span>
-                    <span className="text-charcoal/35 text-sm">{sfx}</span>
+                <div className="bg-brand text-cream rounded-sheet p-8 sm:p-12 flex flex-col h-full">
+                  <p className="font-mono text-micro tracking-[0.12em] uppercase text-cream/80 mb-8">{PLAN_DETAILS.pro.name}</p>
+                  <div className="flex items-baseline gap-2 mb-2">
+                    <span style={{ fontSize: 'clamp(64px, 8vw, 112px)', lineHeight: 0.9, letterSpacing: '-0.055em', fontWeight: 500 }}>{pp}</span>
+                    <span className="text-cream/75 text-title-sm">{sfx}</span>
                   </div>
-                  <p className="text-xs text-charcoal/35 mb-1">{PLAN_DETAILS.pro.venueNote} · {ep}{sfx} each extra</p>
-                  {annual && <p className="text-xs font-medium text-brand mb-1">Save £50 vs monthly</p>}
-                  <div className="bg-cream rounded-control p-4 my-5">
-                    <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-3">As you grow</p>
+                  <p className="text-body-lg text-cream/75">{PLAN_DETAILS.pro.venueNote} · {ep}{sfx} each extra</p>
+                  {annual && <p className="text-body-lg font-medium text-goodDark mt-1">Save £50 vs monthly</p>}
+                  <div className="border-y border-cream/20 py-5 my-8">
+                    <p className="font-mono text-micro tracking-[0.12em] uppercase text-cream/70 mb-3">As you grow</p>
                     {[1,2,3,5].map(n=>(
-                      <div key={n} className="flex justify-between py-1">
-                        <span className="text-xs text-charcoal/45">{n} venue{n>1?'s':''}</span>
-                        <span className="text-xs font-semibold text-charcoal">£{ppn+(n-1)*epn}{sfx}</span>
+                      <div key={n} className="flex justify-between py-1.5">
+                        <span className="text-body-lg text-cream/75">{n} venue{n>1?'s':''}</span>
+                        <span className="text-body-lg font-medium">£{ppn+(n-1)*epn}{sfx}</span>
                       </div>
                     ))}
                   </div>
-                  <ul className="flex flex-col gap-2.5 mb-7 flex-1">
+                  <ul className="flex flex-col gap-3 mb-10 flex-1">
                     {PRO_FEATURES.map((f,i)=>(
-                      <li key={f} className="flex items-start gap-2 text-xs text-charcoal/60">
-                        <span className="mt-0.5 shrink-0"><Chk green={false}/></span>
-                        {i===0?<strong className="text-charcoal/75">{f}</strong>:f}
+                      <li key={f} className="flex items-start gap-3 text-body-lg text-cream/85">
+                        <span className="mt-1 shrink-0 text-goodDark"><Tick /></span>
+                        {i===0?<strong className="font-semibold text-cream">{f}</strong>:f}
                       </li>
                     ))}
                   </ul>
-                  <Link to="/signup?plan=pro" className="block text-center bg-accent text-cream py-3.5 rounded-control text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all cursor-pointer">
-                    Start free trial
-                  </Link>
+                  <Link to="/signup?plan=pro" className={`${PILL_LG} bg-cream text-charcoal hover:bg-paper`}>Start free trial</Link>
                 </div>
               ) : (
-                <div className="bg-white rounded-control border border-charcoal/12 shadow-[0_4px_12px_theme(colors.black/4%)] p-7 flex flex-col h-full">
-                  <p className="text-[10px] tracking-widest uppercase text-brand font-semibold mb-4">{PLAN_DETAILS.starter.name}</p>
-                  <div className="flex items-baseline gap-1 mb-1">
-                    <span className="text-4xl font-bold text-charcoal">{sp}</span>
-                    <span className="text-charcoal/35 text-sm">{sfx}</span>
+                <div className="bg-paper text-charcoal rounded-sheet p-8 sm:p-12 flex flex-col h-full">
+                  <p className="font-mono text-micro tracking-[0.12em] uppercase text-charcoal/70 mb-8">{PLAN_DETAILS.starter.name}</p>
+                  <div className="flex items-baseline gap-2 mb-2">
+                    <span style={{ fontSize: 'clamp(64px, 8vw, 112px)', lineHeight: 0.9, letterSpacing: '-0.055em', fontWeight: 500 }}>{sp}</span>
+                    <span className="text-charcoal/65 text-title-sm">{sfx}</span>
                   </div>
-                  <p className="text-xs text-charcoal/35 mb-1">{PLAN_DETAILS.starter.venueNote}</p>
-                  {annual && <p className="text-xs font-medium text-brand mb-1">Save £20 vs monthly</p>}
-                  <p className="text-xs text-charcoal/50 leading-relaxed my-5">Everything you need to stay compliant and get off paper.</p>
-                  <ul className="flex flex-col gap-2.5 mb-7 flex-1">
+                  <p className="text-body-lg text-charcoal/70">{PLAN_DETAILS.starter.venueNote}</p>
+                  {annual && <p className="text-body-lg font-medium text-good mt-1">Save £20 vs monthly</p>}
+                  <p className="text-body-lg text-charcoal/70 leading-[1.5] border-y border-charcoal/12 py-5 my-8">Everything you need to stay compliant and get off paper.</p>
+                  <ul className="flex flex-col gap-3 mb-10 flex-1">
                     {STARTER_FEATURES.map(f=>(
-                      <li key={f} className="flex items-start gap-2 text-xs text-charcoal/60">
-                        <span className="mt-0.5 shrink-0"><Chk green={true}/></span>
+                      <li key={f} className="flex items-start gap-3 text-body-lg text-charcoal/80">
+                        <span className="mt-1 shrink-0 text-good"><Tick /></span>
                         {f}
                       </li>
                     ))}
                   </ul>
-                  <Link to="/signup?plan=starter" className="block text-center border-2 border-brand/25 text-brand py-3.5 rounded-control text-sm font-semibold hover:bg-brand hover:text-cream transition-all cursor-pointer">
-                    Start free trial
-                  </Link>
+                  <Link to="/signup?plan=starter" className={`${PILL_LG} border border-charcoal/25 text-charcoal hover:bg-charcoal hover:text-cream`}>Start free trial</Link>
                 </div>
               )}
             </FadeUp>
           ))}
         </div>
-        <p className="text-xs text-charcoal/30 mt-5">7-day free trial · No card required to start</p>
+        <p className="text-body-lg text-charcoal/65 mt-8">7-day free trial · No card required to start</p>
       </div>
     </section>
   )
@@ -752,44 +684,41 @@ function Pricing() {
    ══════════════════════════════════════════════════════════════════════════ */
 export default function MarketingPage() {
   useForceLight()
-  const [navScrolled, setNavScrolled] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   useEffect(() => {
-    const h = () => setNavScrolled(window.scrollY > 20)
+    const h = () => setScrolled(window.scrollY > 24)
+    h()
     window.addEventListener('scroll', h, { passive: true })
     return () => window.removeEventListener('scroll', h)
   }, [])
 
+  const navLink = scrolled ? 'text-charcoal/75 hover:text-charcoal' : 'text-cream/85 hover:text-cream'
+
   return (
-    <div className="min-h-dvh font-sans text-charcoal bg-white overflow-x-hidden">
+    <div className="min-h-dvh font-sans text-charcoal bg-paper overflow-x-hidden">
       <GlobalCSS />
 
       {/* ── Nav ─────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 transition-all duration-500" style={{ background: navScrolled ? white(0.95) : alpha(colors.brand.DEFAULT, 0.76), backdropFilter: 'blur(24px) saturate(200%)', borderBottom: navScrolled ? `1px solid ${alpha(colors.charcoal, 0.07)}` : `1px solid ${white(0.07)}` }}>
-        <div className="max-w-5xl mx-auto px-6 sm:px-10 h-14 flex items-center justify-between">
-          <Logo variant="full" size="md" tone={navScrolled ? 'auto' : 'onBrand'} />
-          <nav className="hidden sm:flex items-center gap-1">
-            {[['Compliance','#compliance'],['Team','#team'],['Pricing','#pricing']].map(([l,h])=>(
-              <a key={l} href={h} className={`text-sm px-3 py-2 rounded-control transition-colors duration-200 cursor-pointer ${navScrolled?'text-charcoal/40 hover:text-charcoal':'text-cream/45 hover:text-cream/80'}`}>{l}</a>
+      <header className="fixed top-0 inset-x-0 z-50 transition-colors duration-300" style={{ background: scrolled ? white(0.92) : 'transparent', backdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none' }}>
+        <div className={`${WRAP} h-[72px] flex items-center justify-between`}>
+          <Link to="/" aria-label="Pelikn home"><Logo variant="full" size="md" tone={scrolled ? 'auto' : 'onBrand'} /></Link>
+          <nav className="hidden md:flex items-center gap-1" aria-label="Sections">
+            {[['Food safety','#compliance'],['Team','#team'],['Pricing','#pricing']].map(([l,h])=>(
+              <a key={l} href={h} className={`text-body-lg font-medium px-4 py-2 rounded-full transition-colors duration-200 ${navLink}`}>{l}</a>
             ))}
           </nav>
-          <div className="flex items-center gap-1.5">
-            <Link to="/login" className={`text-sm font-medium transition-colors duration-200 px-4 py-2 rounded-control cursor-pointer ${navScrolled?'text-charcoal/40 hover:text-charcoal':'text-cream/45 hover:text-cream/80'}`}>Sign in</Link>
-            <Link to="/signup" className="relative overflow-hidden text-sm font-semibold text-cream bg-accent hover:brightness-95 transition-colors duration-200 px-4 py-2 rounded-control cursor-pointer shadow-[0_2px_8px_theme(colors.accent/35%)] hover:shadow-[0_4px_14px_theme(colors.accent/45%)]">
-              Free trial
-            </Link>
+          <div className="flex items-center gap-2">
+            <Link to="/login" className={`${PILL} text-body px-5 py-2.5 ${scrolled ? 'bg-charcoal text-cream hover:bg-ink2' : 'bg-charcoal text-cream hover:bg-ink'}`}>Log in</Link>
+            <Link to="/signup" className={`${PILL} text-body px-5 py-2.5 ${scrolled ? 'bg-brand/10 text-brand hover:bg-brand/15' : 'bg-cream text-charcoal hover:bg-paper'}`}>Free trial</Link>
           </div>
         </div>
       </header>
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="bg-brand relative overflow-hidden">
-        {/* Dot grid */}
-        <div className="absolute inset-0 pointer-events-none" aria-hidden style={{ backgroundImage:`radial-gradient(${white(0.07)} 1px, transparent 1px)`, backgroundSize:'28px 28px' }} />
-        {/* Glow */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] pointer-events-none" aria-hidden style={{ background:`radial-gradient(ellipse at top right, ${alpha(colors.accent, 0.12)} 0%, transparent 60%)` }} />
-        {/* Logomark watermark */}
-        <div className="absolute pointer-events-none select-none" aria-hidden style={{ right:'-6%', top:'50%', transform:'translateY(-50%)', width:600, opacity:0.06 }}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="35 45 159 130" width="600" height="491">
+      <section className="bg-brand text-cream relative overflow-hidden" style={{ minHeight: 'max(100svh, 780px)' }}>
+        {/* Logomark watermark, big enough to show around the phone */}
+        <div className="absolute pointer-events-none select-none" aria-hidden="true" style={{ right:'-10%', top:'55%', transform:'translateY(-50%)', width:'min(900px, 110vw)', opacity:0.07 }}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="35 45 159 130" width="100%">
             <defs>
               <mask id="bowlCutHero">
                 <rect x="35" y="45" width="159" height="130" fill={white()}/>
@@ -802,171 +731,125 @@ export default function MarketingPage() {
             </g>
           </svg>
         </div>
-
-        {/* Bottom gradient fade into next section */}
-        <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" aria-hidden style={{ background:`linear-gradient(to bottom, transparent, ${alpha(colors.brand.DEFAULT, 0.6)})` }} />
-
-        {/* Mobile/tablet: centred text with the phones below. Desktop (lg+):
-            text on the left, lined up with the nav logo, and the product on
-            the right running out to the edge of the window, so it is visible
-            without scrolling. */}
-        <div className="max-w-4xl lg:max-w-5xl mx-auto px-6 sm:px-10 pt-20 sm:pt-32 lg:pt-14 xl:pt-16 min-[1600px]:pt-24 pb-0 relative text-center lg:text-left lg:grid lg:grid-cols-[minmax(0,430px)_minmax(0,1fr)] lg:gap-14 lg:items-center">
-          <div>
-          {/* Pill badge */}
-          <div style={{ animation:'pkIn 0.55s cubic-bezier(.16,1,.3,1) both' }}>
-            <div className="inline-flex items-center gap-2.5 bg-cream/6 border border-cream/10 rounded-full px-4 py-2 mb-10 lg:mb-7">
-              <div className="w-1.5 h-1.5 rounded-full bg-goodDark" style={{ animation:'pkPulse 2.4s ease-in-out infinite' }} />
-              <span className="text-caption font-semibold text-cream/70 tracking-[0.12em] uppercase">Always inspection-ready</span>
-            </div>
-          </div>
-          {/* Headline */}
-          <h1 className="text-[56px] sm:text-[80px] lg:text-[56px] xl:text-[64px] min-[1600px]:text-[76px] font-bold text-cream leading-[0.96] tracking-[-0.04em] mb-8 lg:mb-6" style={{ animation:'pkIn 0.75s 60ms cubic-bezier(.16,1,.3,1) both' }}>
-            Ditch the<br />clipboard,<br />
-            <span style={{ backgroundImage:`linear-gradient(180deg,${alpha(colors.cream, 0.92)} 0%,${alpha(colors.cream, 0.4)} 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>keep the compliance.</span>
+        <div className={`${WRAP} relative z-10 pt-32 sm:pt-40`}>
+          <h1 style={{ ...HUGE, fontSize: 'clamp(56px, 9.6vw, 156px)', animation: 'pkIn 0.9s cubic-bezier(.16,1,.3,1) both' }}>
+            Inspection-ready.<br />Always.
           </h1>
-          {/* Subtitle */}
-          <p className="text-cream/60 text-title-sm max-w-[480px] mx-auto lg:mx-0 leading-[1.7] mb-10 lg:mb-8" style={{ animation:'pkIn 0.75s 140ms cubic-bezier(.16,1,.3,1) both' }}>
-            One app for food safety records, rotas, timesheets and team management. EHO-ready from day one, on any device, for the whole team.
-          </p>
-          {/* CTAs */}
-          <div className="flex flex-wrap justify-center lg:justify-start items-center gap-4 mb-7 lg:mb-6" style={{ animation:'pkIn 0.65s 210ms cubic-bezier(.16,1,.3,1) both' }}>
-            <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-control text-body-lg font-semibold hover:brightness-95 hover:shadow-[0_10px_32px_theme(colors.accent/55%)] active:scale-[0.97] transition-all duration-200 cursor-pointer shadow-[0_4px_20px_theme(colors.accent/45%)]">
-              Start free for 7 days
-            </Link>
-            <a href="#compliance" className="flex items-center gap-2 text-cream/45 text-body-lg hover:text-cream/70 transition-colors duration-200 cursor-pointer">
-              See how it works
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </a>
-          </div>
-          {/* Trust badges */}
-          <div className="flex flex-wrap justify-center lg:justify-start gap-x-6 gap-y-2 mb-20 lg:mb-0" style={{ animation:'pkIn 0.6s 280ms cubic-bezier(.16,1,.3,1) both' }}>
-            {['No card required','Cancel any time','EU data hosting'].map(t=>(
-              <div key={t} className="flex items-center gap-2">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cream/35"><polyline points="20 6 9 17 4 12"/></svg>
-                <span className="text-body-sm text-cream/40">{t}</span>
-              </div>
-            ))}
-          </div>
-          </div>
-
-          {/* Desktop product shot: the web dashboard with the phone app over it.
-              Plain CSS animation (not FadeUp), so it shows on first paint. */}
-          <div className="pk-hero-visual hidden lg:block relative pl-8 pb-8 lg:mr-[calc(472px-50vw)] lg:pr-10" style={{ animation:'pkIn 0.8s 120ms cubic-bezier(.16,1,.3,1) both' }}>
-            <BrowserFrame>
-              <ScaledCanvas width={1280} height={800} label="The Pelikn manager dashboard on a computer: today's checks, overdue cleans, fridge temps and who is on shift">
-                <DesktopDashboardMock />
-              </ScaledCanvas>
-            </BrowserFrame>
-            <div className="absolute left-0 bottom-0 w-[24%] min-w-[124px] max-w-[190px]">
-              <ScaledCanvas width={300} height={600} clip={false} label="The Pelikn app on a phone">
-                <IPhoneFrame><MockMobileHome /></IPhoneFrame>
-              </ScaledCanvas>
+          <div className="mt-10 sm:mt-14 max-w-[460px]" style={{ animation: 'pkIn 0.9s 120ms cubic-bezier(.16,1,.3,1) both' }}>
+            <p className="text-title-sm sm:text-title text-cream/85 leading-[1.4] tracking-[-0.01em]">
+              Every temp, clean and allergen check on record as it happens, plus rotas and timesheets in the same app. So there's nothing to dig out when the EHO knocks.
+            </p>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-4 mt-9">
+              <Link to="/signup" className={`${PILL_LG} bg-cream text-charcoal hover:bg-paper`}>Start free for 7 days</Link>
+              <a href="#compliance" className="inline-flex items-center gap-2 text-body-lg font-medium text-cream/85 hover:text-cream transition-colors">See how it works <Arrow /></a>
             </div>
-          </div>
-
-          {/* Hero phones — staggered rise */}
-          <div className="flex justify-center gap-5 sm:gap-10 items-end lg:hidden">
-            <div className="hidden sm:block" style={{ transform:'translateY(48px)', animation:'pkRise 1s 350ms cubic-bezier(.16,1,.3,1) both' }}>
-              <IPhoneFrame><MockMobileHome /></IPhoneFrame>
-            </div>
-            <div style={{ animation:'pkRise 1s 420ms cubic-bezier(.16,1,.3,1) both' }}>
-              <IPhoneFrame><MockTeamHub /></IPhoneFrame>
-            </div>
+            <p className="text-body text-cream/70 mt-6">No card required · Cancel any time · EU data hosting</p>
           </div>
         </div>
-        <div className="h-24 sm:h-32 lg:h-20" />
+
+        {/* Phone rising from the bottom edge, cropped by the section */}
+        <div className="pk-rise relative lg:absolute lg:right-[3%] xl:right-[5%] lg:bottom-[-30%] mx-auto lg:mx-0 mt-14 lg:mt-0 w-[300px] sm:w-[360px] lg:w-[380px] xl:w-[420px] -mb-48 sm:-mb-56 lg:mb-0" style={{ animation: 'pkRise 1.2s 200ms cubic-bezier(.16,1,.3,1) both' }}>
+          <Phone><MockMobileHome /></Phone>
+          <Chip tone="good" className="pk-float hidden sm:inline-flex -left-10 lg:left-auto lg:right-[88%] top-[30%]"><Tick />Fridge A · 3.4°C · logged</Chip>
+          <Chip tone="paper" className="pk-float-b hidden sm:inline-flex -right-6 lg:right-[96%] top-[44%]"><span className="w-2 h-2 rounded-full bg-accent" />3 shift swaps to approve</Chip>
+          <Chip tone="dark" className="pk-float-c hidden sm:inline-flex -left-6 lg:left-auto lg:right-[90%] top-[58%]"><Tick />Allergens up to date</Chip>
+        </div>
       </section>
 
-      <ReplacesStrip />
-
-      {/* ── Compliance ───────────────────────────────────────────────────── */}
-      <section id="compliance" className="bg-white">
-        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-24 sm:py-36">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
-            <div>
-              <FadeUp>
-                <span className="inline-block text-micro tracking-[0.12em] uppercase text-brand font-semibold bg-brand/8 px-3.5 py-1.5 rounded-full mb-6">Food safety</span>
-                <h2 className="text-[40px] sm:text-[52px] lg:text-[56px] font-bold text-charcoal tracking-[-0.025em] leading-[1.05] mb-6">
-                  If the EHO walked<br />in today, would<br />you be ready?
-                </h2>
-                <p className="text-charcoal/55 text-title-sm leading-[1.75] mb-10 max-w-md">
-                  Every temp log, cleaning record, allergen check and delivery sign-off captured and stored. Export a full audit trail PDF in one tap, exactly how an inspector expects it.
-                </p>
-              </FadeUp>
-              <div className="flex flex-col gap-7">
-                {[
-                  { title:'Temperature logs',   desc:'Fridge, cooking, reheating and hot holding. Automatic pass/fail detection against your thresholds.' },
-                  { title:'Cleaning & opening checks', desc:'Cleaning rotas plus opening and closing checklists, assigned to staff. Live completion status at a glance.' },
-                  { title:'Allergen registry',   desc:"All 14 allergens across every dish on your menu. Natasha's Law compliant by design." },
-                  { title:'Audit-ready exports', desc:'One tap to a full compliance PDF. Timestamped, signed, formatted for inspection.' },
-                ].map(({ title, desc }, i) => (
-                  <FadeUp key={title} delay={i * 55}>
-                    <div className="flex gap-4 group cursor-default">
-                      <div className="w-0.5 rounded-full bg-brand/20 group-hover:bg-brand transition-colors duration-300 shrink-0 mt-1.5" style={{ minHeight:52 }}/>
-                      <div className="transition-transform duration-300 group-hover:translate-x-0.5">
-                        <p className="text-body-lg font-semibold text-charcoal mb-1.5">{title}</p>
-                        <p className="text-body-lg text-charcoal/55 leading-[1.7]">{desc}</p>
-                      </div>
-                    </div>
-                  </FadeUp>
-                ))}
+      {/* ── Statement + desktop ─────────────────────────────────────────── */}
+      <section className="bg-cream">
+        <div className={`${WRAP} pt-32 sm:pt-52 pb-20 sm:pb-32`}>
+          <ScrollWords
+            className="text-charcoal max-w-[1180px]"
+            style={MID}
+            text="Temp logs. Cleaning. Allergens. Rotas. Timesheets. Everything a venue has to keep on top of, in one app your whole team already knows how to use."
+          />
+        </div>
+        <div className={`${WRAP} pb-28 sm:pb-44`}>
+          <FadeUp>
+            <div className="relative lg:pl-24">
+              <BrowserFrame>
+                <ScaledCanvas width={1280} height={800} label="The Pelikn manager dashboard on a computer: today's checks, overdue cleans, fridge temps and who is on shift">
+                  <DesktopDashboardMock />
+                </ScaledCanvas>
+              </BrowserFrame>
+              <div className="hidden lg:block absolute left-0 bottom-[-6%] w-[190px] xl:w-[230px]">
+                <Phone><MockChecksHub /></Phone>
               </div>
-              <FadeUp delay={250}>
-                <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3.5 rounded-control text-body-lg font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_theme(colors.brand/25%)] hover:-translate-y-0.5 transition-all duration-200 mt-10 cursor-pointer">
-                  Start free trial
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                </Link>
-              </FadeUp>
             </div>
-            <FadeUp dir="right" delay={80} className="flex justify-center lg:justify-end">
-              <div className="flex flex-col items-center gap-10">
-                <div className="lg:hidden">
-                  <p className="text-micro tracking-[0.1em] uppercase text-charcoal/35 font-medium text-center mb-4">Staff view</p>
-                  <IPhoneFrame><MockMobileHome /></IPhoneFrame>
-                </div>
-                <div>
-                  <p className="text-micro tracking-[0.1em] uppercase text-charcoal/35 font-medium text-center mb-4">Checks hub</p>
-                  <IPhoneFrame><MockChecksHub /></IPhoneFrame>
-                </div>
+            <p className="text-body-lg text-charcoal/70 mt-8 lg:pl-[17rem] max-w-md">The manager dashboard in any browser. Staff use the same app on their own phones.</p>
+          </FadeUp>
+        </div>
+      </section>
+
+      {/* ── Food safety ──────────────────────────────────────────────────── */}
+      <section id="compliance" className="bg-paper">
+        <div className={`${WRAP} py-28 sm:py-36`}>
+          <div className="grid lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] gap-20 lg:gap-12 items-center">
+            <FadeUp>
+              <p className="font-mono text-micro tracking-[0.12em] uppercase text-brand mb-8">Food safety</p>
+              <h2 className="text-charcoal" style={BIG}>If the EHO walked in today, would you be ready?</h2>
+              <p className="text-charcoal/70 text-title-sm sm:text-title leading-[1.45] mt-10 max-w-lg">
+                Every temp log, cleaning record, allergen check and delivery sign-off captured and stored. One tap exports the audit trail, just how an inspector expects it.
+              </p>
+              <Link to="/signup" className={`${PILL_LG} bg-brand text-cream hover:bg-ink2 mt-10 gap-2`}>Start free trial <Arrow /></Link>
+            </FadeUp>
+            <FadeUp delay={100} className="flex justify-center lg:justify-end">
+              <div className="relative w-[300px] sm:w-[360px] lg:w-[380px]">
+                <Phone label="The Pelikn checks screen"><MockChecksHub /></Phone>
+                <Chip tone="good" className="pk-float -left-6 sm:-left-20 top-[18%]"><Tick />Cooking temps logged</Chip>
+                <Chip tone="paper" className="pk-float-b -right-4 sm:-right-14 top-[58%] border border-charcoal/10"><span className="w-2 h-2 rounded-full bg-accent" />2 cleans overdue</Chip>
               </div>
             </FadeUp>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 mt-28 sm:mt-40 border-t border-charcoal/15">
+            {[
+              { title:'Temperature logs', desc:'Fridge, cooking, reheating and hot holding. Pass or fail against your own thresholds.' },
+              { title:'Cleaning & opening', desc:'Cleaning rotas plus opening and closing checklists, assigned to staff, with live status.' },
+              { title:'Allergen registry', desc:"All 14 allergens across every dish on your menu. Natasha's Law compliant by design." },
+              { title:'Audit-ready exports', desc:'One tap to a full compliance PDF. Timestamped, signed, formatted for inspection.' },
+            ].map(({ title, desc }, i) => (
+              <FadeUp key={title} delay={i * 60}>
+                <div className="pt-8 pb-10 sm:pr-8 h-full">
+                  <p className="font-mono text-micro tracking-[0.12em] uppercase text-charcoal/65 mb-5">0{i + 1}</p>
+                  <p className="text-title font-medium tracking-[-0.025em] mb-3">{title}</p>
+                  <p className="text-body-lg text-charcoal/70 leading-[1.6]">{desc}</p>
+                </div>
+              </FadeUp>
+            ))}
           </div>
         </div>
       </section>
 
       {/* ── Team ─────────────────────────────────────────────────────────── */}
-      <section id="team" className="bg-charcoal">
-        <div className="max-w-5xl mx-auto px-6 sm:px-10 pt-24 sm:pt-36 pb-24 sm:pb-36">
-          {/* Heading */}
-          <FadeUp className="max-w-3xl mb-12 sm:mb-16">
-            <span className="inline-block text-micro tracking-[0.12em] uppercase text-accent font-semibold bg-accent/12 px-3.5 py-1.5 rounded-full mb-6">Team &amp; scheduling · Pro</span>
-            <h2 className="text-[40px] sm:text-[52px] lg:text-[60px] font-bold text-cream tracking-[-0.025em] leading-[1.05] mb-6">
-              Stop managing your<br />team over WhatsApp.
-            </h2>
-            <p className="text-cream/55 text-title-sm leading-[1.75] max-w-xl">
-              Build the rota in minutes, publish it, done. Timesheets write themselves. Swaps and time-off come through the app. You stop being the middleman.
+      <section id="team" className="bg-charcoal text-cream">
+        <div className={`${WRAP} py-28 sm:py-36`}>
+          <FadeUp>
+            <p className="font-mono text-micro tracking-[0.12em] uppercase text-cream/75 mb-8">Team &amp; scheduling · Pro</p>
+            <h2 style={BIG}>Stop running your<br />team on WhatsApp.</h2>
+            <p className="text-cream/80 text-title-sm sm:text-title leading-[1.45] mt-10 max-w-xl">
+              Build the rota in minutes, publish it, done. Timesheets write themselves. Swaps and time off come through the app, so you stop being the middleman.
             </p>
           </FadeUp>
-          {/* Rota — full width */}
-          <FadeUp dir="up" delay={60} className="mb-12 sm:mb-16">
+          <FadeUp delay={80} className="mt-16 sm:mt-24">
             <div className="overflow-x-auto -mx-6 px-6 sm:mx-0 sm:px-0 sm:overflow-visible">
-              <MockRota />
+              <div className="min-w-[640px]"><MockRota /></div>
             </div>
           </FadeUp>
-          {/* Features */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 mt-24 sm:mt-32 border-t border-cream/20">
             {[
-              { n:'Rota builder',  d:'Drag-and-drop or auto-fill from your patterns' },
-              { n:'Timesheets',    d:'Staff clock in/out on the app, exports to payroll' },
-              { n:'Time off',      d:'Requests, approvals and shift swaps all in-app' },
-              { n:'Training',      d:'Cert records and 30-day expiry alerts' },
-              { n:'Tips',          d:'Enter the pot, set the split. Full audit trail' },
-              { n:'Multi-venue',   d:'One login for every site you run' },
+              { n:'Rota builder',  d:'Drag and drop, or auto-fill from your patterns.' },
+              { n:'Timesheets',    d:'Staff clock in and out on the app. Exports to payroll.' },
+              { n:'Time off',      d:'Requests, approvals and shift swaps, all in the app.' },
+              { n:'Training',      d:'Certificate records with 30-day expiry alerts.' },
+              { n:'Tips',          d:'Enter the pot, set the split. Full audit trail.' },
+              { n:'Multi-venue',   d:'One login for every site you run.' },
             ].map(({ n, d }, i) => (
-              <FadeUp key={n} delay={i * 40}>
-                <div className="border border-cream/8 rounded-card p-5 hover:border-cream/18 hover:bg-cream/5 hover:-translate-y-0.5 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)] cursor-default">
-                  <p className="text-body-lg font-semibold text-cream mb-1.5">{n}</p>
-                  <p className="text-body-sm text-cream/50 leading-[1.65]">{d}</p>
+              <FadeUp key={n} delay={(i % 3) * 60}>
+                <div className="py-8 sm:pr-10 border-b border-cream/20 h-full">
+                  <p className="text-title font-medium tracking-[-0.025em] mb-2">{n}</p>
+                  <p className="text-body-lg text-cream/75 leading-[1.6]">{d}</p>
                 </div>
               </FadeUp>
             ))}
@@ -974,104 +857,77 @@ export default function MarketingPage() {
         </div>
       </section>
 
-      {/* ── Stats ────────────────────────────────────────────────────────── */}
-      <section className="bg-brand">
-        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-24 sm:py-28">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-0 lg:divide-x lg:divide-cream/12">
-            {[
-              { value:'An afternoon', sub:'From sign-up to your first check logged.', delay:0 },
-              { value:'One app',      sub:'Checks, rotas, timesheets, training and tips.', delay:80 },
-              { value:'Any device',   sub:'Phone, tablet and desktop. Staff use their own phones.', delay:160 },
-            ].map(({ value, sub, delay }) => (
-              <FadeUp key={value} delay={delay} className="lg:px-8 first:pl-0 last:pr-0">
-                <p className="text-[44px] lg:text-[40px] font-bold text-cream mb-3 tracking-[-0.03em] leading-none whitespace-nowrap">{value}</p>
-                <p className="text-body-lg text-cream/55 leading-[1.6] max-w-xs">{sub}</p>
-              </FadeUp>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Feature grid ─────────────────────────────────────────────────── */}
+      {/* ── Bento: more inside ───────────────────────────────────────────── */}
       <section className="bg-surface">
-        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-24 sm:py-36">
-          <FadeUp className="mb-14">
-            <h2 className="text-[40px] sm:text-[52px] font-bold text-charcoal tracking-[-0.025em] leading-[1.05] mb-3">There's a lot more inside.</h2>
-            <p className="text-charcoal/50 text-title-sm leading-[1.7] max-w-sm">A glimpse at what's waiting once you're in.</p>
+        <div className={`${WRAP} py-28 sm:py-36`}>
+          <FadeUp>
+            <h2 className="text-charcoal" style={BIG}>And a lot more<br />inside.</h2>
           </FadeUp>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid md:grid-cols-6 gap-4 sm:gap-5 mt-16 sm:mt-24">
             {[
-              { icon:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 3h6v4H9z M9 12h6 M9 16h4', title:'HACCP plan builder', desc:'Work through your plan step by step and finish with a HACCP summary PDF.' },
-              { icon:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M9 12l2 2 4-4', title:'Mock EHO inspection', desc:"Answer the questions an inspector asks and see where you'd lose marks." },
-              { icon:'M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 014-4h4a4 4 0 014 4v3c0 3.3-2.7 6-6 6z M12 20v-9 M9 7.13v-1a3 3 0 016 0v1 M6 13H2 M22 13h-4 M6.53 9C4.6 8.8 3 7.1 3 5 M21 5c0 2.1-1.6 3.8-3.5 4', title:'Pest control log', desc:'Inspections, sightings and treatments, each issue tracked until it\'s closed.' },
-              { icon:'M1 3h15v13H1z M16 8h4l3 3v5h-7z M5.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z M18.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z', title:'Deliveries & probes', desc:'Goods-in temperature and condition checks, plus probe calibration with pass/fail.' },
-              { icon:'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z M12 9v4 M12 17h.01', title:'Incident log', desc:'Record anything that happens. Timestamped, signed, searchable.' },
-              { icon:'M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z', title:'Document vault', desc:'Certificates, policies and insurance in one organised place.' },
-            ].map(({ icon, title, desc }, i) => (
-              <FadeUp key={title} delay={i * 30}>
-                <div className="bg-white rounded-card border border-charcoal/8 p-6 hover:border-brand/20 hover:shadow-[0_12px_40px_theme(colors.brand/9%)] hover:-translate-y-1.5 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)] h-full group cursor-default">
-                  <div className="w-10 h-10 rounded-control bg-brand/7 text-brand flex items-center justify-center mb-5 group-hover:bg-brand group-hover:text-cream transition-all duration-300">
-                    <Ico d={icon} size={18} />
+              { span:'md:col-span-4', bg:'bg-brand text-cream',     sub:'text-cream/80',    icon:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 3h6v4H9z M9 12h6 M9 16h4', title:'HACCP plan builder', desc:'Work through your plan step by step and finish with a HACCP summary PDF.' },
+              { span:'md:col-span-2', bg:'bg-paper text-charcoal',  sub:'text-charcoal/70', icon:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M9 12l2 2 4-4', title:'Mock EHO inspection', desc:"Answer the questions an inspector asks and see where you'd lose marks." },
+              { span:'md:col-span-2', bg:'bg-accent text-cream',    sub:'text-cream/85',    icon:'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z M12 9v4 M12 17h.01', title:'Incident log', desc:'Record anything that happens. Timestamped, signed, searchable.' },
+              { span:'md:col-span-4', bg:'bg-paper text-charcoal',  sub:'text-charcoal/70', icon:'M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 014-4h4a4 4 0 014 4v3c0 3.3-2.7 6-6 6z M12 20v-9 M9 7.13v-1a3 3 0 016 0v1 M6 13H2 M22 13h-4 M6.53 9C4.6 8.8 3 7.1 3 5 M21 5c0 2.1-1.6 3.8-3.5 4', title:'Pest control log', desc:"Inspections, sightings and treatments, each issue tracked until it's closed." },
+              { span:'md:col-span-3', bg:'bg-charcoal text-cream',  sub:'text-cream/80',    icon:'M1 3h15v13H1z M16 8h4l3 3v5h-7z M5.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z M18.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z', title:'Deliveries & probes', desc:'Goods-in temperature and condition checks, plus probe calibration.' },
+              { span:'md:col-span-3', bg:'bg-brand-soft text-brand',sub:'text-brand/80',    icon:'M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z', title:'Document vault', desc:'Certificates, policies and insurance in one organised place.' },
+            ].map(({ span, bg, sub, icon, title, desc }, i) => (
+              <FadeUp key={title} delay={(i % 3) * 60} className={span}>
+                <div className={`${bg} rounded-sheet p-8 sm:p-10 min-h-[320px] sm:min-h-[400px] h-full flex flex-col justify-between`}>
+                  <span className="w-14 h-14 rounded-full border border-current flex items-center justify-center opacity-70"><Ico d={icon} size={26} /></span>
+                  <div>
+                    <p className="font-medium" style={{ fontSize: 'clamp(28px, 3.2vw, 44px)', lineHeight: 1, letterSpacing: '-0.04em' }}>{title}</p>
+                    <p className={`text-body-lg sm:text-title-sm leading-[1.45] mt-4 max-w-sm ${sub}`}>{desc}</p>
                   </div>
-                  <p className="text-body-lg font-semibold text-charcoal mb-2">{title}</p>
-                  <p className="text-body text-charcoal/55 leading-[1.65]">{desc}</p>
                 </div>
               </FadeUp>
             ))}
           </div>
         </div>
       </section>
+
+      <Replaces />
 
       {/* ── How it works ─────────────────────────────────────────────────── */}
-      <section id="how-it-works" className="bg-white">
-        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-24 sm:py-36">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
-            <FadeUp>
-              <span className="inline-block text-micro tracking-[0.12em] uppercase text-brand font-semibold bg-brand/8 px-3.5 py-1.5 rounded-full mb-6">Setup</span>
-              <h2 className="text-[40px] sm:text-[52px] lg:text-[56px] font-bold text-charcoal tracking-[-0.025em] leading-[1.05] mb-6">Live this afternoon.</h2>
-              <p className="text-charcoal/55 text-title-sm leading-[1.75] mb-8 max-w-sm">
-                No IT department needed. Open Pelikn in your browser, add it to your home screen and it works like any other app. Offline included.
-              </p>
-              <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3.5 rounded-control text-body-lg font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_theme(colors.brand/25%)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
-                Get started free
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-              </Link>
-            </FadeUp>
-            <div className="flex flex-col gap-0">
-              {[
-                { n:'01', title:'Sign up', desc:'Create your account and set up your venue. Name, location, your first team members. About five minutes.' },
-                { n:'02', title:'Install on any device', desc:"Open get-pelikn.com in Safari or Chrome. Tap 'Add to Home Screen'. It lands on your home screen like any other app." },
-                { n:'03', title:'Invite your team', desc:"Send invite links. Staff install the app and they're ready to log checks, see their rota and clock in." },
-              ].map(({ n, title, desc }, i) => (
-                <FadeUp key={n} delay={i * 65}>
-                  <div className="flex gap-5 items-start pb-9 last:pb-0 relative group cursor-default">
-                    {i < 2 && <div className="absolute left-[20px] top-12 bottom-0 w-px bg-charcoal/8"/>}
-                    <div className="w-11 h-11 rounded-full border-2 border-charcoal/10 bg-white flex items-center justify-center shrink-0 z-10 transition-all duration-300 group-hover:border-brand/30 group-hover:shadow-[0_4px_14px_theme(colors.brand/12%)]">
-                      <span className="text-caption font-bold text-charcoal/30 tabular-nums group-hover:text-brand/60 transition-colors duration-300">{n}</span>
-                    </div>
-                    <div className="pt-2">
-                      <p className="text-title-sm font-semibold text-charcoal mb-2">{title}</p>
-                      <p className="text-body-lg text-charcoal/55 leading-[1.7]">{desc}</p>
-                    </div>
-                  </div>
-                </FadeUp>
-              ))}
-            </div>
+      <section id="how-it-works" className="bg-cream">
+        <div className={`${WRAP} py-28 sm:py-36`}>
+          <FadeUp>
+            <h2 className="text-charcoal" style={BIG}>Live this<br />afternoon.</h2>
+            <p className="text-charcoal/70 text-title-sm sm:text-title leading-[1.45] mt-10 max-w-lg">
+              No IT department needed. Open Pelikn in your browser, add it to your home screen and it works like any other app. Offline included.
+            </p>
+          </FadeUp>
+          <div className="grid lg:grid-cols-3 gap-12 lg:gap-10 mt-20 sm:mt-28">
+            {[
+              { n:'1', title:'Sign up', desc:'Create your account and set up your venue. Name, location, your first team members. About five minutes.' },
+              { n:'2', title:'Install on any device', desc:"Open get-pelikn.com in Safari or Chrome and tap 'Add to Home Screen'. It lands there like any other app." },
+              { n:'3', title:'Invite your team', desc:"Send invite links. Staff install the app and they're ready to log checks, see their rota and clock in." },
+            ].map(({ n, title, desc }, i) => (
+              <FadeUp key={n} delay={i * 80}>
+                <div className="border-t border-charcoal/20 pt-8">
+                  <p className="text-accent" style={{ fontSize: 'clamp(88px, 11vw, 168px)', lineHeight: 0.85, letterSpacing: '-0.06em', fontWeight: 500 }}>{n}</p>
+                  <p className="text-title sm:text-display font-medium tracking-[-0.03em] mt-8 mb-3">{title}</p>
+                  <p className="text-body-lg text-charcoal/70 leading-[1.6] max-w-sm">{desc}</p>
+                </div>
+              </FadeUp>
+            ))}
           </div>
+          <FadeUp delay={120}>
+            <Link to="/signup" className={`${PILL_LG} bg-brand text-cream hover:bg-ink2 mt-20 gap-2`}>Get started free <Arrow /></Link>
+          </FadeUp>
         </div>
       </section>
 
-      {/* ── Pricing ──────────────────────────────────────────────────────── */}
       <Pricing />
 
       {/* ── FAQ ──────────────────────────────────────────────────────────── */}
-      <section className="bg-white">
-        <div className="max-w-2xl mx-auto px-6 sm:px-10 py-24 sm:py-32">
+      <section className="bg-paper">
+        <div className={`${WRAP} py-28 sm:py-36 grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] gap-12 lg:gap-24`}>
           <FadeUp>
-            <h2 className="text-[36px] sm:text-[44px] font-bold text-charcoal tracking-[-0.02em] mb-10">Common questions</h2>
+            <h2 className="text-charcoal" style={BIG}>Common<br />questions.</h2>
           </FadeUp>
-          <FadeUp delay={50}>
-            <div className="border-t border-charcoal/8">
+          <FadeUp delay={60}>
+            <div className="border-t border-charcoal/12">
               {[
                 { q:'Is this on the App Store?', a:"Not yet. Today Pelikn runs in your browser. Add it to your home screen in about 30 seconds and it opens like any other app, even when the signal drops. iPhone and Android apps are on the way." },
                 { q:'Does it work on iPhone, iPad and Android?', a:"Yes, all of them. Install from Safari on iOS/iPadOS, or Chrome on Android. The manager dashboard works in any desktop browser with no install needed." },
@@ -1086,9 +942,9 @@ export default function MarketingPage() {
       </section>
 
       {/* ── Trusted by ───────────────────────────────────────────────────── */}
-      <section aria-label="Venues using Pelikn" className="bg-white border-t border-charcoal/8">
-        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-12 flex flex-col items-center gap-5">
-          <p className="text-caption font-semibold tracking-[0.18em] uppercase text-charcoal/60">Trusted by</p>
+      <section aria-label="Venues using Pelikn" className="bg-paper border-t border-charcoal/12">
+        <div className={`${WRAP} py-14 flex flex-col items-center gap-5`}>
+          <p className="font-mono text-micro tracking-[0.14em] uppercase text-charcoal/70">Trusted by</p>
           <span
             role="img"
             aria-label="Nomad"
@@ -1104,46 +960,30 @@ export default function MarketingPage() {
         </div>
       </section>
 
-      {/* ── Final CTA ────────────────────────────────────────────────────── */}
-      <section className="bg-brand relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none" aria-hidden style={{ backgroundImage:`radial-gradient(${white(0.06)} 1px, transparent 1px)`, backgroundSize:'28px 28px' }} />
-        <div className="absolute top-0 left-0 w-[600px] h-[600px] pointer-events-none" aria-hidden style={{ background:`radial-gradient(ellipse at top left, ${alpha(colors.accent, 0.14)} 0%, transparent 60%)` }} />
-        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] pointer-events-none" aria-hidden style={{ background:`radial-gradient(ellipse at bottom right, ${alpha(colors.brand.DEFAULT, 0.8)} 0%, transparent 70%)` }} />
-        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-28 sm:py-40 relative">
+      {/* ── Final CTA + footer ───────────────────────────────────────────── */}
+      <section className="bg-brand text-cream relative overflow-hidden">
+        <div className={`${WRAP} pt-32 sm:pt-52 pb-16 sm:pb-24 relative`}>
           <FadeUp>
-            <h2 className="text-[52px] sm:text-[68px] lg:text-[84px] font-bold text-cream tracking-[-0.035em] leading-[1.0] mb-6 max-w-2xl">
-              Ditch the clipboard.<br />Keep the compliance.
-            </h2>
-            <p className="text-cream/50 text-title-sm leading-[1.7] mb-10 max-w-xs">
-              7 days free. No card. Set up in an afternoon.
-            </p>
-            <div className="flex flex-col sm:flex-row items-start gap-4">
-              <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-control text-body-lg font-semibold hover:brightness-95 hover:shadow-[0_10px_36px_theme(colors.accent/55%)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 text-center cursor-pointer shadow-[0_4px_24px_theme(colors.accent/42%)]">
-                Start free trial
-              </Link>
-              <a href="mailto:hello@get-pelikn.com" className="border border-cream/14 text-cream/45 hover:text-cream/65 hover:border-cream/28 hover:-translate-y-0.5 px-8 py-4 rounded-control text-body-lg font-medium transition-all duration-200 text-center cursor-pointer">
-                Get in touch
-              </a>
+            <h2 style={{ ...HUGE, fontSize: 'clamp(52px, 10vw, 160px)' }}>Ditch the clipboard.<br />Keep the compliance.</h2>
+            <p className="text-title-sm sm:text-title text-cream/80 mt-10">7 days free. No card. Set up in an afternoon.</p>
+            <div className="flex flex-col sm:flex-row items-start gap-4 mt-10">
+              <Link to="/signup" className={`${PILL_LG} bg-cream text-charcoal hover:bg-paper`}>Start free trial</Link>
+              <a href="mailto:hello@get-pelikn.com" className={`${PILL_LG} border border-cream/30 text-cream hover:bg-cream/10`}>Get in touch</a>
             </div>
           </FadeUp>
+
+          <footer className="mt-32 sm:mt-48 pt-8 border-t border-cream/20 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <Logo variant="full" size="md" tone="onBrand" />
+            <div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-body-lg text-cream/80">
+              <a href="mailto:hello@get-pelikn.com" className="hover:text-cream transition-colors">hello@get-pelikn.com</a>
+              {[['Privacy','/privacy'],['Terms','/terms'],['Sign in','/login']].map(([l,h])=>(
+                <Link key={l} to={h} className="hover:text-cream transition-colors">{l}</Link>
+              ))}
+            </div>
+          </footer>
+          <p className="text-body text-cream/70 mt-8">© {new Date().getFullYear()} Pelikn · EU data hosting</p>
         </div>
       </section>
-
-      {/* ── Footer ───────────────────────────────────────────────────────── */}
-      <footer className="bg-white border-t border-charcoal/8">
-        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-7 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Logo variant="full" size="md" />
-          <a href="mailto:hello@get-pelikn.com" className="text-xs text-charcoal/30 hover:text-charcoal transition-colors">hello@get-pelikn.com</a>
-          <div className="flex items-center gap-6">
-            {[['Privacy','/privacy'],['Terms','/terms'],['Sign in','/login']].map(([l,h])=>(
-              <Link key={l} to={h} className="text-xs text-charcoal/30 hover:text-charcoal transition-colors cursor-pointer">{l}</Link>
-            ))}
-          </div>
-        </div>
-        <div className="border-t border-charcoal/5 py-3 text-center">
-          <p className="text-caption text-charcoal/16">© {new Date().getFullYear()} <span className="font-semibold tracking-[0.18em] uppercase">Pelikn</span> · EU data hosting</p>
-        </div>
-      </footer>
     </div>
   )
 }

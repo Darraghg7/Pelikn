@@ -12,6 +12,7 @@ import { staffListState } from '../lib/loginScreenState'
 import Avatar from '../components/ui/Avatar'
 import Button, { CloseButton } from '../components/ui/Button'
 import { radius } from '../lib/tokens'
+import { ownerPinPending } from '../lib/api/signup'
 
 // ── Device venue helpers ──────────────────────────────────────────────────────
 function readDeviceVenues() {
@@ -400,6 +401,15 @@ export default function LoginPage() {
   const { venueId, venueSlug, venueName } = useVenue()
   const { user: authUser, authLoading, signOutVenue } = useAuth()
   const navigate = useNavigate()
+
+  // An owner who signed up but never chose a PIN can't use the staff screen:
+  // send them to set one (migration 155).
+  useEffect(() => {
+    if (!authUser || !venueId || !venueSlug) return
+    let cancelled = false
+    ownerPinPending(venueId).then(p => { if (p && !cancelled) navigate(`/v/${venueSlug}/set-pin`, { replace: true }) })
+    return () => { cancelled = true }
+  }, [authUser, venueId, venueSlug, navigate])
 
   // Entrance animation
   const [ready, setReady] = useState(() => typeof window !== 'undefined' && window.__peliknSplashDone === true)
