@@ -2,7 +2,7 @@
 // Kept separate so they can be unit tested (src/lib/__tests__/storageBackup.test.js).
 
 export const DELETED_RETENTION_DAYS = 30   // deleted-in-app files stay in the backup this long
-export const MANIFEST_RETENTION_DAYS = 90  // dated manifests (the "snapshots") kept this long
+export const MANIFEST_RETENTION_DAYS = 30  // dated manifests (the "snapshots") kept this long
 export const MAX_DROP_FRACTION = 0.2       // refuse to run if >20% of files vanished overnight
 export const MIN_DROP_COUNT = 3            // ...and at least this many (tiny buckets move in big %)
 
