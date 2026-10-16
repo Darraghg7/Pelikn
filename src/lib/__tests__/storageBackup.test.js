@@ -105,7 +105,8 @@ describe('expiredManifestKeys', () => {
       'storage/manifests/manifest-2026-09-01.json.enc',
       'storage/manifests/manifest-latest.json.enc',
     ]
-    expect(expiredManifestKeys(keys, '2026-10-16')).toEqual([keys[0]])
+    expect(expiredManifestKeys(keys, '2026-10-16')).toEqual([keys[0], keys[1]])
+    expect(expiredManifestKeys(['storage/manifests/manifest-2026-10-01.json.enc'], '2026-10-16')).toEqual([])
   })
 })
 
