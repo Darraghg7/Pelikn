@@ -2,7 +2,7 @@ import React from 'react'
 import Logo from '../components/ui/Logo'
 import { Link } from 'react-router-dom'
 
-const EFFECTIVE_DATE = '5 October 2026'
+const EFFECTIVE_DATE = '16 October 2026'
 const CONTACT_EMAIL  = 'darraghguy@yahoo.com'
 const CONTROLLER     = 'Darragh Guy, trading as Pelikn'
 
@@ -262,6 +262,12 @@ export default function PrivacyPolicyPage() {
             within 30 days, and it is cleared from backups within 90 days, unless the law
             requires us to keep it.
           </p>
+          <p>
+            When you delete something in Pelikn, such as a record or an uploaded file, it is
+            removed from the app straight away. A copy can stay in our encrypted backups for up
+            to 31 days before it is permanently removed. We use backups only to recover from a
+            failure, and for nothing else.
+          </p>
         </Section>
 
         <Section id="rights" title="Your rights">
@@ -269,7 +275,7 @@ export default function PrivacyPolicyPage() {
           <ul className="list-disc pl-5 space-y-2">
             <li>Get a copy of the personal data held about you.</li>
             <li>Have inaccurate data corrected.</li>
-            <li>Have your data deleted, where there is no reason to keep it.</li>
+            <li>Have your data deleted, where there is no reason to keep it. Backup copies are removed within 31 days.</li>
             <li>Object to or limit how your data is used.</li>
             <li>Get your data in a format you can take elsewhere.</li>
           </ul>
