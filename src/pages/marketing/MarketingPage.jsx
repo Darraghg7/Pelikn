@@ -716,20 +716,10 @@ export default function MarketingPage() {
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="bg-brand text-cream relative overflow-hidden" style={{ minHeight: 'max(100svh, 780px)' }}>
-        {/* Logomark watermark, big enough to show around the phone */}
+        {/* Logomark watermark, big enough to show around the phone. Drawn by the
+            shared Logo so it is always the current brand artwork. */}
         <div className="absolute pointer-events-none select-none" aria-hidden="true" style={{ right:'-10%', top:'55%', transform:'translateY(-50%)', width:'min(900px, 110vw)', opacity:0.07 }}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="35 45 159 130" width="100%">
-            <defs>
-              <mask id="bowlCutHero">
-                <rect x="35" y="45" width="159" height="130" fill={white()}/>
-                <path d="M115.885 112.528L117.692 112.43L117.82 113.122C108.293 130.003 99.3165 168.774 72.1173 158.689C69.2664 157.636 66.767 155.524 64.4598 153.57C56.1221 143.529 55.4785 134.779 55.0114 122.257C74.4165 118.926 96.4877 114.885 115.885 112.528Z" fill={black()}/>
-              </mask>
-            </defs>
-            <g mask="url(#bowlCutHero)" fill={white()}>
-              <path d="M111.581 104.182C96.2532 104.543 80.9327 105.088 65.6202 105.829C60.5271 106.056 45.127 107.88 41.575 105.113C40.7355 102.743 40.8666 103.955 41.3785 101.335C43.6299 98.8182 47.2266 98.3284 50.4259 98.659C63.5708 100.006 131.793 91.8746 139.38 94.6178C143.225 99.2529 133.006 106.588 129.368 111.762C114.802 132.477 110.197 170.39 77.5307 168.731C49.3708 165.694 45.8813 136.75 46.7483 115.308C70.6601 112.405 93.878 108.474 117.612 105.315C116.161 104.28 113.504 104.335 111.581 104.182Z"/>
-              <path d="M148.644 51.1993C183.239 49.7481 187.978 90.0071 164.264 109.344C142.392 127.174 130.764 152.291 163.008 168.658L160.027 168.645C139.961 168.474 133.495 157.422 134.31 138.44C137.83 118.498 152.458 110.25 164.662 95.8485C177.496 80.4735 167.956 55.9997 146.305 60.1389C135.522 62.1963 128.977 74.4423 123.111 82.935C119.461 82.935 115.959 83.1248 112.322 83.3085C122.658 68.6928 129.24 54.0955 148.644 51.1993Z"/>
-            </g>
-          </svg>
+          <Logo variant="mark" tone="onBrand" className="w-full h-auto" />
         </div>
         <div className={`${WRAP} relative z-10 pt-32 sm:pt-40`}>
           <h1 style={{ ...HUGE, fontSize: 'clamp(56px, 9.6vw, 156px)', animation: 'pkIn 0.9s cubic-bezier(.16,1,.3,1) both' }}>
