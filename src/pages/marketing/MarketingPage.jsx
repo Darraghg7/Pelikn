@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import Logo from '../../components/ui/Logo'
+import Button from '../../components/ui/Button'
 import { Link } from 'react-router-dom'
 import {
   STARTER_PRICE, PRO_PRICE, EXTRA_VENUE_PRICE,
@@ -538,6 +539,149 @@ function MockRota() {
   )
 }
 
+/* ─── Glide to a section ────────────────────────────────────────────────────
+   Nav and hero links scroll the page with an eased glide, so people can see
+   they are moving down the same page rather than being sent somewhere else.
+   Longer trips take a little longer. Reduced-motion users jump straight there.
+   Grabbing the page (wheel, touch, keys) stops the glide.                   */
+const NAV_HEIGHT = 72
+const NAV_SECTIONS = ['compliance', 'team', 'pricing']
+// Every section from the first nav target to pricing, in page order, so the
+// nav lets go of "Team" once the reader scrolls on into the sections after it.
+const SECTION_ORDER = ['compliance', 'team', 'more', 'how-it-works', 'pricing']
+let glideFrame = 0
+
+function glideToSection(e, id) {
+  const el = document.getElementById(id)
+  if (!el) return // no such section: let the browser handle the link
+  e.preventDefault()
+  cancelAnimationFrame(glideFrame)
+
+  const from = window.scrollY
+  const to = Math.max(0, el.getBoundingClientRect().top + from - NAV_HEIGHT)
+  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  history.replaceState(null, '', `#${id}`)
+
+  const done = () => {
+    // Move keyboard and screen-reader position to the section too.
+    el.setAttribute('tabindex', '-1')
+    el.style.outline = 'none'
+    el.focus({ preventScroll: true })
+  }
+  if (reduced || Math.abs(to - from) < 4) { window.scrollTo(0, to); done(); return }
+
+  const duration = Math.min(1500, 650 + Math.abs(to - from) * 0.12)
+  const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+  const start = performance.now()
+  const stop = () => {
+    cancelAnimationFrame(glideFrame)
+    ;['wheel', 'touchstart', 'keydown'].forEach(ev => window.removeEventListener(ev, stop))
+  }
+  ;['wheel', 'touchstart', 'keydown'].forEach(ev => window.addEventListener(ev, stop, { passive: true, once: true }))
+
+  const step = now => {
+    const t = Math.min(1, (now - start) / duration)
+    window.scrollTo(0, from + (to - from) * ease(t))
+    if (t < 1) glideFrame = requestAnimationFrame(step)
+    else { stop(); done() }
+  }
+  glideFrame = requestAnimationFrame(step)
+}
+
+/* What is on the back of each "more inside" card. Every line describes what the
+   feature does in the app today (checked against the feature's own page), and
+   `plan` says which plan includes it (src/lib/plans.ts). */
+const MORE_INSIDE = {
+  'HACCP plan builder': {
+    plan: 'Pro', lead: 'Seven principles, one at a time.',
+    points: ['Hazard analysis and critical control points', 'Critical limits, and how you monitor them', 'Corrective actions and verification', 'Progress saved as you go', 'Finish with a HACCP summary PDF'],
+  },
+  'Mock EHO inspection': {
+    plan: 'Pro', lead: 'Five areas, scored like an inspector would.',
+    points: ['Food hygiene, temperature, cleaning, pest control and documentation', 'Answer yes, partial, no or not applicable', 'Get a percentage score and a rating', 'Each result is saved'],
+  },
+  'Incident log': {
+    plan: 'Pro', lead: 'Log it while it is fresh.',
+    points: ['Injury, near miss, illness, damage or other', 'Minor, moderate or serious', 'RIDDOR incidents flagged with the HSE reporting deadline', 'Close with a note, reopen, or export a PDF'],
+  },
+  'Pest control log': {
+    plan: 'Starter', lead: 'Every issue followed through.',
+    points: ['Inspections, sightings, treatments and follow-ups', 'A sighting opens an issue', 'Treatments and follow-ups link back to it until it is resolved'],
+  },
+  'Deliveries & probes': {
+    plan: 'Starter', lead: 'Check it in, prove the probe.',
+    points: ['Chilled 0 to 5°C and frozen -25 to -18°C checked on arrival', 'Ambient and dry goods logged without a temperature', 'Probe calibration in ice water or boiling water, to within 1°C by default', 'Every result recorded as pass or fail'],
+  },
+  'Document vault': {
+    plan: 'Starter', lead: 'Know what is about to lapse.',
+    points: ['Licences, insurance, health and safety, and EHO reports', 'Set an expiry date on any document', 'Warnings start 30 days before it expires', 'Search and filter by category'],
+  },
+}
+
+/* A card that turns over to show detail. Clicking anywhere on it flips it, and
+   each face also carries a real Button, so keyboards and screen readers get a
+   proper control (and the face that is turned away is skipped by both). */
+function FlipCard({ bg, sub, icon, title, desc }) {
+  const [flipped, setFlipped] = useState(false)
+  const facts = MORE_INSIDE[title]
+  if (!facts) return null
+  const dark = bg.includes('text-cream')
+  const variant = dark ? 'inverse-secondary' : 'secondary'
+  const flip = e => { e.stopPropagation(); setFlipped(f => !f) }
+  const face = 'col-start-1 row-start-1 rounded-sheet p-8 sm:p-10 min-h-[320px] sm:min-h-[460px] flex flex-col'
+  const hide = { backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }
+  return (
+    <div style={{ perspective: 1600 }} className="h-full">
+      <div
+        onClick={() => setFlipped(f => !f)}
+        className="grid h-full cursor-pointer transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] motion-reduce:duration-0"
+        style={{ transformStyle: 'preserve-3d', transform: flipped ? 'rotateY(180deg)' : 'none' }}
+      >
+        {/* Front */}
+        <div aria-hidden={flipped} className={`${bg} ${face} justify-between`} style={hide}>
+          <div className="flex items-start justify-between gap-4">
+            <span className="w-14 h-14 rounded-full border border-current flex items-center justify-center opacity-70"><Ico d={icon} size={26} /></span>
+            <Button
+              pill size="sm" variant={variant} onClick={flip}
+              tabIndex={flipped ? -1 : 0}
+              aria-expanded={flipped}
+              aria-label={`${title}: show details`}
+              trailingIcon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>}
+            >Details</Button>
+          </div>
+          <div>
+            <p className="font-medium" style={{ fontSize: 'clamp(28px, 3.2vw, 44px)', lineHeight: 1, letterSpacing: '-0.04em' }}>{title}</p>
+            <p className={`text-body-lg sm:text-title-sm leading-[1.45] mt-4 max-w-sm ${sub}`}>{desc}</p>
+          </div>
+        </div>
+
+        {/* Back */}
+        <div aria-hidden={!flipped} className={`${bg} ${face}`} style={{ ...hide, transform: 'rotateY(180deg)' }}>
+          <div className="flex items-center justify-between gap-4">
+            <span className="font-mono text-micro tracking-[0.12em] uppercase opacity-80">{facts.plan} plan</span>
+            <Button
+              pill size="sm" variant={variant} onClick={flip}
+              tabIndex={flipped ? 0 : -1}
+              aria-expanded={flipped}
+              aria-label={`${title}: back to summary`}
+              leadingIcon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>}
+            >Back</Button>
+          </div>
+          <p className="font-medium mt-8" style={{ fontSize: 'clamp(24px, 2.4vw, 34px)', lineHeight: 1.05, letterSpacing: '-0.035em' }}>{facts.lead}</p>
+          <ul className="mt-6 flex flex-col">
+            {facts.points.map(pt => (
+              <li key={pt} className="flex items-start gap-3 border-t border-current/20 py-3 text-body-lg leading-[1.4]">
+                <span className="mt-1 shrink-0 opacity-80"><Tick /></span>
+                {pt}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ─── Shared bits ───────────────────────────────────────────────────────── */
 const Arrow = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -610,7 +754,7 @@ function Pricing() {
         </FadeUp>
         <FadeUp delay={60}>
           <div className="inline-flex items-center bg-paper rounded-full p-1.5 gap-1 mt-12 mb-12">
-            {[['Monthly',false],['Annual',true]].map(([label,val])=>(
+            {[{ label: 'Monthly', val: false }, { label: 'Annual', val: true }].map(({ label, val })=>(
               <button key={label} onClick={()=>setAnnual(val)} className={`text-body-lg font-medium px-6 py-3 rounded-full transition-all cursor-pointer flex items-center gap-2 ${annual===val?'bg-charcoal text-cream':'text-charcoal/65 hover:text-charcoal'}`}>
                 {label}
                 {label==='Annual' && <span className={`text-micro font-semibold px-2 py-0.5 rounded-full ${annual?'bg-cream/20 text-cream':'bg-accentBg text-accent'}`}>2 months free</span>}
@@ -685,14 +829,31 @@ function Pricing() {
 export default function MarketingPage() {
   useForceLight()
   const [scrolled, setScrolled] = useState(false)
+  const [active, setActive] = useState('')
   useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 24)
+    const h = () => {
+      setScrolled(window.scrollY > 24)
+      // The section the reader is in: the last one whose top has passed the
+      // upper third of the screen. Empty above the first section.
+      const line = NAV_HEIGHT + window.innerHeight * 0.3
+      let current = ''
+      for (const id of SECTION_ORDER) {
+        const el = document.getElementById(id)
+        if (el && el.getBoundingClientRect().top <= line) current = id
+      }
+      if (!NAV_SECTIONS.includes(current)) current = ''
+      // Past the end of pricing (FAQ onwards) nothing in the nav applies.
+      const pricing = document.getElementById('pricing')
+      if (current === 'pricing' && pricing && pricing.getBoundingClientRect().bottom < line) current = ''
+      setActive(current)
+    }
     h()
     window.addEventListener('scroll', h, { passive: true })
     return () => window.removeEventListener('scroll', h)
   }, [])
 
   const navLink = scrolled ? 'text-charcoal/75 hover:text-charcoal' : 'text-cream/85 hover:text-cream'
+  const navActive = scrolled ? 'bg-charcoal/8 text-charcoal' : 'bg-cream/15 text-cream'
 
   return (
     <div className="min-h-dvh font-sans text-charcoal bg-paper overflow-x-hidden">
@@ -704,7 +865,13 @@ export default function MarketingPage() {
           <Link to="/" aria-label="Pelikn home"><Logo variant="full" size="md" tone={scrolled ? 'auto' : 'onBrand'} /></Link>
           <nav className="hidden md:flex items-center gap-1" aria-label="Sections">
             {[['Food safety','#compliance'],['Team','#team'],['Pricing','#pricing']].map(([l,h])=>(
-              <a key={l} href={h} className={`text-body-lg font-medium px-4 py-2 rounded-full transition-colors duration-200 ${navLink}`}>{l}</a>
+              <a
+                key={l}
+                href={h}
+                onClick={e => glideToSection(e, h.slice(1))}
+                aria-current={active === h.slice(1) ? 'location' : undefined}
+                className={`text-body-lg font-medium px-4 py-2 rounded-full transition-colors duration-200 ${active === h.slice(1) ? navActive : navLink}`}
+              >{l}</a>
             ))}
           </nav>
           <div className="flex items-center gap-2">
@@ -731,7 +898,7 @@ export default function MarketingPage() {
             </p>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-4 mt-9">
               <Link to="/signup" className={`${PILL_LG} bg-cream text-charcoal hover:bg-paper`}>Start free for 7 days</Link>
-              <a href="#compliance" className="inline-flex items-center gap-2 text-body-lg font-medium text-cream/85 hover:text-cream transition-colors">See how it works <Arrow /></a>
+              <a href="#compliance" onClick={e => glideToSection(e, 'compliance')} className="inline-flex items-center gap-2 text-body-lg font-medium text-cream/85 hover:text-cream transition-colors">See how it works <Arrow /></a>
             </div>
             <p className="text-body text-cream/70 mt-6">No card required · Cancel any time · EU data hosting</p>
           </div>
@@ -848,7 +1015,7 @@ export default function MarketingPage() {
       </section>
 
       {/* ── Bento: more inside ───────────────────────────────────────────── */}
-      <section className="bg-surface">
+      <section id="more" className="bg-surface">
         <div className={`${WRAP} py-28 sm:py-36`}>
           <FadeUp>
             <h2 className="text-charcoal" style={BIG}>And a lot more<br />inside.</h2>
@@ -863,13 +1030,7 @@ export default function MarketingPage() {
               { span:'md:col-span-3', bg:'bg-brand-soft text-brand',sub:'text-brand/80',    icon:'M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z', title:'Document vault', desc:'Certificates, policies and insurance in one organised place.' },
             ].map(({ span, bg, sub, icon, title, desc }, i) => (
               <FadeUp key={title} delay={(i % 3) * 60} className={span}>
-                <div className={`${bg} rounded-sheet p-8 sm:p-10 min-h-[320px] sm:min-h-[400px] h-full flex flex-col justify-between`}>
-                  <span className="w-14 h-14 rounded-full border border-current flex items-center justify-center opacity-70"><Ico d={icon} size={26} /></span>
-                  <div>
-                    <p className="font-medium" style={{ fontSize: 'clamp(28px, 3.2vw, 44px)', lineHeight: 1, letterSpacing: '-0.04em' }}>{title}</p>
-                    <p className={`text-body-lg sm:text-title-sm leading-[1.45] mt-4 max-w-sm ${sub}`}>{desc}</p>
-                  </div>
-                </div>
+                <FlipCard bg={bg} sub={sub} icon={icon} title={title} desc={desc} />
               </FadeUp>
             ))}
           </div>
