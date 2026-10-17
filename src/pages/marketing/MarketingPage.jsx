@@ -538,6 +538,52 @@ function MockRota() {
   )
 }
 
+/* ─── Glide to a section ────────────────────────────────────────────────────
+   Nav and hero links scroll the page with an eased glide, so people can see
+   they are moving down the same page rather than being sent somewhere else.
+   Longer trips take a little longer. Reduced-motion users jump straight there.
+   Grabbing the page (wheel, touch, keys) stops the glide.                   */
+const NAV_HEIGHT = 72
+const NAV_SECTIONS = ['compliance', 'team', 'pricing']
+let glideFrame = 0
+
+function glideToSection(e, id) {
+  const el = document.getElementById(id)
+  if (!el) return // no such section: let the browser handle the link
+  e.preventDefault()
+  cancelAnimationFrame(glideFrame)
+
+  const from = window.scrollY
+  const to = Math.max(0, el.getBoundingClientRect().top + from - NAV_HEIGHT)
+  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  history.replaceState(null, '', `#${id}`)
+
+  const done = () => {
+    // Move keyboard and screen-reader position to the section too.
+    el.setAttribute('tabindex', '-1')
+    el.style.outline = 'none'
+    el.focus({ preventScroll: true })
+  }
+  if (reduced || Math.abs(to - from) < 4) { window.scrollTo(0, to); done(); return }
+
+  const duration = Math.min(1500, 650 + Math.abs(to - from) * 0.12)
+  const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+  const start = performance.now()
+  const stop = () => {
+    cancelAnimationFrame(glideFrame)
+    ;['wheel', 'touchstart', 'keydown'].forEach(ev => window.removeEventListener(ev, stop))
+  }
+  ;['wheel', 'touchstart', 'keydown'].forEach(ev => window.addEventListener(ev, stop, { passive: true, once: true }))
+
+  const step = now => {
+    const t = Math.min(1, (now - start) / duration)
+    window.scrollTo(0, from + (to - from) * ease(t))
+    if (t < 1) glideFrame = requestAnimationFrame(step)
+    else { stop(); done() }
+  }
+  glideFrame = requestAnimationFrame(step)
+}
+
 /* ─── Shared bits ───────────────────────────────────────────────────────── */
 const Arrow = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -685,14 +731,30 @@ function Pricing() {
 export default function MarketingPage() {
   useForceLight()
   const [scrolled, setScrolled] = useState(false)
+  const [active, setActive] = useState('')
   useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 24)
+    const h = () => {
+      setScrolled(window.scrollY > 24)
+      // The section the reader is in: the last one whose top has passed the
+      // upper third of the screen. Empty above the first section.
+      const line = NAV_HEIGHT + window.innerHeight * 0.3
+      let current = ''
+      for (const id of NAV_SECTIONS) {
+        const el = document.getElementById(id)
+        if (el && el.getBoundingClientRect().top <= line) current = id
+      }
+      // Past the end of pricing (FAQ onwards) nothing in the nav applies.
+      const pricing = document.getElementById('pricing')
+      if (current === 'pricing' && pricing && pricing.getBoundingClientRect().bottom < line) current = ''
+      setActive(current)
+    }
     h()
     window.addEventListener('scroll', h, { passive: true })
     return () => window.removeEventListener('scroll', h)
   }, [])
 
   const navLink = scrolled ? 'text-charcoal/75 hover:text-charcoal' : 'text-cream/85 hover:text-cream'
+  const navActive = scrolled ? 'bg-charcoal/8 text-charcoal' : 'bg-cream/15 text-cream'
 
   return (
     <div className="min-h-dvh font-sans text-charcoal bg-paper overflow-x-hidden">
@@ -704,7 +766,13 @@ export default function MarketingPage() {
           <Link to="/" aria-label="Pelikn home"><Logo variant="full" size="md" tone={scrolled ? 'auto' : 'onBrand'} /></Link>
           <nav className="hidden md:flex items-center gap-1" aria-label="Sections">
             {[['Food safety','#compliance'],['Team','#team'],['Pricing','#pricing']].map(([l,h])=>(
-              <a key={l} href={h} className={`text-body-lg font-medium px-4 py-2 rounded-full transition-colors duration-200 ${navLink}`}>{l}</a>
+              <a
+                key={l}
+                href={h}
+                onClick={e => glideToSection(e, h.slice(1))}
+                aria-current={active === h.slice(1) ? 'location' : undefined}
+                className={`text-body-lg font-medium px-4 py-2 rounded-full transition-colors duration-200 ${active === h.slice(1) ? navActive : navLink}`}
+              >{l}</a>
             ))}
           </nav>
           <div className="flex items-center gap-2">
@@ -731,7 +799,7 @@ export default function MarketingPage() {
             </p>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-4 mt-9">
               <Link to="/signup" className={`${PILL_LG} bg-cream text-charcoal hover:bg-paper`}>Start free for 7 days</Link>
-              <a href="#compliance" className="inline-flex items-center gap-2 text-body-lg font-medium text-cream/85 hover:text-cream transition-colors">See how it works <Arrow /></a>
+              <a href="#compliance" onClick={e => glideToSection(e, 'compliance')} className="inline-flex items-center gap-2 text-body-lg font-medium text-cream/85 hover:text-cream transition-colors">See how it works <Arrow /></a>
             </div>
             <p className="text-body text-cream/70 mt-6">No card required · Cancel any time · EU data hosting</p>
           </div>
