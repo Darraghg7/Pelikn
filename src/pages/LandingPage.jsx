@@ -2,7 +2,11 @@ import React, { useState, useEffect, useLayoutEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
+import { Capacitor } from '@capacitor/core'
 import Logo, { LogoLoader } from '../components/ui/Logo'
+import Button from '../components/ui/Button'
+import useForceLight from '../hooks/useForceLight'
+import { HEADLINE, LABEL, INPUT } from './signup/styles'
 
 export const LAST_VENUE_KEY = 'pelikn_last_venue'
 
@@ -60,6 +64,109 @@ function FieldIcon({ type }) {
       <rect width="18" height="11" x="3" y="11" rx="2" />
       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
     </svg>
+  )
+}
+
+/** The installed iOS/Android apps open on this screen, so it keeps the dark
+ *  glass look that matches the native launch screen. On the web it matches
+ *  the marketing and signup pages instead. */
+function isNativeApp() {
+  return Capacitor.isNativePlatform() ||
+    window.location.protocol === 'capacitor:' ||
+    window.Capacitor?.isNativePlatform?.() === true
+}
+
+function WebLogin({
+  view, setView, email, setEmail, password, setPassword, error, setError, notice, setNotice,
+  loading, onSubmit, onForgot, pendingVenues, onPickVenue,
+  joinCode, setJoinCode, joinError, setJoinError, joinLoading, onJoin, onOpenSignIn, onOpenJoin, onSignUp,
+}) {
+  useForceLight()
+  const title = view === 'picker' ? 'Select a venue.' : view === 'join' ? 'Join your venue.' : 'Sign in.'
+  return (
+    <div className="min-h-dvh bg-cream font-sans text-charcoal">
+      <div className="max-w-[1100px] mx-auto px-6 sm:px-10 h-[72px] flex items-center justify-between">
+        <a href="/" aria-label="Pelikn home" className="hover:opacity-80 transition-opacity"><Logo variant="full" size="md" /></a>
+        <Button variant="secondary" pill size="sm" onClick={onSignUp}>Sign up</Button>
+      </div>
+
+      <div className="max-w-[1100px] mx-auto px-6 sm:px-10 pt-10 pb-20 sm:pt-16">
+        <h1 className="text-charcoal mb-12" style={HEADLINE}>{title}</h1>
+
+        {view === 'picker' && pendingVenues ? (
+          <div className="flex flex-col gap-3 max-w-xl">
+            <p className="text-title-sm text-charcoal/75 mb-3">Your account has {pendingVenues.length} venues. Choose one to continue.</p>
+            {pendingVenues.map(v => (
+              <Button key={v.id} variant="secondary" size="lg" className="!h-auto !justify-between !px-6 !py-5 !rounded-sheet text-left" onClick={() => onPickVenue(v.slug)}>
+                <span className="text-title font-medium tracking-[-0.025em]">{v.name}</span>
+                <span className="text-body text-charcoal/70 font-normal">get-pelikn.com/v/{v.slug}</span>
+              </Button>
+            ))}
+          </div>
+        ) : view === 'join' ? (
+          <form onSubmit={onJoin} className="flex flex-col gap-6 max-w-xl">
+            <div>
+              <label htmlFor="join-code" className={LABEL}>Venue code</label>
+              <input
+                id="join-code"
+                type="text"
+                autoComplete="off"
+                autoCapitalize="characters"
+                maxLength={6}
+                value={joinCode}
+                onChange={e => { setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')); setJoinError('') }}
+                placeholder="Venue code"
+                className={`${INPUT} font-mono tracking-[0.2em] placeholder:tracking-normal placeholder:font-sans`}
+              />
+            </div>
+            {joinError && <div role="alert" className="bg-badBg border border-bad/25 rounded-control px-5 py-4"><p className="text-bad text-body-lg">{joinError}</p></div>}
+            <div className="flex flex-wrap gap-3">
+              <Button pill size="lg" type="submit" loading={joinLoading} disabled={joinCode.length < 4} className="px-8">{joinLoading ? 'Looking up…' : 'Continue'}</Button>
+              <Button pill size="lg" variant="secondary" onClick={onOpenSignIn} className="px-8">Sign in instead</Button>
+            </div>
+          </form>
+        ) : (
+          <form onSubmit={onSubmit} className="flex flex-col gap-6 max-w-xl">
+            <div className="flex flex-col gap-3">
+              <input
+                type="email"
+                required
+                autoComplete="email"
+                aria-label="Email"
+                value={email}
+                onChange={e => { setEmail(e.target.value); setError(''); setNotice('') }}
+                placeholder="Email"
+                className={INPUT}
+              />
+              <input
+                type="password"
+                required
+                autoComplete="current-password"
+                aria-label="Password"
+                value={password}
+                onChange={e => { setPassword(e.target.value); setError(''); setNotice('') }}
+                placeholder="Password"
+                className={INPUT}
+              />
+              <div className="px-1">
+                <Button variant="link" size="sm" onClick={onForgot}>Forgot password?</Button>
+              </div>
+            </div>
+            {error && <div role="alert" className="bg-badBg border border-bad/25 rounded-control px-5 py-4"><p className="text-bad text-body-lg">{error}</p></div>}
+            {notice && <div role="status" className="bg-goodBg border border-good/25 rounded-control px-5 py-4"><p className="text-good text-body-lg">{notice}</p></div>}
+            <Button pill size="lg" fullWidth type="submit" loading={loading} disabled={!email.trim() || !password}>{loading ? 'Signing in...' : 'Sign in'}</Button>
+            <div className="flex items-center gap-4 text-body-sm text-charcoal/70" aria-hidden="true">
+              <span className="h-px flex-1 bg-charcoal/15" />or<span className="h-px flex-1 bg-charcoal/15" />
+            </div>
+            <Button pill size="lg" fullWidth variant="secondary" onClick={onOpenJoin}>Join with venue code</Button>
+          </form>
+        )}
+
+        <p className="text-body-lg text-charcoal/75 mt-10">
+          Don't have an account? <Button variant="link" onClick={onSignUp}>Sign up</Button>
+        </p>
+      </div>
+    </div>
   )
 }
 
@@ -177,6 +284,21 @@ export default function LandingPage() {
       <div className="min-h-dvh bg-brand flex items-center justify-center">
         <LogoLoader tone="onBrand" />
       </div>
+    )
+  }
+
+  if (!isNativeApp()) {
+    return (
+      <WebLogin
+        view={view} setView={setView}
+        email={email} setEmail={setEmail} password={password} setPassword={setPassword}
+        error={error} setError={setError} notice={notice} setNotice={setNotice}
+        loading={loading} onSubmit={handleSubmit} onForgot={handleForgotPassword}
+        pendingVenues={pendingVenues} onPickVenue={handlePickVenue}
+        joinCode={joinCode} setJoinCode={setJoinCode} joinError={joinError} setJoinError={setJoinError}
+        joinLoading={joinLoading} onJoin={handleJoin} onOpenSignIn={openSignIn} onOpenJoin={openJoin}
+        onSignUp={() => navigate('/signup')}
+      />
     )
   }
 
