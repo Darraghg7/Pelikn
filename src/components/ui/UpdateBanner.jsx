@@ -1,5 +1,24 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
+import { Capacitor } from '@capacitor/core'
 import Button from './Button'
+
+// Public pages (the marketing page, privacy, terms) hold no work that an update
+// could lose, so on the web they update quietly instead of showing the banner:
+// a waiting update is applied as soon as the page has just loaded and not been
+// touched, or otherwise the moment the visitor switches away from the tab. The
+// signed-in app keeps the banner, because swapping the files under an open
+// session is what once crashed tabs and lost unsaved forms (see src/sw.js).
+const PUBLIC_PATHS = ['/', '/privacy', '/terms']
+const FRESH_PAGE_MS = 10000
+
+function isQuietUpdatePage(pathname) {
+  if (!PUBLIC_PATHS.includes(pathname)) return false
+  if (Capacitor.isNativePlatform()) return false
+  // An installed app (home-screen icon) is an app, not a visitor.
+  if (window.navigator.standalone === true || window.matchMedia?.('(display-mode: standalone)').matches) return false
+  return true
+}
 
 /** Detects a waiting service worker and offers a one-tap update. */
 // After this long still waiting on activation, say so — a slow/dropped
@@ -7,7 +26,7 @@ import Button from './Button'
 // below), and silence past this point reads as broken rather than working.
 const SLOW_APPLY_MS = 5000
 
-function useUpdateReady() {
+function useUpdateReady(quiet) {
   const [waitingSW, setWaitingSW] = useState(null)
   const [applying, setApplying] = useState(false)
   const [applySlow, setApplySlow] = useState(false)
@@ -81,7 +100,22 @@ function useUpdateReady() {
     // does the work whenever the browser is actually ready for it.
   }
 
-  return { updateReady: !!waitingSW, applying, applySlow, applyUpdate }
+  // Public pages: apply a waiting update without asking. Straight away if the
+  // page has only just loaded and has not been scrolled, so a returning visitor
+  // is not left on a stale copy; otherwise when they switch away from the tab.
+  useEffect(() => {
+    if (!quiet || !waitingSW) return undefined
+    const apply = () => waitingSW.postMessage({ type: 'SKIP_WAITING' })
+    if (document.visibilityState === 'visible' && window.scrollY < 50 && performance.now() < FRESH_PAGE_MS) {
+      apply()
+      return undefined
+    }
+    const onHide = () => { if (document.visibilityState === 'hidden') apply() }
+    document.addEventListener('visibilitychange', onHide)
+    return () => document.removeEventListener('visibilitychange', onHide)
+  }, [quiet, waitingSW])
+
+  return { updateReady: !!waitingSW && !quiet, applying, applySlow, applyUpdate }
 }
 
 /**
@@ -94,7 +128,8 @@ function useUpdateReady() {
 const SNOOZE_MS = 3 * 60 * 1000
 
 export default function UpdateBanner() {
-  const { updateReady, applying, applySlow, applyUpdate } = useUpdateReady()
+  const { pathname } = useLocation()
+  const { updateReady, applying, applySlow, applyUpdate } = useUpdateReady(isQuietUpdatePage(pathname))
   const [dismissed, setDismissed] = useState(false)
 
   // Bring the banner back after the snooze window so it keeps reminding the
