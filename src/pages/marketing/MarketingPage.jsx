@@ -18,9 +18,16 @@ import { colors, alpha, white, black, radius } from '../../lib/tokens'
    Big, light, tightly-tracked headlines carry the whole page (the scale is
    deliberately outside the app's type scale: this is the one public page).
    Sizes are fluid so the same line works on a phone and a 27" screen.      */
-const HUGE = { fontSize: 'clamp(54px, 11vw, 176px)', lineHeight: 0.9, letterSpacing: '-0.055em', fontWeight: 500 }
-const BIG  = { fontSize: 'clamp(40px, 7vw, 112px)',  lineHeight: 0.95, letterSpacing: '-0.05em',  fontWeight: 500 }
-const MID  = { fontSize: 'clamp(32px, 4.6vw, 72px)', lineHeight: 1,    letterSpacing: '-0.045em', fontWeight: 500 }
+/* Fluid type that keeps growing on big monitors. `vw` is the usual scaling and
+   `cap` the size it stopped at on a laptop; the column (--wrap) then carries it
+   on, so headlines grow with the layout instead of freezing at the laptop size.
+   Up to a ~1,950px-wide screen (where --wrap is still 1400px) this is the same
+   as the old clamp(min, vw, cap). */
+const fluid = (min, vw, cap) => `clamp(${min}px, min(${vw}vw, calc(var(--wrap) * ${(cap / 1400).toFixed(4)})), ${Math.round(cap * 2.2)}px)`
+
+const HUGE = { fontSize: fluid(54, 11, 176), lineHeight: 0.9, letterSpacing: '-0.055em', fontWeight: 500 }
+const BIG  = { fontSize: fluid(40, 7, 112),  lineHeight: 0.95, letterSpacing: '-0.05em',  fontWeight: 500 }
+const MID  = { fontSize: fluid(32, 4.6, 72), lineHeight: 1,    letterSpacing: '-0.045em', fontWeight: 500 }
 
 const PILL = 'inline-flex items-center justify-center rounded-full font-medium transition-all duration-200 active:scale-[0.97] cursor-pointer whitespace-nowrap'
 const PILL_LG = `${PILL} text-body-lg px-8 py-4`
@@ -29,6 +36,46 @@ const PILL_LG = `${PILL} text-body-lg px-8 py-4`
 function GlobalCSS() {
   return (
     <style>{`
+      /* ── Big monitors ───────────────────────────────────────────────────
+         The content column grows with the screen (1,400px on a laptop, up to
+         2,300px), and the text sizes step up with it, so the page does not turn
+         into a small column in a sea of colour. The drawn product pictures
+         (.pk-mock) are scaled by their own frames and are left alone. */
+      .pk-root { --wrap: clamp(1400px, 72vw, 2300px); }
+      /* The hero phone lines up with the right edge of the content column. */
+      @media (min-width: 1024px) {
+        .pk-hero-phone { right: max(3%, calc((100% - var(--wrap)) / 2 + 2.5rem)); }
+      }
+      @media (min-width: 1800px) {
+        .pk-root .text-micro:not(.pk-mock *)    { font-size: 13px; line-height: 19px; }
+        .pk-root .text-caption:not(.pk-mock *)  { font-size: 14px; line-height: 21px; }
+        .pk-root .text-body-sm:not(.pk-mock *)  { font-size: 15px; line-height: 23px; }
+        .pk-root .text-body:not(.pk-mock *)     { font-size: 17px; line-height: 25px; }
+        .pk-root .text-body-lg:not(.pk-mock *)  { font-size: 18px; line-height: 27px; }
+        .pk-root .text-title-sm:not(.pk-mock *) { font-size: 21px; line-height: 30px; }
+        .pk-root .text-title:not(.pk-mock *)    { font-size: 27px; line-height: 34px; }
+        .pk-root .text-display:not(.pk-mock *)  { font-size: 34px; line-height: 40px; }
+      }
+      @media (min-width: 2400px) {
+        .pk-root .text-micro:not(.pk-mock *)    { font-size: 15px; line-height: 22px; }
+        .pk-root .text-caption:not(.pk-mock *)  { font-size: 16px; line-height: 24px; }
+        .pk-root .text-body-sm:not(.pk-mock *)  { font-size: 18px; line-height: 27px; }
+        .pk-root .text-body:not(.pk-mock *)     { font-size: 20px; line-height: 29px; }
+        .pk-root .text-body-lg:not(.pk-mock *)  { font-size: 22px; line-height: 32px; }
+        .pk-root .text-title-sm:not(.pk-mock *) { font-size: 25px; line-height: 36px; }
+        .pk-root .text-title:not(.pk-mock *)    { font-size: 32px; line-height: 40px; }
+        .pk-root .text-display:not(.pk-mock *)  { font-size: 40px; line-height: 48px; }
+      }
+      @media (min-width: 3000px) {
+        .pk-root .text-micro:not(.pk-mock *)    { font-size: 17px; line-height: 25px; }
+        .pk-root .text-caption:not(.pk-mock *)  { font-size: 19px; line-height: 28px; }
+        .pk-root .text-body-sm:not(.pk-mock *)  { font-size: 21px; line-height: 31px; }
+        .pk-root .text-body:not(.pk-mock *)     { font-size: 23px; line-height: 33px; }
+        .pk-root .text-body-lg:not(.pk-mock *)  { font-size: 25px; line-height: 36px; }
+        .pk-root .text-title-sm:not(.pk-mock *) { font-size: 29px; line-height: 41px; }
+        .pk-root .text-title:not(.pk-mock *)    { font-size: 37px; line-height: 46px; }
+        .pk-root .text-display:not(.pk-mock *)  { font-size: 46px; line-height: 54px; }
+      }
       @keyframes pkIn {
         from { opacity:0; transform:translateY(24px); }
         to   { opacity:1; transform:translateY(0); }
@@ -116,7 +163,7 @@ function IPhoneFrame({ children }) {
   return (
     <div
       aria-hidden="true"
-      className="relative shrink-0"
+      className="pk-mock relative shrink-0"
       style={{ width:300, background:colors.charcoal, borderRadius:52, padding:14, boxShadow:`0 50px 100px ${black(0.35)}, inset 0 0 0 1.5px ${white(0.13)}` }}
     >
       <div style={{ position:'absolute', right:-3, top:100, width:3, height:34, background:colors.ink2, borderRadius:'0 3px 3px 0' }}/>
@@ -471,7 +518,7 @@ function MockRota() {
     { n:'Dan',    r:'FOH',     cost:'—',        shifts:[null, null, null, { t:'TIME OFF', c:'off' }, { t:'TIME OFF', c:'off' }, { t:'TIME OFF', c:'off' }, null] },
   ]
   return (
-    <div aria-hidden="true" className="bg-white rounded-card overflow-hidden shadow-[0_32px_80px_theme(colors.black/22%)] ring-1 ring-charcoal/8">
+    <div aria-hidden="true" className="pk-mock bg-white rounded-card overflow-hidden shadow-[0_32px_80px_theme(colors.black/22%)] ring-1 ring-charcoal/8">
       {/* Header */}
       <div className="bg-surface border-b border-charcoal/8 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -628,7 +675,7 @@ function FlipCard({ bg, sub, icon, title, desc }) {
   const dark = bg.includes('text-cream')
   const variant = dark ? 'inverse-secondary' : 'secondary'
   const flip = e => { e.stopPropagation(); setFlipped(f => !f) }
-  const face = 'col-start-1 row-start-1 rounded-sheet p-8 sm:p-10 min-h-[320px] sm:min-h-[460px] flex flex-col'
+  const face = 'col-start-1 row-start-1 rounded-sheet p-8 sm:p-10 min-h-[320px] sm:min-h-[460px] min-[1800px]:min-h-[560px] min-[2400px]:min-h-[680px] flex flex-col'
   const hide = { backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }
   return (
     <div style={{ perspective: 1600 }} className="h-full">
@@ -650,7 +697,7 @@ function FlipCard({ bg, sub, icon, title, desc }) {
             >Details</Button>
           </div>
           <div>
-            <p className="font-medium" style={{ fontSize: 'clamp(28px, 3.2vw, 44px)', lineHeight: 1, letterSpacing: '-0.04em' }}>{title}</p>
+            <p className="font-medium" style={{ fontSize: fluid(28, 3.2, 44), lineHeight: 1, letterSpacing: '-0.04em' }}>{title}</p>
             <p className={`text-body-lg sm:text-title-sm leading-[1.45] mt-4 max-w-sm ${sub}`}>{desc}</p>
           </div>
         </div>
@@ -667,7 +714,7 @@ function FlipCard({ bg, sub, icon, title, desc }) {
               leadingIcon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>}
             >Back</Button>
           </div>
-          <p className="font-medium mt-8" style={{ fontSize: 'clamp(24px, 2.4vw, 34px)', lineHeight: 1.05, letterSpacing: '-0.035em' }}>{facts.lead}</p>
+          <p className="font-medium mt-8" style={{ fontSize: fluid(24, 2.4, 34), lineHeight: 1.05, letterSpacing: '-0.035em' }}>{facts.lead}</p>
           <ul className="mt-6 flex flex-col">
             {facts.points.map(pt => (
               <li key={pt} className="flex items-start gap-3 border-t border-current/20 py-3 text-body-lg leading-[1.4]">
@@ -687,10 +734,10 @@ const Arrow = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
 )
 
-const WRAP = 'max-w-[1400px] mx-auto px-6 sm:px-10'
+const WRAP = 'max-w-[var(--wrap)] mx-auto px-6 sm:px-10'
 
 /* ─── "Replaces" marquee ────────────────────────────────────────────────── */
-const REPLACED_TOOLS = ['Rota spreadsheets','WhatsApp groups','Paper temp logs','Training folders','Tip calculators','Compliance binders','Shift-swap texts','Clocking-in sheets']
+const REPLACED_TOOLS = ['Rota spreadsheets','Rota group chats','Paper temp logs','Training folders','Tip calculators','Compliance binders','Shift-swap texts','Clocking-in sheets']
 
 // Things Pelikn replaces, not features: struck through, never ticked. The
 // second pass only exists for the seamless loop, so screen readers skip it.
@@ -707,7 +754,7 @@ function Replaces() {
             aria-hidden={pass === 1 ? 'true' : undefined}
           >
             {REPLACED_TOOLS.map(item => (
-              <li key={item} className="flex items-center" style={{ ...BIG, fontSize: 'clamp(48px, 8vw, 128px)' }}>
+              <li key={item} className="flex items-center" style={{ ...BIG, fontSize: fluid(48, 8, 128) }}>
                 <span className="line-through decoration-[0.06em]">{item}</span>
                 <span className="mx-[0.45em] opacity-60" aria-hidden="true">·</span>
               </li>
@@ -769,7 +816,7 @@ function Pricing() {
                 <div className="bg-brand text-cream rounded-sheet p-8 sm:p-12 flex flex-col h-full">
                   <p className="font-mono text-micro tracking-[0.12em] uppercase text-cream/80 mb-8">{PLAN_DETAILS.pro.name}</p>
                   <div className="flex items-baseline gap-2 mb-2">
-                    <span style={{ fontSize: 'clamp(64px, 8vw, 112px)', lineHeight: 0.9, letterSpacing: '-0.055em', fontWeight: 500 }}>{pp}</span>
+                    <span style={{ fontSize: fluid(64, 8, 112), lineHeight: 0.9, letterSpacing: '-0.055em', fontWeight: 500 }}>{pp}</span>
                     <span className="text-cream/75 text-title-sm">{sfx}</span>
                   </div>
                   <p className="text-body-lg text-cream/75">{PLAN_DETAILS.pro.venueNote} · {ep}{sfx} each extra</p>
@@ -797,7 +844,7 @@ function Pricing() {
                 <div className="bg-paper text-charcoal rounded-sheet p-8 sm:p-12 flex flex-col h-full">
                   <p className="font-mono text-micro tracking-[0.12em] uppercase text-charcoal/70 mb-8">{PLAN_DETAILS.starter.name}</p>
                   <div className="flex items-baseline gap-2 mb-2">
-                    <span style={{ fontSize: 'clamp(64px, 8vw, 112px)', lineHeight: 0.9, letterSpacing: '-0.055em', fontWeight: 500 }}>{sp}</span>
+                    <span style={{ fontSize: fluid(64, 8, 112), lineHeight: 0.9, letterSpacing: '-0.055em', fontWeight: 500 }}>{sp}</span>
                     <span className="text-charcoal/65 text-title-sm">{sfx}</span>
                   </div>
                   <p className="text-body-lg text-charcoal/70">{PLAN_DETAILS.starter.venueNote}</p>
@@ -856,7 +903,7 @@ export default function MarketingPage() {
   const navActive = scrolled ? 'bg-charcoal/8 text-charcoal' : 'bg-cream/15 text-cream'
 
   return (
-    <div className="min-h-dvh font-sans text-charcoal bg-paper overflow-x-hidden">
+    <div className="pk-root min-h-dvh font-sans text-charcoal bg-paper overflow-x-hidden">
       <GlobalCSS />
 
       {/* ── Nav ─────────────────────────────────────────────────────────── */}
@@ -885,11 +932,11 @@ export default function MarketingPage() {
       <section className="bg-brand text-cream relative overflow-hidden" style={{ minHeight: 'max(100svh, 780px)' }}>
         {/* Logomark watermark, big enough to show around the phone. Drawn by the
             shared Logo so it is always the current brand artwork. */}
-        <div className="absolute pointer-events-none select-none" aria-hidden="true" style={{ right:'-10%', top:'55%', transform:'translateY(-50%)', width:'min(900px, 110vw)', opacity:0.07 }}>
+        <div className="absolute pointer-events-none select-none" aria-hidden="true" style={{ right:'-10%', top:'55%', transform:'translateY(-50%)', width:'clamp(900px, 46vw, 1700px)', opacity:0.07 }}>
           <Logo variant="mark" tone="onBrand" className="w-full h-auto" />
         </div>
         <div className={`${WRAP} relative z-10 pt-32 sm:pt-40`}>
-          <h1 style={{ ...HUGE, fontSize: 'clamp(56px, 9.6vw, 156px)', animation: 'pkIn 0.9s cubic-bezier(.16,1,.3,1) both' }}>
+          <h1 style={{ ...HUGE, fontSize: fluid(56, 9.6, 156), animation: 'pkIn 0.9s cubic-bezier(.16,1,.3,1) both' }}>
             Inspection-ready.<br />Always.
           </h1>
           <div className="mt-10 sm:mt-14 max-w-[460px]" style={{ animation: 'pkIn 0.9s 120ms cubic-bezier(.16,1,.3,1) both' }}>
@@ -905,7 +952,7 @@ export default function MarketingPage() {
         </div>
 
         {/* Phone rising from the bottom edge, cropped by the section */}
-        <div className="pk-rise relative lg:absolute lg:right-[3%] xl:right-[5%] lg:bottom-[-30%] mx-auto lg:mx-0 mt-14 lg:mt-0 w-[300px] sm:w-[360px] lg:w-[380px] xl:w-[420px] -mb-48 sm:-mb-56 lg:mb-0" style={{ animation: 'pkRise 1.2s 200ms cubic-bezier(.16,1,.3,1) both' }}>
+        <div className="pk-rise pk-hero-phone relative lg:absolute lg:bottom-[-30%] mx-auto lg:mx-0 mt-14 lg:mt-0 w-[300px] sm:w-[360px] lg:w-[380px] xl:w-[420px] min-[1800px]:w-[500px] min-[2400px]:w-[620px] min-[3000px]:w-[740px] -mb-48 sm:-mb-56 lg:mb-0" style={{ animation: 'pkRise 1.2s 200ms cubic-bezier(.16,1,.3,1) both' }}>
           <Phone><MockMobileHome /></Phone>
           <Chip tone="good" className="pk-float hidden sm:inline-flex -left-10 lg:left-auto lg:right-[88%] top-[30%]"><Tick />Fridge A · 3.4°C · logged</Chip>
           <Chip tone="paper" className="pk-float-b hidden sm:inline-flex -right-6 lg:right-[96%] top-[44%]"><span className="w-2 h-2 rounded-full bg-accent" />3 shift swaps to approve</Chip>
@@ -927,10 +974,10 @@ export default function MarketingPage() {
             <div className="relative lg:pl-24">
               <BrowserFrame>
                 <ScaledCanvas width={1280} height={800} label="The Pelikn manager dashboard on a computer: today's checks, overdue cleans, fridge temps and who is on shift">
-                  <DesktopDashboardMock />
+                  <div className="pk-mock"><DesktopDashboardMock /></div>
                 </ScaledCanvas>
               </BrowserFrame>
-              <div className="hidden lg:block absolute left-0 bottom-[-6%] w-[190px] xl:w-[230px]">
+              <div className="hidden lg:block absolute left-0 bottom-[-6%] w-[190px] xl:w-[230px] min-[1800px]:w-[300px] min-[2400px]:w-[380px]">
                 <Phone><MockChecksHub /></Phone>
               </div>
             </div>
@@ -952,7 +999,7 @@ export default function MarketingPage() {
               <Link to="/signup" className={`${PILL_LG} bg-brand text-cream hover:bg-ink2 mt-10 gap-2`}>Start free trial <Arrow /></Link>
             </FadeUp>
             <FadeUp delay={100} className="flex justify-center lg:justify-end">
-              <div className="relative w-[300px] sm:w-[360px] lg:w-[380px]">
+              <div className="relative w-[300px] sm:w-[360px] lg:w-[380px] min-[1800px]:w-[480px] min-[2400px]:w-[580px] min-[3000px]:w-[700px]">
                 <Phone label="The Pelikn checks screen"><MockChecksHub /></Phone>
                 <Chip tone="good" className="pk-float -left-6 sm:-left-20 top-[18%]"><Tick />Cooking temps logged</Chip>
                 <Chip tone="paper" className="pk-float-b -right-4 sm:-right-14 top-[58%] border border-charcoal/10"><span className="w-2 h-2 rounded-full bg-accent" />2 cleans overdue</Chip>
@@ -984,7 +1031,7 @@ export default function MarketingPage() {
         <div className={`${WRAP} py-28 sm:py-36`}>
           <FadeUp>
             <p className="font-mono text-micro tracking-[0.12em] uppercase text-cream/75 mb-8">Team &amp; scheduling · Pro</p>
-            <h2 style={BIG}>Stop running your<br />team on WhatsApp.</h2>
+            <h2 style={BIG}>Rotas, swaps and<br className="hidden sm:block" /> timesheets, without<br className="hidden sm:block" /> the chasing.</h2>
             <p className="text-cream/80 text-title-sm sm:text-title leading-[1.45] mt-10 max-w-xl">
               Build the rota in minutes, publish it, done. Timesheets write themselves. Swaps and time off come through the app, so you stop being the middleman.
             </p>
@@ -1056,7 +1103,7 @@ export default function MarketingPage() {
             ].map(({ n, title, desc }, i) => (
               <FadeUp key={n} delay={i * 80}>
                 <div className="border-t border-charcoal/20 pt-8">
-                  <p className="text-accent" style={{ fontSize: 'clamp(88px, 11vw, 168px)', lineHeight: 0.85, letterSpacing: '-0.06em', fontWeight: 500 }}>{n}</p>
+                  <p className="text-accent" style={{ fontSize: fluid(88, 11, 168), lineHeight: 0.85, letterSpacing: '-0.06em', fontWeight: 500 }}>{n}</p>
                   <p className="text-title sm:text-display font-medium tracking-[-0.03em] mt-8 mb-3">{title}</p>
                   <p className="text-body-lg text-charcoal/70 leading-[1.6] max-w-sm">{desc}</p>
                 </div>
@@ -1115,7 +1162,7 @@ export default function MarketingPage() {
       <section className="bg-brand text-cream relative overflow-hidden">
         <div className={`${WRAP} pt-32 sm:pt-52 pb-16 sm:pb-24 relative`}>
           <FadeUp>
-            <h2 style={{ ...HUGE, fontSize: 'clamp(52px, 10vw, 160px)' }}>Ditch the clipboard.<br />Keep the compliance.</h2>
+            <h2 style={{ ...HUGE, fontSize: fluid(52, 10, 160) }}>Ditch the clipboard.<br />Keep the compliance.</h2>
             <p className="text-title-sm sm:text-title text-cream/80 mt-10">7 days free. No card. Set up in an afternoon.</p>
             <div className="flex flex-col sm:flex-row items-start gap-4 mt-10">
               <Link to="/signup" className={`${PILL_LG} bg-cream text-charcoal hover:bg-paper`}>Start free trial</Link>
