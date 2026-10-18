@@ -737,7 +737,7 @@ const Arrow = () => (
 const WRAP = 'max-w-[var(--wrap)] mx-auto px-6 sm:px-10'
 
 /* ─── "Replaces" marquee ────────────────────────────────────────────────── */
-const REPLACED_TOOLS = ['Rota spreadsheets','WhatsApp groups','Paper temp logs','Training folders','Tip calculators','Compliance binders','Shift-swap texts','Clocking-in sheets']
+const REPLACED_TOOLS = ['Rota spreadsheets','Rota group chats','Paper temp logs','Training folders','Tip calculators','Compliance binders','Shift-swap texts','Clocking-in sheets']
 
 // Things Pelikn replaces, not features: struck through, never ticked. The
 // second pass only exists for the seamless loop, so screen readers skip it.
@@ -1031,7 +1031,7 @@ export default function MarketingPage() {
         <div className={`${WRAP} py-28 sm:py-36`}>
           <FadeUp>
             <p className="font-mono text-micro tracking-[0.12em] uppercase text-cream/75 mb-8">Team &amp; scheduling · Pro</p>
-            <h2 style={BIG}>Stop running your<br />team on WhatsApp.</h2>
+            <h2 style={BIG}>Rotas, swaps and<br className="hidden sm:block" /> timesheets, without<br className="hidden sm:block" /> the chasing.</h2>
             <p className="text-cream/80 text-title-sm sm:text-title leading-[1.45] mt-10 max-w-xl">
               Build the rota in minutes, publish it, done. Timesheets write themselves. Swaps and time off come through the app, so you stop being the middleman.
             </p>
