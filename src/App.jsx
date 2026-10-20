@@ -6,6 +6,7 @@ import { Capacitor } from '@capacitor/core'
 
 import { isConfigured }        from './lib/supabase'
 import { onDataWrite }         from './lib/cacheBus'
+import { shouldRefresh, tablesWritten } from './lib/writeRefresh'
 import { reportQueryError }    from './lib/queryErrors'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { SessionProvider, useSession } from './contexts/SessionContext'
@@ -547,12 +548,19 @@ const queryClient = new QueryClient({
 // only what's on screen. Same rule as the bootstrap cache in lib/api/bootstrap.
 // Debounced so a burst of writes (a delivery + its items) is one refresh.
 // Unchanged data keeps its identity (structural sharing), so forms don't reset.
+// Which queries a write touches is declared in lib/writeRefresh: queries it
+// lists refresh only when a table they read changed; everything else (and any
+// write we can't place) refreshes as before.
 let writeRefreshTimer = null
-onDataWrite(() => {
+const pendingWrites = new Set()
+onDataWrite((table) => {
+  pendingWrites.add(table)
   if (writeRefreshTimer) return
   writeRefreshTimer = setTimeout(() => {
     writeRefreshTimer = null
-    queryClient.invalidateQueries()
+    const written = tablesWritten(pendingWrites)
+    pendingWrites.clear()
+    queryClient.invalidateQueries({ predicate: (q) => shouldRefresh(q, written) })
   }, 250)
 })
 

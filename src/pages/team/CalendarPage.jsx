@@ -3,6 +3,7 @@ import useManagerCalendar from '../../hooks/useManagerCalendar'
 import { useToast } from '../../components/ui/Toast'
 import Avatar from '../../components/ui/Avatar'
 import Button from '../../components/ui/Button'
+import { SkeletonList } from '../../components/ui/Skeleton'
 import { colors, black, white } from '../../lib/tokens'
 
 const DAYS_SHORT = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
@@ -761,7 +762,7 @@ export default function CalendarPage() {
             </Button>
           </div>
           {isLoading
-            ? <div className="h-40 flex items-center justify-center text-charcoal/30 dark:text-white/30 font-mono text-micro">Loading…</div>
+            ? <SkeletonList rows={4} className="h-40 justify-center" />
             : <MonthGrid year={year} month={month} dayMap={dayMap} selectedDate={selectedDate} onSelectDate={goDay} />
           }
         </div>

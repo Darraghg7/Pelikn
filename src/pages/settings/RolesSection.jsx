@@ -4,6 +4,7 @@ import { useVenueRoles, useStaffRoleAssignments } from '../../hooks/useVenueRole
 import { useDepartments, useStaffDepartments } from '../../hooks/useDepartments'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import Button from '../../components/ui/Button'
+import { SkeletonList } from '../../components/ui/Skeleton'
 import { colors } from '../../lib/tokens'
 
 /* ── Departments: where people work ─────────────────────────────────────────── */
@@ -148,7 +149,7 @@ export default function RolesSection() {
     if (error) toast(error.message, 'error')
   }
 
-  if (loading) return <div className="py-4 text-center text-sm text-charcoal/30 dark:text-white/30">Loading…</div>
+  if (loading) return <SkeletonList rows={3} className="py-4" />
 
   return (
     <div className="flex flex-col gap-4">

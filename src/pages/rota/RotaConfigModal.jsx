@@ -6,6 +6,7 @@ import { useVenueRoles } from '../../hooks/useVenueRoles'
 import { useRotaRequirements, DAY_NAMES, DAY_SHORT } from '../../hooks/useRotaRequirements'
 import { useToast } from '../../components/ui/Toast'
 import Button from '../../components/ui/Button'
+import { SkeletonList } from '../../components/ui/Skeleton'
 
 function SectionLabel({ children }) {
   return <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">{children}</p>
@@ -227,7 +228,7 @@ export default function RotaConfigModal({ open, onClose, closedDayIndices = [] }
           </div>
 
           {loading ? (
-            <p className="text-sm text-charcoal/30 dark:text-white/30 italic py-4 text-center">Loading…</p>
+            <SkeletonList rows={3} className="py-4" />
           ) : (
             <>
               {/* Existing slots */}

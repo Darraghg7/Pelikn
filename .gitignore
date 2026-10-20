@@ -13,3 +13,4 @@ supabase/.temp
 playwright-report/
 test-results/
 tests/auth/*.json
+scripts/loadtest/sessions.json
