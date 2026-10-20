@@ -11,6 +11,7 @@ import Skeleton from '../ui/Skeleton'
 import StaffAlertModal from './StaffAlertModal'
 import { useClockAlerts } from '../../hooks/useClockAlerts'
 import { useClosingCheckoutGuard } from '../../hooks/useClosingCheckoutGuard'
+import { useClockGate } from '../../hooks/useClockGate'
 import ClosingChecklistGateModal from './ClosingChecklistGateModal'
 import Button from '../ui/Button'
 
@@ -73,6 +74,7 @@ export default function ClockPanel({ staffId, compact = false }) {
   const { status, clockInAt, breakStartAt, totalBreakMs, loading, isError, reload, setStatus } = useClockStatus(staffId)
   const notSent = useQueuedClockEvent(staffId)
   const inFlightRef = useRef(false)
+  const { gate, checking, notice } = useClockGate()
 
   // Late clock-in / break-overrun alerts live in a shared hook so that every
   // clock surface behaves identically — see useClockAlerts. Ending a break from
@@ -95,6 +97,16 @@ export default function ClockPanel({ staffId, compact = false }) {
     // Captured before the RPC so a slow round trip can't make a punctual
     // clock-in look late.
     const at = new Date()
+
+    // The venue's location / tablet rules (157). Before the optimistic update
+    // so a refused punch never flashes as accepted.
+    const allowed = await gate(eventType)
+    if (!allowed.ok) {
+      inFlightRef.current = false
+      toast(allowed.message, 'error')
+      return
+    }
+
     const before = { status, clockInAt, breakStartAt, totalBreakMs }
     const after  = nextClockStatus(eventType, before, at)
 
@@ -112,6 +124,8 @@ export default function ClockPanel({ staffId, compact = false }) {
         // The tap time, so a punch held on the device (no signal) still lands
         // at the moment it happened, not when it finally gets through (144).
         p_occurred_at: at.toISOString(),
+        // Position or tablet secret, when the venue asks for one (157).
+        ...allowed.args,
       })
     } catch (err) {
       result = { error: err }
@@ -133,7 +147,7 @@ export default function ClockPanel({ staffId, compact = false }) {
     await setStatus(after)
     reload()
     await onClockEvent(eventType, { queued, at })
-  }, [staffId, venueId, toast, status, clockInAt, breakStartAt, totalBreakMs, reload, setStatus, onClockEvent])
+  }, [staffId, venueId, toast, gate, status, clockInAt, breakStartAt, totalBreakMs, reload, setStatus, onClockEvent])
 
   recordRef.current = record
 
@@ -232,6 +246,18 @@ export default function ClockPanel({ staffId, compact = false }) {
           >
             End Break
           </Button>
+        )}
+
+        {checking && (
+          <p role="status" className={`text-caption font-medium ${compact ? 'text-white/80' : 'text-charcoal/60 dark:text-white/50'}`}>
+            Checking your location…
+          </p>
+        )}
+
+        {notice && status !== 'on_break' && (
+          <p role="status" className={`text-caption font-medium ${compact ? 'text-white/80' : 'text-warning'}`}>
+            {notice}
+          </p>
         )}
 
         {notSent && (

@@ -2,10 +2,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useState, useCallback } from 'react'
 import { render, screen, fireEvent, act } from '@testing-library/react'
 
-const { mockRpc, mockToast } = vi.hoisted(() => ({ mockRpc: vi.fn(), mockToast: vi.fn() }))
+const { mockRpc, mockToast, mockGate, gateState } = vi.hoisted(() => ({
+  mockRpc: vi.fn(), mockToast: vi.fn(), mockGate: vi.fn(), gateState: { notice: null },
+}))
 
 vi.mock('../../../lib/offlineSupabase', () => ({ offlineRpc: mockRpc }))
 vi.mock('../../../contexts/VenueContext', () => ({ useVenue: () => ({ venueId: 'v1' }) }))
+vi.mock('../../../hooks/useClockGate', () => ({
+  useClockGate: () => ({ gate: mockGate, checking: false, notice: gateState.notice }),
+}))
 vi.mock('../../ui/Toast', () => ({ useToast: () => mockToast }))
 vi.mock('../../../hooks/useClockAlerts', () => ({
   useClockAlerts: () => ({ onClockEvent: async () => {}, alertModalProps: { open: false } }),
@@ -40,7 +45,11 @@ function slowRpc() {
   return (result) => act(async () => { resolve(result) })
 }
 
-beforeEach(() => { vi.clearAllMocks(); localStorage.clear() })
+beforeEach(() => {
+  vi.clearAllMocks(); localStorage.clear()
+  gateState.notice = null
+  mockGate.mockResolvedValue({ ok: true, args: {} })
+})
 
 describe('ClockPanel taps', () => {
   it('shows the new state on the tap, before the server answers', async () => {
@@ -103,5 +112,35 @@ describe('ClockPanel taps', () => {
     enqueueRpc('record_clock_event', { p_staff_id: 'someone-else', p_event_type: 'break_start' })
     render(<ClockPanel staffId="s1" />)
     expect(screen.queryByRole('status')).toBeNull()
+  })
+})
+
+describe('ClockPanel venue rules (157)', () => {
+  it('sends the position or tablet secret the rules ask for', async () => {
+    mockGate.mockResolvedValue({ ok: true, args: { p_latitude: 51.5, p_longitude: -0.1, p_accuracy_m: 12 } })
+    mockRpc.mockResolvedValue({ data: 'id', error: null })
+    render(<ClockPanel staffId="s1" />)
+
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Clock In' })) })
+
+    expect(mockGate).toHaveBeenCalledWith('clock_in')
+    expect(mockRpc.mock.calls[0][1]).toMatchObject({ p_latitude: 51.5, p_longitude: -0.1, p_accuracy_m: 12 })
+  })
+
+  it('does not clock in, or show clocked-in, when the rules refuse', async () => {
+    mockGate.mockResolvedValue({ ok: false, message: 'You need to be at the venue to clock in.' })
+    render(<ClockPanel staffId="s1" />)
+
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Clock In' })) })
+
+    expect(mockRpc).not.toHaveBeenCalled()
+    expect(mockToast).toHaveBeenCalledWith('You need to be at the venue to clock in.', 'error')
+    expect(screen.getByRole('button', { name: 'Clock In' })).toBeTruthy()
+  })
+
+  it('tells staff up front when this device is not the tablet', () => {
+    gateState.notice = 'Clock in on Till tablet.'
+    render(<ClockPanel staffId="s1" />)
+    expect(screen.getByText('Clock in on Till tablet.')).toBeTruthy()
   })
 })
