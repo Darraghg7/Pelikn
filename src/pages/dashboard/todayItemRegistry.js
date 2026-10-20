@@ -1,4 +1,9 @@
-export const DEFAULT_TODAY_ITEMS = ['on_shift', 'opening_checks', 'fridge_checks', 'cleaning_tasks', 'critical_actions', 'pending_leave']
+// The first GLANCE_TILE_COUNT of a person's Today items are the tiles under
+// "Today at a glance" on the phone dashboard; every item also raises an alert
+// in Needs you when it needs attention. Critical sits fourth so the default
+// tiles stay on shift / checks / fridges / critical.
+export const GLANCE_TILE_COUNT = 4
+export const DEFAULT_TODAY_ITEMS = ['on_shift', 'opening_checks', 'fridge_checks', 'critical_actions', 'cleaning_tasks', 'pending_leave']
 
 export const TODAY_ITEM_REGISTRY = {
   on_shift: {

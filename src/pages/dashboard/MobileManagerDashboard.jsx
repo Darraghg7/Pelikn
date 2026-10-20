@@ -10,7 +10,7 @@ import { format, startOfWeek } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { reportError } from '../../lib/reportError'
 import { isActionDueToday } from '../../hooks/useTodaySummary'
-import { TODAY_ITEM_REGISTRY } from './todayItemRegistry'
+import { TODAY_ITEM_REGISTRY, GLANCE_TILE_COUNT } from './todayItemRegistry'
 import { WIDGET_REGISTRY } from '../../components/widgets/WidgetRegistry'
 import { FetchWhenNearViewport } from '../../hooks/useWidgetFetchGate'
 import { useClockStatus, nextClockStatus, useQueuedClockEvent } from '../../hooks/useClockEvents'
@@ -54,8 +54,6 @@ function useLiveTime() {
   }, [])
   return now
 }
-
-const GLANCE_TILES = ['on_shift', 'opening_checks', 'fridge_checks', 'critical_actions']
 
 // ── Stat tile (4 across, with sub-label) ───────────────────────────────────
 // Short names so four fit across a phone; the picker keeps the full labels.
@@ -688,11 +686,13 @@ export default function MobileManagerDashboard({
       return true
     })
 
-  // Today at a glance is a fixed four; the rest of the Today items surface in
-  // Needs you when they need attention.
-  const glanceItems = GLANCE_TILES
+  // Today at a glance: the first four of the person's own Today items (chosen
+  // in Customise). Every item, tile or not, surfaces in Needs you when it
+  // needs attention.
+  const glanceItems = (todayItemIds ?? [])
     .map(id => TODAY_ITEM_REGISTRY[id])
     .filter(item => item && (!item.feature || isEnabled(item.feature)))
+    .slice(0, GLANCE_TILE_COUNT)
 
   const actions = summary
     ? activeItems.map(item => item.action?.(summary, vp, closedToday)).filter(Boolean)
@@ -746,7 +746,7 @@ export default function MobileManagerDashboard({
           onClick={onOpenPicker}
           className="self-center"
         >
-          Choose Needs you items
+          Choose tiles and alerts
         </Button>
       )}
       {editMode && (
@@ -769,7 +769,7 @@ export default function MobileManagerDashboard({
                 ))}
               </div>
             ) : glanceItems.length === 0 ? null : (
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${GLANCE_TILE_COUNT}, minmax(0, 1fr))` }}>
                 {glanceItems.map(item => (
                   <MobileStatTile key={item.id} item={item} summary={summary} vp={vp} />
                 ))}
