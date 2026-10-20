@@ -40,8 +40,8 @@ on a subscription must share one billing period.
 
 | Product       | Monthly | Yearly ("2 months free") |
 |---------------|---------|--------------------------|
-| Starter       | £10     | £100                     |
-| Pro           | £25     | £250                     |
+| Starter       | £15     | £150                     |
+| Pro           | £30     | £300                     |
 | Extra venue   | £15     | £150                     |
 | QR table cards| £1      | £10                      |
 
@@ -133,4 +133,4 @@ Tell them first: once the date passes without a card, their venue is paused.
   ending.
 - **Additional venues on Starter.** Starter only allows one venue, which
   matches the existing "Multi-venue requires a Pro plan" rule. If someone
-  downgrades from Pro with several venues, each venue is billed at £10.
+  downgrades from Pro with several venues, each venue is billed at £15.

@@ -4,7 +4,7 @@
  * (see __tests__/billingPlan.test.ts).
  *
  * Price model (matches src/lib/pricing.ts and the marketing page):
- *   Starter — STARTER price × number of venues ("£10 per venue")
+ *   Starter — STARTER price × number of venues ("£15 per venue")
  *   Pro     — PRO price × 1 for the first venue + EXTRA_VENUE × the rest
  *   QR add-on — one QR_ADDON line, any plan
  * Every Stripe Price is set up twice, monthly and annual, because a Stripe
