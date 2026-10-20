@@ -124,7 +124,7 @@ function ClockPlaceGroups() {
           control={<Toggle aria-label="Only on the venue tablet" checked={rules.require_device} disabled={busy || !hasTablet} onChange={(v) => run(() => saveDeviceRule(v))} />}
         />
         <Row
-          label={hasTablet ? (thisIsTablet ? 'This device is the tablet' : (rules.device_name || 'Venue tablet')) : 'Use this device as the tablet'}
+          label={hasTablet ? (thisIsTablet ? 'This is the clock in device' : (rules.device_name || 'Venue tablet')) : 'Set as clock in device'}
           sub={hasTablet
             ? (thisIsTablet ? 'Leave it signed in at the venue.' : 'Set up on another device. Using this one instead replaces it.')
             : 'Do this on the tablet that will stay at the venue.'}
@@ -136,7 +136,7 @@ function ClockPlaceGroups() {
               )}
               {!thisIsTablet && (
                 <Button size="sm" variant="secondary" disabled={busy} onClick={() => run(registerThisDevice)}>
-                  {hasTablet ? 'Use this' : 'Use this device'}
+                  Set as clock in device
                 </Button>
               )}
             </div>
