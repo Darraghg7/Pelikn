@@ -7,6 +7,8 @@ import { Link } from 'react-router-dom'
 import { format, isToday } from 'date-fns'
 import { TemperatureItemSettingsForm } from './TemperatureItemSettingsModal'
 import Button from '../ui/Button'
+import { useVenue } from '../../contexts/VenueContext'
+import { useCameFromDashboard } from '../../lib/navOrigin'
 
 export const CARD = 'bg-white dark:bg-paperDark rounded-card border border-line dark:border-white/10'
 
@@ -22,6 +24,10 @@ export const TONE = {
 
 /** action: optional custom button to show instead of Export PDF */
 export function PageHeader({ title, subtitle, backTo, backLabel = 'Checks', onExport, action, compact = true }) {
+  const { venueSlug } = useVenue()
+  // Opened from a dashboard card: go back to the dashboard (see lib/navOrigin).
+  const fromDashboard = useCameFromDashboard(venueSlug)
+  if (fromDashboard && backTo) { backTo = `/v/${venueSlug}/dashboard`; backLabel = 'Home' }
   return (
     <div className="flex flex-col gap-1">
       {/* On mobile the shell's back row already links to Checks */}

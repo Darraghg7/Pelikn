@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { useCameFromDashboard } from '../../lib/navOrigin'
 import { createPortal } from 'react-dom'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useSession } from '../../contexts/SessionContext'
@@ -402,6 +403,7 @@ export default function MobileNav() {
   const longPressTimer = useRef(null)
 
   const vp = (p) => `/v/${venueSlug}${p}`
+  const fromDashboard = useCameFromDashboard(venueSlug)
 
   const base = `/v/${venueSlug}`
   const localPath = pathname.startsWith(base)
@@ -420,8 +422,9 @@ export default function MobileNav() {
   const showBackRow = !onHub && (activeTab?.key === 'compliance' || activeTab?.key === 'team')
   // Employee record (/hr/:staffId) is a level deeper — back goes to HR Records, not Team
   const isEmployeeRecord = localPath.startsWith('/hr/') && localPath.length > '/hr/'.length
-  const backRoute = isEmployeeRecord ? vp('/hr') : HUB_ROUTES[activeTab?.key]
-  const backLabel = isEmployeeRecord ? 'HR Records' : HUB_LABELS[activeTab?.key]
+  // Opened from a dashboard card: back returns to the dashboard, not a hub they never visited.
+  const backRoute = isEmployeeRecord ? vp('/hr') : fromDashboard ? vp('/dashboard') : HUB_ROUTES[activeTab?.key]
+  const backLabel = isEmployeeRecord ? 'HR Records' : fromDashboard ? 'Home' : HUB_LABELS[activeTab?.key]
 
   const startLongPress = useCallback(() => {
     if (!isManager) return
