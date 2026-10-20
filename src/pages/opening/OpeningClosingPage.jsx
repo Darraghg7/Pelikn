@@ -17,6 +17,8 @@ import DepartmentFilter from '../../components/ui/DepartmentFilter'
 import Button, { CloseButton } from '../../components/ui/Button'
 import { CHECK_DAYS, DEFAULT_CHECK_DAYS, formatCheckDaysCompact } from '../../lib/temperatureChecks'
 import { isCheckDueOn, dateFromISO } from '../../lib/openingChecks'
+import { updateOpeningCheck } from '../../lib/api/openingChecks'
+import { errorOf } from '../../lib/api/writes'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -145,19 +147,15 @@ function DayPicker({ value, onChange }) {
       {CHECK_DAYS.map(day => {
         const active = value.includes(day.value)
         return (
-          <button
+          <Button
             key={day.value}
-            type="button"
+            size="sm"
+            variant={active ? 'primary' : 'secondary'}
             aria-pressed={active}
             onClick={() => toggle(day.value)}
-            className={`min-h-9 px-2.5 rounded-control text-caption font-semibold border transition-colors ${
-              active
-                ? 'bg-brand text-white border-brand'
-                : 'bg-transparent text-charcoal/50 dark:text-white/45 border-charcoal/15 dark:border-white/15'
-            }`}
           >
             {day.short}
-          </button>
+          </Button>
         )
       })}
     </div>
@@ -172,7 +170,7 @@ const daysFromCheck = (check) =>
 
 // ── EditCheckModal ────────────────────────────────────────────────────────────
 
-function EditCheckModal({ check, departments, onClose, onSaved }) {
+function EditCheckModal({ check, venueId, departments, onClose, onSaved }) {
   const toast = useToast()
   const [days, setDays] = useState(() => daysFromCheck(check))
   const [departmentId, setDepartmentId] = useState(check.department_id ?? '')
@@ -181,9 +179,9 @@ function EditCheckModal({ check, departments, onClose, onSaved }) {
   const save = async () => {
     if (days.length === 0) return
     setSaving(true)
-    const { error } = await supabase.from('opening_closing_checks')
-      .update({ check_days: daysToStore(days), department_id: departmentId || null })
-      .eq('id', check.id)
+    const error = await errorOf(updateOpeningCheck(check.id, venueId, {
+      check_days: daysToStore(days), department_id: departmentId || null,
+    }))
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Check updated')
@@ -303,12 +301,7 @@ function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRem
         </button>
       )}
       {isManager && !readOnly && (
-        <button
-          onClick={() => onEdit(check)}
-          className="shrink-0 text-micro font-bold tracking-wide uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors px-1 mt-1"
-        >
-          Edit
-        </button>
+        <Button variant="ghost" size="sm" onClick={() => onEdit(check)}>Edit</Button>
       )}
       {isManager && !readOnly && (
         <CloseButton label="Remove check" className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 shrink-0" onClick={() => onRemove(check.id)} />
@@ -658,6 +651,7 @@ export default function OpeningClosingPage() {
       {editTarget && (
         <EditCheckModal
           check={editTarget}
+          venueId={venueId}
           departments={departments}
           onClose={() => setEditTarget(null)}
           onSaved={() => { setEditTarget(null); reloadChecks() }}
