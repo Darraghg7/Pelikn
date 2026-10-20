@@ -2,6 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
 import { useAppSettings } from '../../hooks/useSettings'
+import { useClockRules } from '../../hooks/useClockRules'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 import Toggle from '../../components/ui/Toggle'
 import Button from '../../components/ui/Button'
@@ -58,6 +59,94 @@ function Group({ label, children, foot }) {
   )
 }
 
+/**
+ * Where staff can clock in (157): a GPS fence around the venue and/or one
+ * clock-in tablet. Both are off until switched on; with both on, the tablet
+ * alone decides and GPS isn't asked for.
+ */
+function ClockPlaceGroups() {
+  const {
+    rules, available, thisIsTablet,
+    saveLocationRule, saveVenuePoint, saveRadius,
+    registerThisDevice, saveDeviceRule, forgetDevice,
+  } = useClockRules()
+  const [busy, setBusy] = React.useState(false)
+  const hasPoint = rules.latitude != null && rules.longitude != null
+  const hasTablet = !!rules.device_id
+
+  const run = async (fn) => {
+    setBusy(true)
+    try { await fn() } finally { setBusy(false) }
+  }
+
+  if (!available) return null
+
+  return (
+    <>
+      <Group
+        label="Clock-in location"
+        foot={rules.require_location
+          ? `Staff can only clock in or out within ${rules.radius_m} m of the saved spot — inside the venue, not the car park. Breaks aren't checked. They'll be asked to share their location.`
+          : 'Off — staff can clock in from anywhere.'}
+      >
+        <Row
+          label="Only at the venue"
+          sub="Uses the phone's GPS when staff clock in or out"
+          control={<Toggle aria-label="Only at the venue" checked={rules.require_location} disabled={busy} onChange={(v) => run(() => saveLocationRule(v))} />}
+        />
+        <Row
+          label="Venue spot"
+          sub={hasPoint ? 'Saved. Stand inside the venue to update it.' : 'Not set. Stand inside the venue and tap Set.'}
+          last={false}
+          control={(
+            <Button size="sm" variant="secondary" disabled={busy} onClick={() => run(saveVenuePoint)}>
+              {hasPoint ? 'Update' : 'Set'}
+            </Button>
+          )}
+        />
+        <Row
+          label="How close"
+          sub="Smaller keeps the car park out; larger forgives weak GPS indoors"
+          last={false}
+          control={<Stepper value={rules.radius_m} onChange={(v) => run(() => saveRadius(v))} suffix=" m" min={25} max={200} step={25} />}
+        />
+      </Group>
+
+      <Group
+        label="Clock-in tablet"
+        foot={rules.require_device
+          ? `Staff can only clock in or out on ${rules.device_name || 'the tablet'}. Breaks aren't checked. With this on, GPS isn't checked — the tablet is the place.`
+          : 'Off — staff can clock in from any device.'}
+      >
+        <Row
+          label="Only on the venue tablet"
+          sub={hasTablet ? 'Staff sign in on the tablet with their PIN' : 'Set up the tablet first'}
+          control={<Toggle aria-label="Only on the venue tablet" checked={rules.require_device} disabled={busy || !hasTablet} onChange={(v) => run(() => saveDeviceRule(v))} />}
+        />
+        <Row
+          label={hasTablet ? (thisIsTablet ? 'This is the clock in device' : (rules.device_name || 'Venue tablet')) : 'Clock in device'}
+          sub={hasTablet
+            ? (thisIsTablet ? 'Leave it signed in at the venue.' : 'Set up on another device. Using this one instead replaces it.')
+            : 'Do this on the tablet that will stay at the venue.'}
+          last={false}
+          control={(
+            <div className="flex gap-2 shrink-0">
+              {hasTablet && (
+                <Button size="sm" variant="secondary" disabled={busy} onClick={() => run(forgetDevice)}>Remove</Button>
+              )}
+              {!thisIsTablet && (
+                <Button size="sm" variant="secondary" disabled={busy} onClick={() => run(registerThisDevice)}>
+                  Set as clock in device
+                </Button>
+              )}
+            </div>
+          )}
+        />
+      </Group>
+    </>
+  )
+}
+
 export default function AttendanceSettingsPage() {
   const navigate = useNavigate()
   const { venueSlug } = useVenue()
@@ -79,6 +168,8 @@ export default function AttendanceSettingsPage() {
       <SettingsSubHeader title="Attendance" onBack={() => navigate(vp('/settings/hub'))} />
 
       <div className="pb-24 max-w-[480px] mx-auto">
+
+        <ClockPlaceGroups />
 
         <Group
           label="Late clock-in"

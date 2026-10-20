@@ -42,17 +42,36 @@ export async function offlineInsert(table, payload) {
 // reported, so a punch that never arrives can't vanish without a trace.
 const CLOCK_RPC = 'record_clock_event'
 
+// Arguments record_clock_event only takes once 157 is applied (position, tablet
+// secret). They are only ever sent when the venue has switched a rule on, which
+// needs 157, so this is for a punch queued under 157 that replays against a
+// database that has since been rolled back.
+const RULE_ARGS = ['p_latitude', 'p_longitude', 'p_accuracy_m', 'p_device_token']
+
+function without(args, keys) {
+  const rest = { ...args }
+  for (const k of keys) delete rest[k]
+  return rest
+}
+
 /**
- * supabase.rpc, plus one compatibility retry: record_clock_event only takes
- * p_occurred_at (the tap time) from migration 144. Before that is applied
- * PostgREST answers PGRST202 (no function with those arguments), so the call
- * is repeated without it — the server then stamps its own time, as before.
+ * supabase.rpc, plus compatibility retries: record_clock_event only takes
+ * p_occurred_at (the tap time) from migration 144, and the position / tablet
+ * arguments from 157. Before those are applied PostgREST answers PGRST202 (no
+ * function with those arguments), so the call is repeated without them — the
+ * server then stamps its own time, as before.
  */
 async function callRpc(fnName, args) {
-  const result = await supabase.rpc(fnName, args)
-  if (fnName === CLOCK_RPC && result.error?.code === 'PGRST202' && args && 'p_occurred_at' in args) {
-    const { p_occurred_at: _tapTime, ...rest } = args
-    return supabase.rpc(fnName, rest)
+  let result = await supabase.rpc(fnName, args)
+  if (fnName !== CLOCK_RPC || result.error?.code !== 'PGRST202' || !args) return result
+
+  if (RULE_ARGS.some(k => k in args)) {
+    args = without(args, RULE_ARGS)
+    result = await supabase.rpc(fnName, args)
+    if (result.error?.code !== 'PGRST202') return result
+  }
+  if ('p_occurred_at' in args) {
+    result = await supabase.rpc(fnName, without(args, ['p_occurred_at']))
   }
   return result
 }

@@ -15,6 +15,7 @@ import { WIDGET_REGISTRY } from '../../components/widgets/WidgetRegistry'
 import { FetchWhenNearViewport } from '../../hooks/useWidgetFetchGate'
 import { useClockStatus, nextClockStatus, useQueuedClockEvent } from '../../hooks/useClockEvents'
 import { useClockAlerts } from '../../hooks/useClockAlerts'
+import { useClockGate } from '../../hooks/useClockGate'
 import { offlineRpc } from '../../lib/offlineSupabase'
 import { fetchUnsignedTrainingCount, unsignedTrainingKey } from '../../lib/api/training'
 import { takeBootstrap } from '../../lib/api/bootstrap'
@@ -278,6 +279,7 @@ function MobileClockCard({ staffId }) {
   const { status, clockInAt, breakStartAt, totalBreakMs, loading, isError, reload, setStatus } = useClockStatus(staffId)
   const notSent = useQueuedClockEvent(staffId)
   const inFlightRef = useRef(false)
+  const { gate, checking, notice } = useClockGate()
   const elapsed  = useShiftElapsed(clockInAt, breakStartAt, totalBreakMs, status)
   const weekHrs  = useWeeklyHours(staffId, venueId)
   const now      = useLiveTime()
@@ -302,6 +304,16 @@ function MobileClockCard({ staffId }) {
     // Captured before the RPC so a slow round trip can't make a punctual
     // clock-in look late.
     const at = new Date()
+
+    // The venue's location / tablet rules (157). Before the optimistic update
+    // so a refused punch never flashes as accepted.
+    const allowed = await gate(eventType)
+    if (!allowed.ok) {
+      inFlightRef.current = false
+      toast(allowed.message, 'error')
+      return
+    }
+
     const before = { status, clockInAt, breakStartAt, totalBreakMs }
     const after  = nextClockStatus(eventType, before, at)
 
@@ -319,6 +331,8 @@ function MobileClockCard({ staffId }) {
         // The tap time, so a punch held on the device (no signal) still lands
         // at the moment it happened, not when it finally gets through (144).
         p_occurred_at: at.toISOString(),
+        // Position or tablet secret, when the venue asks for one (157).
+        ...allowed.args,
       })
     } catch (err) {
       result = { error: err }
@@ -340,7 +354,7 @@ function MobileClockCard({ staffId }) {
     await setStatus(after)
     reload()
     await onClockEvent(eventType, { queued, at })
-  }, [staffId, venueId, toast, status, clockInAt, breakStartAt, totalBreakMs, reload, setStatus, onClockEvent])
+  }, [staffId, venueId, toast, gate, status, clockInAt, breakStartAt, totalBreakMs, reload, setStatus, onClockEvent])
 
   recordRef.current = record
 
@@ -435,6 +449,16 @@ function MobileClockCard({ staffId }) {
             End break
           </Button>
         ) : null}
+        {checking && (
+          <p role="status" className="text-caption font-medium text-white/80 mt-2">
+            Checking your location…
+          </p>
+        )}
+        {notice && !onBreak && (
+          <p role="status" className="text-caption font-medium text-white/80 mt-2">
+            {notice}
+          </p>
+        )}
         {notSent && (
           <p role="status" className="text-caption font-medium text-white/80 mt-2">
             Not sent yet. This device will keep trying.
