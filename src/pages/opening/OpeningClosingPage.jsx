@@ -15,6 +15,8 @@ import { useAppSettings } from '../../hooks/useSettings'
 import { departmentMatcher } from '../../lib/roleFilter'
 import DepartmentFilter from '../../components/ui/DepartmentFilter'
 import Button, { CloseButton } from '../../components/ui/Button'
+import { CHECK_DAYS, DEFAULT_CHECK_DAYS, formatCheckDaysCompact } from '../../lib/temperatureChecks'
+import { isCheckDueOn, dateFromISO } from '../../lib/openingChecks'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -30,7 +32,7 @@ function useChecks(venueId) {
     if (!venueId) return
     const { data, error } = await supabase
       .from('opening_closing_checks')
-      .select('id, title, type, department_id, sort_order, created_at')
+      .select('id, title, type, department_id, check_days, sort_order, created_at')
       .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('sort_order')
@@ -132,9 +134,111 @@ function IssueModal({ check, onConfirm, onCancel, saving }) {
   )
 }
 
+// ── Days picker ───────────────────────────────────────────────────────────────
+
+function DayPicker({ value, onChange }) {
+  const toggle = (day) => {
+    onChange(value.includes(day) ? value.filter(d => d !== day) : [...value, day])
+  }
+  return (
+    <div className="flex flex-wrap gap-1.5" role="group" aria-label="Days this check is needed">
+      {CHECK_DAYS.map(day => {
+        const active = value.includes(day.value)
+        return (
+          <button
+            key={day.value}
+            type="button"
+            aria-pressed={active}
+            onClick={() => toggle(day.value)}
+            className={`min-h-9 px-2.5 rounded-control text-caption font-semibold border transition-colors ${
+              active
+                ? 'bg-brand text-white border-brand'
+                : 'bg-transparent text-charcoal/50 dark:text-white/45 border-charcoal/15 dark:border-white/15'
+            }`}
+          >
+            {day.short}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// A check with every day ticked is stored as NULL ("every day"), so changing
+// the rule later never needs a data fix.
+const daysToStore = (days) => (days.length === 7 ? null : days.slice().sort((a, b) => a - b))
+const daysFromCheck = (check) =>
+  Array.isArray(check?.check_days) && check.check_days.length > 0 ? check.check_days : [...DEFAULT_CHECK_DAYS]
+
+// ── EditCheckModal ────────────────────────────────────────────────────────────
+
+function EditCheckModal({ check, departments, onClose, onSaved }) {
+  const toast = useToast()
+  const [days, setDays] = useState(() => daysFromCheck(check))
+  const [departmentId, setDepartmentId] = useState(check.department_id ?? '')
+  const [saving, setSaving] = useState(false)
+
+  const save = async () => {
+    if (days.length === 0) return
+    setSaving(true)
+    const { error } = await supabase.from('opening_closing_checks')
+      .update({ check_days: daysToStore(days), department_id: departmentId || null })
+      .eq('id', check.id)
+    setSaving(false)
+    if (error) { toast(error.message, 'error'); return }
+    toast('Check updated')
+    onSaved()
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4 bg-charcoal/40 dark:bg-white/40 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white dark:bg-paperDark rounded-card w-full max-w-md p-6 flex flex-col gap-5 shadow-2xl max-h-[90dvh] overflow-y-auto"
+        style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
+      >
+        <div>
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Edit check</p>
+          <h3 className="font-semibold text-charcoal dark:text-white text-lg break-words">{check.title}</h3>
+        </div>
+        <div>
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Needed on</p>
+          <DayPicker value={days} onChange={setDays} />
+          <p className="text-caption text-charcoal/40 dark:text-white/35 mt-2">
+            On other days this check isn't listed and doesn't count towards the dashboard.
+          </p>
+        </div>
+        {departments.length > 0 && (
+          <div>
+            <label htmlFor="check-department" className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
+              Department
+            </label>
+            <select
+              id="check-department"
+              value={departmentId}
+              onChange={e => setDepartmentId(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm"
+            >
+              <option value="">No department (everyone)</option>
+              {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+            </select>
+          </div>
+        )}
+        <div className="flex gap-2">
+          <Button loading={saving} onClick={save} disabled={saving || days.length === 0} className="flex-1">Save</Button>
+          <Button variant="secondary" onClick={onClose}>Cancel</Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── CheckRow ──────────────────────────────────────────────────────────────────
 
-function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRemove, saving }) {
+function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRemove, onEdit, saving }) {
   const done = !!completion
   const hasIssue = completion?.has_issue ?? false
 
@@ -183,6 +287,9 @@ function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRem
         {!done && readOnly && (
           <p className="text-caption text-charcoal/30 dark:text-white/30 italic mt-0.5">Not recorded</p>
         )}
+        {isManager && Array.isArray(check.check_days) && check.check_days.length > 0 && check.check_days.length < 7 && (
+          <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">{formatCheckDaysCompact(check.check_days)}</p>
+        )}
       </div>
 
       {/* Flag issue + remove */}
@@ -196,6 +303,14 @@ function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRem
         </button>
       )}
       {isManager && !readOnly && (
+        <button
+          onClick={() => onEdit(check)}
+          className="shrink-0 text-micro font-bold tracking-wide uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors px-1 mt-1"
+        >
+          Edit
+        </button>
+      )}
+      {isManager && !readOnly && (
         <CloseButton label="Remove check" className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 shrink-0" onClick={() => onRemove(check.id)} />
       )}
     </div>
@@ -204,7 +319,7 @@ function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRem
 
 // ── CheckSection ──────────────────────────────────────────────────────────────
 
-function CheckSection({ type, label, departmentId, departmentName, checks, completions, doneAtLoad, onOK, onIssue, isManager, onAddCheck, onRemoveCheck, venueId, readOnly, savingCheckId }) {
+function CheckSection({ type, label, departmentId, departmentName, checks, scheduledCount, completions, doneAtLoad, onOK, onIssue, isManager, onAddCheck, onRemoveCheck, onEditCheck, moveHint, venueId, readOnly, savingCheckId }) {
   const toast = useToast()
   const typeChecks      = checks.filter(c => c.type === type)
   const typeCompletions = completions.filter(c => c.session_type === type)
@@ -214,21 +329,24 @@ function CheckSection({ type, label, departmentId, departmentName, checks, compl
 
   const [showAdd, setShowAdd] = useState(false)
   const [newTitle, setNewTitle] = useState('')
+  const [newDays, setNewDays]   = useState([...DEFAULT_CHECK_DAYS])
   const [saving, setSaving]   = useState(false)
 
   const handleAdd = async () => {
-    if (!newTitle.trim()) return
+    if (!newTitle.trim() || newDays.length === 0) return
     setSaving(true)
     const { error } = await supabase.from('opening_closing_checks').insert({
       title: newTitle.trim(),
       type,
       department_id: departmentId,
+      check_days: daysToStore(newDays),
       sort_order: typeChecks.length,
       venue_id: venueId,
     })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     setNewTitle('')
+    setNewDays([...DEFAULT_CHECK_DAYS])
     setShowAdd(false)
     onAddCheck()
   }
@@ -282,7 +400,8 @@ function CheckSection({ type, label, departmentId, departmentName, checks, compl
 
       {/* Add check form */}
       {showAdd && isManager && (
-        <div className="px-5 py-3 border-b border-charcoal/8 dark:border-white/8 flex gap-2">
+        <div className="px-5 py-3 border-b border-charcoal/8 dark:border-white/8 flex flex-col gap-3">
+          <div className="flex gap-2">
           <input
             value={newTitle}
             onChange={e => setNewTitle(e.target.value)}
@@ -294,11 +413,19 @@ function CheckSection({ type, label, departmentId, departmentName, checks, compl
           <Button
             loading={saving}
             onClick={handleAdd}
-            disabled={saving || !newTitle.trim()}
+            disabled={saving || !newTitle.trim() || newDays.length === 0}
           >
             Add →
           </Button>
+          </div>
+          <div>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1.5">Needed on</p>
+            <DayPicker value={newDays} onChange={setNewDays} />
+          </div>
         </div>
+      )}
+      {moveHint && typeChecks.length > 0 && (
+        <p className="px-5 py-2 text-caption text-warning bg-warning/10">{moveHint}</p>
       )}
 
       {/* Rows */}
@@ -320,14 +447,20 @@ function CheckSection({ type, label, departmentId, departmentName, checks, compl
               readOnly={readOnly}
               isManager={isManager}
               onRemove={onRemoveCheck}
+              onEdit={onEditCheck}
               saving={savingCheckId === check.id}
             />
           )
         })}
-        {typeChecks.length === 0 && (
+        {typeChecks.length === 0 && scheduledCount > 0 && (
+          <p className="text-sm text-charcoal/35 dark:text-white/30 italic px-5 py-4">
+            No {label.toLowerCase()} needed on this day.
+          </p>
+        )}
+        {typeChecks.length === 0 && scheduledCount === 0 && (
           <p className="text-sm text-charcoal/35 dark:text-white/30 italic px-5 py-4">
             No {label.toLowerCase()} set up yet.
-            {isManager && ' Click "+ Add Check" to get started.'}
+            {isManager && ' Click "+ Add" to get started.'}
           </p>
         )}
       </div>
@@ -421,10 +554,21 @@ export default function OpeningClosingPage() {
     const groups = [{ id: null, name: null }, ...departments]
     return groups.filter(d => {
       if (!canSeeDepartment(d.id)) return false
-      if (d.id === null) return true
+      // The "no department" section only exists for venues with no
+      // departments, or while checks are still sitting in it waiting to be
+      // moved. Once departments exist, each gets its own opening and closing.
+      if (d.id === null) return departments.length === 0 || checks.some(c => !c.department_id)
       return isManager || checks.some(c => c.department_id === d.id)
     })
   }, [departments, checks, isManager, canSeeDepartment])
+
+  // Only the checks due on the selected day are listed. One that was already
+  // recorded that day stays (a schedule edited afterwards must not hide work
+  // that was done).
+  const dueChecks = useMemo(() => {
+    const day = dateFromISO(selectedDate)
+    return checks.filter(c => isCheckDueOn(c, day) || completions.some(cp => cp.check_id === c.id))
+  }, [checks, completions, selectedDate])
 
   // Is the selected date strictly in the future? (tomorrow or later = read-only)
   const readOnly = selectedDate > todayStr()
@@ -436,6 +580,7 @@ export default function OpeningClosingPage() {
   const [saving, setSaving] = useState(false)
   const [savingCheckId, setSavingCheckId] = useState(null)
   const [removeTarget, setRemoveTarget] = useState(null) // check object
+  const [editTarget, setEditTarget]     = useState(null) // check object
 
   const openOK = (check) => {
     if (savingCheckId) return
@@ -510,6 +655,15 @@ export default function OpeningClosingPage() {
         onConfirm={() => { removeCheck(removeTarget.id); setRemoveTarget(null) }}
       />
 
+      {editTarget && (
+        <EditCheckModal
+          check={editTarget}
+          departments={departments}
+          onClose={() => setEditTarget(null)}
+          onSaved={() => { setEditTarget(null); reloadChecks() }}
+        />
+      )}
+
       {/* Issue modal (shown when staff taps "Issue") */}
       {pendingCheck && pendingIsIssue && (
         <IssueModal
@@ -562,7 +716,11 @@ export default function OpeningClosingPage() {
 
       {/* Check sections — one department at a time, opening then closing */}
       {departmentGroups.map(dept => {
-        const deptChecks = checks.filter(c => (c.department_id ?? null) === dept.id)
+        const deptChecks = dueChecks.filter(c => (c.department_id ?? null) === dept.id)
+        const deptScheduled = checks.filter(c => (c.department_id ?? null) === dept.id)
+        const moveHint = dept.id === null && departments.length > 0 && isManager
+          ? 'These checks are not in a department yet. Tap Edit on each to move it into one.'
+          : null
         return (
           <div key={dept.id ?? 'ungrouped'} className="grid md:grid-cols-2 gap-4">
             <CheckSection
@@ -571,6 +729,7 @@ export default function OpeningClosingPage() {
               departmentId={dept.id}
               departmentName={dept.name}
               checks={deptChecks}
+              scheduledCount={deptScheduled.filter(c => c.type === 'opening').length}
               completions={completions}
               doneAtLoad={doneAtLoad}
               onOK={openOK}
@@ -578,6 +737,8 @@ export default function OpeningClosingPage() {
               isManager={isManager}
               onAddCheck={reloadChecks}
               onRemoveCheck={(id) => setRemoveTarget(checks.find(c => c.id === id))}
+              onEditCheck={setEditTarget}
+              moveHint={moveHint}
               venueId={venueId}
               readOnly={readOnly}
               savingCheckId={savingCheckId}
@@ -588,6 +749,7 @@ export default function OpeningClosingPage() {
               departmentId={dept.id}
               departmentName={dept.name}
               checks={deptChecks}
+              scheduledCount={deptScheduled.filter(c => c.type === 'closing').length}
               completions={completions}
               doneAtLoad={doneAtLoad}
               onOK={openOK}
@@ -595,6 +757,8 @@ export default function OpeningClosingPage() {
               isManager={isManager}
               onAddCheck={reloadChecks}
               onRemoveCheck={(id) => setRemoveTarget(checks.find(c => c.id === id))}
+              onEditCheck={setEditTarget}
+              moveHint={moveHint}
               venueId={venueId}
               readOnly={readOnly}
               savingCheckId={savingCheckId}

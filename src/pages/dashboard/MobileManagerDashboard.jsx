@@ -69,8 +69,8 @@ function subLabel(item, summary) {
   const v = item.metric(summary) ?? 0
   const id = item.id
   if (id === 'on_shift')       return v === 0 ? 'none in' : 'on shift'
-  if (id === 'opening_checks') return summary.totalChecks > 0 ? `of ${summary.totalChecks} done` : v === 0 ? 'not done' : 'done'
-  if (id === 'closing_checks') return v === 0 ? 'not done' : 'done'
+  if (id === 'opening_checks') return summary.totalChecks > 0 ? `of ${summary.totalChecks} done` : v === 0 ? 'none due' : 'done'
+  if (id === 'closing_checks') return summary.totalClosingChecks > 0 ? `of ${summary.totalClosingChecks} done` : v === 0 ? 'none due' : 'done'
   if (id === 'fridge_checks')  return v === 0 ? 'all done' : 'still due'
   if (id === 'cleaning_tasks') return v === 0 ? 'all done' : 'overdue'
   if (id === 'critical_actions') return v === 0 ? 'all clear' : 'open'

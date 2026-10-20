@@ -20,7 +20,7 @@ export const TODAY_ITEM_REGISTRY = {
     route: '/opening-closing',
     metric: summary => summary.checksToday,
     metricLabel: 'Checks done',
-    action: (summary, vp, closedToday) => !closedToday && summary.checksToday === 0 && { label: 'Opening checks not done', detail: 'Not started today', to: vp('/opening-closing'), urgency: 'warn' },
+    action: (summary, vp, closedToday) => !closedToday && summary.totalChecks > 0 && summary.checksToday === 0 && { label: 'Opening checks not done', detail: 'Not started today', to: vp('/opening-closing'), urgency: 'warn' },
   },
   closing_checks: {
     id: 'closing_checks',
@@ -31,7 +31,7 @@ export const TODAY_ITEM_REGISTRY = {
     route: '/opening-closing',
     metric: summary => summary.closingChecksToday,
     metricLabel: 'Closing done',
-    action: (summary, vp, closedToday) => !closedToday && summary.closingChecksToday === 0 && { label: 'Closing checks not done', detail: 'Not started today', to: vp('/opening-closing'), urgency: 'warn' },
+    action: (summary, vp, closedToday) => !closedToday && (summary.totalClosingChecks ?? 1) > 0 && summary.closingChecksToday === 0 && { label: 'Closing checks not done', detail: 'Not started today', to: vp('/opening-closing'), urgency: 'warn' },
   },
   fridge_checks: {
     id: 'fridge_checks',
