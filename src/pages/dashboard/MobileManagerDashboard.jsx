@@ -60,7 +60,7 @@ const GLANCE_TILES = ['on_shift', 'opening_checks', 'fridge_checks', 'critical_a
 // ── Stat tile (4 across, with sub-label) ───────────────────────────────────
 // Short names so four fit across a phone; the picker keeps the full labels.
 const TILE_LABELS = {
-  on_shift: 'On shift', opening_checks: 'Checks', closing_checks: 'Closing', fridge_checks: 'Fridges due',
+  on_shift: 'On shift', opening_checks: 'Checks', closing_checks: 'Closing', fridge_checks: 'Fridges',
   cooking_temps: 'Cooking', hot_holding: 'Hot hold', cooling_logs: 'Cooling', cleaning_tasks: 'Cleaning',
   critical_actions: 'Critical', pending_leave: 'Leave', duties: 'Duties',
 }
@@ -90,15 +90,15 @@ function MobileStatTile({ item, summary, vp }) {
   const tagProps = item.route ? { to: vp(item.route) } : {}
 
   return (
-    <Tag {...tagProps} className="min-w-0 bg-white dark:bg-paperDark border border-line dark:border-white/10 rounded-card px-2.5 min-[420px]:px-3 pt-2.5 pb-2.5 flex flex-col gap-1.5 no-underline active:bg-cream dark:active:bg-white/5 transition-colors">
-      <span className="flex items-start gap-1.5 min-w-0 min-h-[30px] min-[420px]:min-h-0">
-        <span className={`w-2 h-2 mt-1 rounded-full shrink-0 ${isDanger ? 'bg-bad' : 'bg-good'}`} />
-        <span className="text-caption min-[420px]:text-body-sm text-ink2 dark:text-white/70 leading-tight break-words">
-          {TILE_LABELS[item.id] ?? item.metricLabel}
-        </span>
+    <Tag {...tagProps} className="min-w-0 bg-white dark:bg-paperDark border border-line dark:border-white/10 rounded-card px-3 py-3 flex flex-col gap-2 no-underline active:bg-cream dark:active:bg-white/5 transition-colors">
+      <span className="text-caption min-[420px]:text-body-sm text-ink2 dark:text-white/70 leading-tight truncate">
+        {TILE_LABELS[item.id] ?? item.metricLabel}
       </span>
-      <span className={`font-mono text-title font-semibold leading-none ${isDanger ? 'text-bad dark:text-badDark' : 'text-ink dark:text-white'}`}>
-        {value}
+      <span className="flex items-center justify-between gap-1">
+        <span className={`font-mono text-title font-semibold leading-none ${isDanger ? 'text-bad dark:text-badDark' : 'text-ink dark:text-white'}`}>
+          {value}
+        </span>
+        <span className={`w-2 h-2 rounded-full shrink-0 ${isDanger ? 'bg-bad' : 'bg-good'}`} />
       </span>
       {sub && (
         <span className={`text-caption min-[420px]:text-body-sm leading-tight ${isDanger ? 'text-bad dark:text-badDark' : 'text-ink3 dark:text-white/45'}`}>
