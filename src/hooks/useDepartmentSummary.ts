@@ -6,6 +6,7 @@ import { useVenue } from '../contexts/VenueContext'
 import { useViewerDepartments } from './useDepartments'
 import { useCleaningTasks } from './useCleaningTasks'
 import { isActionDueToday } from './useTodaySummary'
+import { isCheckDueOn } from '../lib/openingChecks'
 import { departmentMatcher } from '../lib/roleFilter'
 
 interface Summary {
@@ -13,6 +14,7 @@ interface Summary {
   checksToday: number
   closingChecksToday: number
   totalChecks: number
+  totalClosingChecks?: number
   [key: string]: unknown
 }
 
@@ -43,7 +45,7 @@ export function useDepartmentSummary<T extends Summary | null>(
       const now = new Date()
       const [{ data: active, error: aErr }, { data: done, error: dErr }] = await Promise.all([
         supabase.from('opening_closing_checks')
-          .select('id, department_id').eq('venue_id', venueId).eq('is_active', true),
+          .select('id, type, department_id, check_days').eq('venue_id', venueId).eq('is_active', true),
         supabase.from('opening_closing_completions')
           .select('check_id, session_type').eq('venue_id', venueId)
           .gte('completed_at', startOfDay(now).toISOString())
@@ -52,7 +54,9 @@ export function useDepartmentSummary<T extends Summary | null>(
       if (aErr) throw aErr
       if (dErr) throw dErr
       return {
-        active: (active ?? []) as { id: string; department_id: string | null }[],
+        // Only the checks due today (per-check days, migration 158).
+        active: ((active ?? []) as { id: string; type: string; department_id: string | null; check_days: number[] | null }[])
+          .filter((c) => isCheckDueOn(c, now)),
         done:   (done ?? [])   as { check_id: string; session_type: string }[],
       }
     },
@@ -73,7 +77,8 @@ export function useDepartmentSummary<T extends Summary | null>(
     if (checks) {
       const inScope = departmentMatcher(viewerDepartmentIds, knownDepartmentIds)
       const ids = new Set(checks.active.filter((c) => inScope(c.department_id)).map((c) => c.id))
-      next.totalChecks        = ids.size
+      next.totalChecks        = checks.active.filter((c) => inScope(c.department_id) && c.type === 'opening').length
+      next.totalClosingChecks = checks.active.filter((c) => inScope(c.department_id) && c.type === 'closing').length
       next.checksToday        = checks.done.filter((c) => c.session_type === 'opening' && ids.has(c.check_id)).length
       next.closingChecksToday = checks.done.filter((c) => c.session_type === 'closing' && ids.has(c.check_id)).length
     }

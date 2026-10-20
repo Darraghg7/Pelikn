@@ -1,4 +1,9 @@
-export const DEFAULT_TODAY_ITEMS = ['on_shift', 'opening_checks', 'fridge_checks', 'cleaning_tasks', 'critical_actions', 'pending_leave']
+// The first GLANCE_TILE_COUNT of a person's Today items are the tiles under
+// "Today at a glance" on the phone dashboard; every item also raises an alert
+// in Needs you when it needs attention. Critical sits fourth so the default
+// tiles stay on shift / checks / fridges / critical.
+export const GLANCE_TILE_COUNT = 4
+export const DEFAULT_TODAY_ITEMS = ['on_shift', 'opening_checks', 'fridge_checks', 'critical_actions', 'cleaning_tasks', 'pending_leave']
 
 export const TODAY_ITEM_REGISTRY = {
   on_shift: {
@@ -20,7 +25,7 @@ export const TODAY_ITEM_REGISTRY = {
     route: '/opening-closing',
     metric: summary => summary.checksToday,
     metricLabel: 'Checks done',
-    action: (summary, vp, closedToday) => !closedToday && summary.checksToday === 0 && { label: 'Opening checks not done', detail: 'Not started today', to: vp('/opening-closing'), urgency: 'warn' },
+    action: (summary, vp, closedToday) => !closedToday && summary.totalChecks > 0 && summary.checksToday === 0 && { label: 'Opening checks not done', detail: 'Not started today', to: vp('/opening-closing'), urgency: 'warn' },
   },
   closing_checks: {
     id: 'closing_checks',
@@ -31,7 +36,7 @@ export const TODAY_ITEM_REGISTRY = {
     route: '/opening-closing',
     metric: summary => summary.closingChecksToday,
     metricLabel: 'Closing done',
-    action: (summary, vp, closedToday) => !closedToday && summary.closingChecksToday === 0 && { label: 'Closing checks not done', detail: 'Not started today', to: vp('/opening-closing'), urgency: 'warn' },
+    action: (summary, vp, closedToday) => !closedToday && (summary.totalClosingChecks ?? 1) > 0 && summary.closingChecksToday === 0 && { label: 'Closing checks not done', detail: 'Not started today', to: vp('/opening-closing'), urgency: 'warn' },
   },
   fridge_checks: {
     id: 'fridge_checks',

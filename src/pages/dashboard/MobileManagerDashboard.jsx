@@ -10,7 +10,7 @@ import { format, startOfWeek } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { reportError } from '../../lib/reportError'
 import { isActionDueToday } from '../../hooks/useTodaySummary'
-import { TODAY_ITEM_REGISTRY } from './todayItemRegistry'
+import { TODAY_ITEM_REGISTRY, GLANCE_TILE_COUNT } from './todayItemRegistry'
 import { WIDGET_REGISTRY } from '../../components/widgets/WidgetRegistry'
 import { FetchWhenNearViewport } from '../../hooks/useWidgetFetchGate'
 import { useClockStatus, nextClockStatus, useQueuedClockEvent } from '../../hooks/useClockEvents'
@@ -55,12 +55,10 @@ function useLiveTime() {
   return now
 }
 
-const GLANCE_TILES = ['on_shift', 'opening_checks', 'fridge_checks', 'critical_actions']
-
 // ── Stat tile (4 across, with sub-label) ───────────────────────────────────
 // Short names so four fit across a phone; the picker keeps the full labels.
 const TILE_LABELS = {
-  on_shift: 'On shift', opening_checks: 'Checks', closing_checks: 'Closing', fridge_checks: 'Fridges due',
+  on_shift: 'On shift', opening_checks: 'Checks', closing_checks: 'Closing', fridge_checks: 'Fridges',
   cooking_temps: 'Cooking', hot_holding: 'Hot hold', cooling_logs: 'Cooling', cleaning_tasks: 'Cleaning',
   critical_actions: 'Critical', pending_leave: 'Leave', duties: 'Duties',
 }
@@ -69,8 +67,8 @@ function subLabel(item, summary) {
   const v = item.metric(summary) ?? 0
   const id = item.id
   if (id === 'on_shift')       return v === 0 ? 'none in' : 'on shift'
-  if (id === 'opening_checks') return summary.totalChecks > 0 ? `of ${summary.totalChecks} done` : v === 0 ? 'not done' : 'done'
-  if (id === 'closing_checks') return v === 0 ? 'not done' : 'done'
+  if (id === 'opening_checks') return summary.totalChecks > 0 ? `of ${summary.totalChecks} done` : v === 0 ? 'none due' : 'done'
+  if (id === 'closing_checks') return summary.totalClosingChecks > 0 ? `of ${summary.totalClosingChecks} done` : v === 0 ? 'none due' : 'done'
   if (id === 'fridge_checks')  return v === 0 ? 'all done' : 'still due'
   if (id === 'cleaning_tasks') return v === 0 ? 'all done' : 'overdue'
   if (id === 'critical_actions') return v === 0 ? 'all clear' : 'open'
@@ -90,15 +88,15 @@ function MobileStatTile({ item, summary, vp }) {
   const tagProps = item.route ? { to: vp(item.route) } : {}
 
   return (
-    <Tag {...tagProps} className="min-w-0 bg-white dark:bg-paperDark border border-line dark:border-white/10 rounded-card px-2.5 min-[420px]:px-3 pt-2.5 pb-2.5 flex flex-col gap-1.5 no-underline active:bg-cream dark:active:bg-white/5 transition-colors">
-      <span className="flex items-start gap-1.5 min-w-0 min-h-[30px] min-[420px]:min-h-0">
-        <span className={`w-2 h-2 mt-1 rounded-full shrink-0 ${isDanger ? 'bg-bad' : 'bg-good'}`} />
-        <span className="text-caption min-[420px]:text-body-sm text-ink2 dark:text-white/70 leading-tight break-words">
-          {TILE_LABELS[item.id] ?? item.metricLabel}
-        </span>
+    <Tag {...tagProps} className="min-w-0 bg-white dark:bg-paperDark border border-line dark:border-white/10 rounded-card px-3 py-3 flex flex-col gap-2 no-underline active:bg-cream dark:active:bg-white/5 transition-colors">
+      <span className="text-caption min-[420px]:text-body-sm text-ink2 dark:text-white/70 leading-tight truncate">
+        {TILE_LABELS[item.id] ?? item.metricLabel}
       </span>
-      <span className={`font-mono text-title font-semibold leading-none ${isDanger ? 'text-bad dark:text-badDark' : 'text-ink dark:text-white'}`}>
-        {value}
+      <span className="flex items-center justify-between gap-1">
+        <span className={`font-mono text-title font-semibold leading-none ${isDanger ? 'text-bad dark:text-badDark' : 'text-ink dark:text-white'}`}>
+          {value}
+        </span>
+        <span className={`w-2 h-2 rounded-full shrink-0 ${isDanger ? 'bg-bad' : 'bg-good'}`} />
       </span>
       {sub && (
         <span className={`text-caption min-[420px]:text-body-sm leading-tight ${isDanger ? 'text-bad dark:text-badDark' : 'text-ink3 dark:text-white/45'}`}>
@@ -688,11 +686,13 @@ export default function MobileManagerDashboard({
       return true
     })
 
-  // Today at a glance is a fixed four; the rest of the Today items surface in
-  // Needs you when they need attention.
-  const glanceItems = GLANCE_TILES
+  // Today at a glance: the first four of the person's own Today items (chosen
+  // in Customise). Every item, tile or not, surfaces in Needs you when it
+  // needs attention.
+  const glanceItems = (todayItemIds ?? [])
     .map(id => TODAY_ITEM_REGISTRY[id])
     .filter(item => item && (!item.feature || isEnabled(item.feature)))
+    .slice(0, GLANCE_TILE_COUNT)
 
   const actions = summary
     ? activeItems.map(item => item.action?.(summary, vp, closedToday)).filter(Boolean)
@@ -746,7 +746,7 @@ export default function MobileManagerDashboard({
           onClick={onOpenPicker}
           className="self-center"
         >
-          Choose Needs you items
+          Choose tiles and alerts
         </Button>
       )}
       {editMode && (
@@ -769,7 +769,7 @@ export default function MobileManagerDashboard({
                 ))}
               </div>
             ) : glanceItems.length === 0 ? null : (
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${GLANCE_TILE_COUNT}, minmax(0, 1fr))` }}>
                 {glanceItems.map(item => (
                   <MobileStatTile key={item.id} item={item} summary={summary} vp={vp} />
                 ))}

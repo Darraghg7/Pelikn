@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { WIDGET_REGISTRY, ALL_WIDGET_IDS } from '../../components/widgets/WidgetRegistry'
 import Modal from '../../components/ui/Modal'
-import { TODAY_ITEM_REGISTRY, ALL_TODAY_ITEM_IDS } from './todayItemRegistry'
+import { TODAY_ITEM_REGISTRY, ALL_TODAY_ITEM_IDS, GLANCE_TILE_COUNT } from './todayItemRegistry'
 import Button from '../../components/ui/Button'
 
 export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSave, onSaveToday }) {
@@ -80,7 +80,10 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
         </p>
 
         <div>
-          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Today view</p>
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Today view</p>
+          <p className="text-caption text-charcoal/45 dark:text-white/40 mb-2">
+            The first {GLANCE_TILE_COUNT} are your tiles under "Today at a glance". All of them flag in "Needs you" when something needs doing.
+          </p>
           <div className="flex flex-col gap-1.5">
             {selectedToday.map((id, idx) => {
               const item = TODAY_ITEM_REGISTRY[id]
@@ -107,6 +110,9 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
                     <p className="text-sm font-medium text-charcoal dark:text-white truncate">{item.label}</p>
                     <p className="text-caption text-charcoal/40 dark:text-white/35 truncate">{item.description}</p>
                   </div>
+                  {idx < GLANCE_TILE_COUNT && (
+                    <span className="shrink-0 text-micro font-bold tracking-widest uppercase text-brand dark:text-accentDark">Tile</span>
+                  )}
                   <Button
                     variant="danger-ghost"
                     size="sm"

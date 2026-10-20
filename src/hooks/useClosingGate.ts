@@ -5,6 +5,7 @@ import { useVenue } from '../contexts/VenueContext'
 import { londonToday } from '../lib/time'
 import { takeBootstrap } from '../lib/api/bootstrap'
 import { throwIfError } from '../lib/queryErrors'
+import { isCheckDueOn, dateFromISO } from '../lib/openingChecks'
 
 /** Stands in for closing checks set to Everyone (no department). */
 export const EVERYONE = 'everyone'
@@ -69,7 +70,7 @@ export function useClosingGate(staffId: string | null | undefined) {
       const [checksRes, myDepartmentsRes, allDepartmentsRes, myAcceptancesRes] = await Promise.all([
         supabase
           .from('opening_closing_checks')
-          .select('id, department_id')
+          .select('id, department_id, check_days')
           .eq('venue_id', venueId)
           .eq('type', 'closing')
           .eq('is_active', true),
@@ -90,7 +91,8 @@ export function useClosingGate(staffId: string | null | undefined) {
           .eq('staff_id', staffId),
       ])
       throwIfError(checksRes, myDepartmentsRes, allDepartmentsRes, myAcceptancesRes)
-      const checks = checksRes.data
+      // A closing check that isn't needed today can't block anyone clocking out.
+      const checks = (checksRes.data ?? []).filter((c) => isCheckDueOn(c, dateFromISO(today)))
       const myDepartmentRows = myDepartmentsRes.data
       const allDepartments = allDepartmentsRes.data
       const myAcceptances = myAcceptancesRes.data

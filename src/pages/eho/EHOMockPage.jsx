@@ -7,6 +7,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import useVenueSettings from '../../hooks/useVenueSettings'
+import { SkeletonList } from '../../components/ui/Skeleton'
 import { fetchMockInspections, insertMockInspection, MockInspectionsUnavailable } from '../../lib/api/mockInspections'
 
 // In-progress answers are kept on this device so leaving the page part-way
@@ -384,7 +385,7 @@ export default function EHOMockPage() {
               Results can't be saved yet — database migration 131 (mock_inspections) needs applying.
             </p>
           ) : history.isLoading ? (
-            <p className="px-5 py-4 text-sm text-charcoal/40 dark:text-white/35">Loading…</p>
+            <SkeletonList rows={3} className="px-5 py-4" />
           ) : history.error ? (
             <p className="px-5 py-4 text-sm text-danger">Couldn't load previous inspections — {history.error.message}</p>
           ) : !history.data?.length ? (

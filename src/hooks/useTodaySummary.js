@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { throwIfError } from '../lib/queryErrors'
 import { readPersisted, writePersisted, clearPersisted } from '../lib/persistedCache'
 import { onDataWrite } from '../lib/cacheBus'
+import { checksDueOn } from '../lib/openingChecks'
 import { captureSilent } from '../lib/reportError'
 import { isCheckRequired, getActivePeriods } from '../lib/temperatureChecks'
 import { useSession } from '../contexts/SessionContext'
@@ -292,6 +293,7 @@ function emptySummary() {
     uncheckedFridges: 0,
     totalFridges: 0,
     totalChecks: 0,
+    totalClosingChecks: 0,
     pendingLeave: 0,
     criticalActions: 0,
     cookingTempsToday: 0,
@@ -435,6 +437,7 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
           uncheckedFridges:   due('fridge_checks')  ? data.uncheckedFridges   : 0,
           totalFridges:       due('fridge_checks')  ? data.totalFridges       : 0,
           totalChecks:        data.totalChecks      ?? 0,
+          totalClosingChecks: data.totalClosingChecks ?? 0,
           pendingLeave:       data.pendingLeave     ?? 0,
           criticalActions:    data.criticalActions  ?? 0,
           cookingTempsToday:  due('cooking_temps')  ? data.cookingTempsToday  : 0,
@@ -535,7 +538,7 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
           : { count: 0 },
         // Fetch shifts with IDs so duty_assignments query can happen in the second round-trip
         supabase.from('shifts').select('id').eq('venue_id', venueId).eq('shift_date', todayStr),
-        supabase.from('opening_closing_checks').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).eq('is_active', true),
+        supabase.from('opening_closing_checks').select('id, type, check_days').eq('venue_id', venueId).eq('is_active', true),
         // Fetch cleaning completions upfront — avoids a sequential fetch after cleaning_tasks
         due('cleaning_tasks')
           ? supabase.from('cleaning_completions')
@@ -553,6 +556,9 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
       )
 
       if (cancelled) return
+
+      // Opening/closing checks that apply today (per-check days, migration 158).
+      const dueChecksToday = checksDueOn(totalChecksRes.data ?? [], today)
 
       // ── Closed today? Trading closure (weekly closedDays or a one-off
       // venue_closures entry) doesn't blank out checks that have their own
@@ -633,7 +639,8 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
         closingChecksToday: closing.count ?? 0,
         uncheckedFridges,
         totalFridges,
-        totalChecks:        totalChecksRes.count ?? 0,
+        totalChecks:        dueChecksToday.filter(c => c.type === 'opening').length,
+        totalClosingChecks: dueChecksToday.filter(c => c.type === 'closing').length,
         pendingLeave:       leaveReqs.count ?? 0,
         criticalActions:    critActions.count ?? 0,
         cookingTempsToday:  cookingTemps.count ?? 0,

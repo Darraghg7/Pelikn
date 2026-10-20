@@ -53,6 +53,9 @@ export function ComplianceGauge({ score }) {
   )
 }
 
+// The card sits beside a short Fridges card; the rest is one tap away on the audit page.
+const MAX_ISSUE_ROWS = 2
+
 function ComplianceScoreWidget() {
   const { venueId, venueSlug } = useVenue()
 
@@ -69,7 +72,10 @@ function ComplianceScoreWidget() {
   return (
     <WidgetShell title="Compliance" to="/audit">
       <div className="py-1">
-        <p className={`font-mono text-display font-semibold leading-none tracking-tight ${tier.cls}`}>{data.score}%</p>
+        <div className="flex items-baseline gap-2">
+          <p className={`font-mono text-display font-semibold leading-none tracking-tight ${tier.cls}`}>{data.score}%</p>
+          <span className="text-caption text-ink3 dark:text-white/45">{COMPLIANCE_RANGE_DAYS}-day avg</span>
+        </div>
         {data.issues > 0 ? (
           <p className="mt-2 text-body-sm font-semibold text-bad dark:text-badDark">
             ↓ {data.issues} item{data.issues !== 1 ? 's' : ''} need attention
@@ -77,17 +83,16 @@ function ComplianceScoreWidget() {
         ) : (
           <p className="mt-2 text-body-sm font-semibold text-good dark:text-goodDark inline-flex items-center gap-1.5">
             <svg className="w-4 h-4 shrink-0" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
-            On track · {COMPLIANCE_RANGE_DAYS}-day avg
+            On track
           </p>
         )}
-        {data.issues > 0 && <p className="text-body-sm text-ink3 dark:text-white/45 mt-1">{COMPLIANCE_RANGE_DAYS}-day average</p>}
       </div>
       {data.issueList?.length > 0 && (
-        <div className="mt-2 pt-2.5 border-t border-line dark:border-white/10 flex flex-col gap-0.5">
-          {data.issueList.map(issue => {
+        <div className="mt-1.5 pt-2 border-t border-line dark:border-white/10 flex flex-col">
+          {data.issueList.slice(0, MAX_ISSUE_ROWS).map(issue => {
             const content = (
-              <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 py-1.5 px-2 -mx-2 rounded-control hover:bg-cream dark:hover:bg-white/5 transition-colors cursor-pointer">
-                <span className="text-body-sm text-ink2 dark:text-white/70">{issue.label}</span>
+              <div className="flex flex-col py-1.5 px-2 -mx-2 rounded-control hover:bg-cream dark:hover:bg-white/5 transition-colors cursor-pointer">
+                <span className="text-caption text-ink3 dark:text-white/45">{issue.label}</span>
                 <span className={`text-body-sm font-semibold ${issue.severity === 'bad' ? 'text-bad dark:text-badDark' : 'text-warn dark:text-warnDark'}`}>
                   {issue.detail} →
                 </span>
@@ -99,6 +104,11 @@ function ComplianceScoreWidget() {
               <div key={issue.key}>{content}</div>
             )
           })}
+          {data.issueList.length > MAX_ISSUE_ROWS && (
+            <p className="text-caption text-ink3 dark:text-white/45 pt-0.5">
+              +{data.issueList.length - MAX_ISSUE_ROWS} more
+            </p>
+          )}
         </div>
       )}
     </WidgetShell>

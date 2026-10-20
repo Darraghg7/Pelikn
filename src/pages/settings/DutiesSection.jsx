@@ -4,6 +4,7 @@ import { useDutyTemplates } from '../../hooks/useDuties'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import LoadError from '../../components/ui/LoadError'
 import Button, { CloseButton } from '../../components/ui/Button'
+import { SkeletonList } from '../../components/ui/Skeleton'
 
 function ItemInput({ value, onChange, onRemove, onKeyDown, autoFocus }) {
   return (
@@ -178,7 +179,7 @@ export default function DutiesSection() {
     else toast('Duty removed')
   }
 
-  if (loading) return <div className="py-4 text-center text-sm text-charcoal/30 dark:text-white/30">Loading…</div>
+  if (loading) return <SkeletonList rows={3} className="py-4" />
   if (isError) return <LoadError what="duties" onRetry={reload} />
 
   return (

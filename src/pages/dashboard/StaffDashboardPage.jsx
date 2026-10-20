@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react'
+import { checksDueOn } from '../../lib/openingChecks'
 import { Link } from 'react-router-dom'
 import { format, addDays, startOfWeek } from 'date-fns'
 import { supabase } from '../../lib/supabase'
@@ -492,14 +493,15 @@ function useChecksForShift(venueId) {
     if (!venueId) return
     supabase
       .from('opening_closing_checks')
-      .select('id, title, type, sort_order')
+      .select('id, title, type, sort_order, check_days')
       .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('sort_order')
       .order('created_at')
       .then(({ data, error }) => {
         if (error) reportError(error, 'StaffDashboard:shift-checks')
-        else setChecks(data ?? [])
+        // Only what's due today (per-check days, migration 158).
+        else setChecks(checksDueOn(data ?? [], new Date()))
         setFailed(!!error)
         setLoading(false)
       })
