@@ -820,7 +820,7 @@ function Pricing() {
                     <span className="text-cream/75 text-title-sm">{sfx}</span>
                   </div>
                   <p className="text-body-lg text-cream/75">{PLAN_DETAILS.pro.venueNote} · {ep}{sfx} each extra</p>
-                  {annual && <p className="text-body-lg font-medium text-goodDark mt-1">Save £50 vs monthly</p>}
+                  {annual && <p className="text-body-lg font-medium text-goodDark mt-1">Save £60 vs monthly</p>}
                   <div className="border-y border-cream/20 py-5 my-8">
                     <p className="font-mono text-micro tracking-[0.12em] uppercase text-cream/70 mb-3">As you grow</p>
                     {[1,2,3,5].map(n=>(
