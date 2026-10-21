@@ -146,7 +146,7 @@ function UpgradeModal({ featureLabel, onClose }) {
           </div>
         )}
         <Button variant="accent" fullWidth className="mb-2">
-          Upgrade to Pro · £25/mo
+          Upgrade to Pro · £30/mo
         </Button>
         <Button
           variant="secondary"
@@ -559,7 +559,7 @@ export default function OnboardingPage() {
                           </div>
                           <div className="flex-1">
                             <p className="text-caption font-bold text-charcoal dark:text-white">Available on Pro</p>
-                            <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">Unlock {group.label} for £25/mo</p>
+                            <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">Unlock {group.label} for £30/mo</p>
                           </div>
                           <Button
                             variant="accent"
