@@ -2,7 +2,7 @@ import React from 'react'
 import Logo from '../components/ui/Logo'
 import { Link } from 'react-router-dom'
 
-const EFFECTIVE_DATE = '16 October 2026'
+const EFFECTIVE_DATE = '21 October 2026'
 const CONTACT_EMAIL  = 'darraghguy@yahoo.com'
 const CONTROLLER     = 'Darragh Guy, trading as Pelikn'
 
@@ -128,13 +128,20 @@ export default function PrivacyPolicyPage() {
               staff member who recorded each one.
             </li>
             <li>
+              <Term>Location when clocking in</Term> — only if a venue switches on the "only at the
+              venue" clock-in rule. Your phone's position is sent to us when you clock in or out, to
+              check you are at the venue. We do not store it, and we never track where you are at
+              any other time. The venue's own saved location is stored with its settings.
+            </li>
+            <li>
               <Term>Device and session data</Term> — which devices are signed in and when, a
               scrambled (hashed) form of your IP address to block repeated failed sign-ins, and
               push notification tokens if you allow notifications.
             </li>
           </ul>
           <p>
-            We do not collect or store payment card details.
+            We do not collect or store payment card details. Subscription payments are handled by
+            Stripe, which holds the card details.
           </p>
         </Section>
 
@@ -199,6 +206,11 @@ export default function PrivacyPolicyPage() {
               lives here (EU region).
             </li>
             <li>
+              <Term>Stripe</Term> — takes subscription payments for venue owners and keeps their
+              billing records. Sees the owner's name, email address, card details and payment
+              history. Stripe is a separate controller of the payment details it collects.
+            </li>
+            <li>
               <Term>Vercel</Term> — hosts the website and app. Handles your connection to Pelikn,
               including your IP address.
             </li>
@@ -242,7 +254,7 @@ export default function PrivacyPolicyPage() {
           <p>
             Our main database is in the EU, which the UK recognises as giving adequate protection.
             Some of the companies above are based in the United States or may handle data there
-            (for example Vercel, Resend, GitHub, Cloudflare, Google and Apple). Where that happens, we rely on
+            (for example Stripe, Vercel, Resend, GitHub, Cloudflare, Google and Apple). Where that happens, we rely on
             the safeguards UK law allows: the UK–US data bridge where the company is certified
             under it, or contract terms approved for UK transfers (the UK International Data
             Transfer Agreement or Addendum).
