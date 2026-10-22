@@ -57,51 +57,14 @@ body {
 .pelikn-fake-splash-exit {
   animation: pk-splash-out 0.32s ease-out forwards;
 }
-.pelikn-fake-splash-halo {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 260px;
-  height: 260px;
-  border-radius: 999px;
-  background: radial-gradient(circle, theme(colors.white/22%) 0%, theme(colors.white/6%) 40%, transparent 70%);
-  transform: translate(-50%,-50%) scale(0.3);
-  opacity: 0;
-  will-change: transform, opacity;
-}
-.pelikn-fake-splash-run .pelikn-fake-splash-halo {
-  animation: pk-halo 0.9s cubic-bezier(.22,.9,.28,1) both;
-}
 .pelikn-fake-splash-icon-wrap {
   position: relative;
   z-index: 1;
-  transform: translate3d(0,20px,0) scale(0.9);
-  opacity: 0;
-  will-change: transform, opacity;
-}
-.pelikn-fake-splash-run .pelikn-fake-splash-icon-wrap {
-  animation: pk-icon-rise 0.5s 0.1s cubic-bezier(.22,.9,.28,1) both;
+  min-height: 112px;
 }
 .pelikn-fake-splash-icon-wrap svg {
   display: block;
   overflow: visible;
-}
-.pelikn-fake-splash-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 200px;
-  height: 200px;
-  margin-top: -100px;
-  margin-left: -100px;
-  border-radius: 999px;
-  background: radial-gradient(circle, theme(colors.goodDark/70%) 0%, theme(colors.goodDark/20%) 45%, transparent 70%);
-  transform: scale3d(0.3,0.3,1);
-  opacity: 0;
-  will-change: transform, opacity;
-}
-.pelikn-fake-splash-run .pelikn-fake-splash-glow {
-  animation: pk-glow-burst 1s 0.55s ease-out both;
 }
 .pelikn-fake-splash-word {
   display: block;
@@ -128,19 +91,6 @@ body {
 }
 .pelikn-fake-splash-run .pelikn-fake-splash-tag {
   animation: pk-tag 0.55s 0.55s cubic-bezier(.22,.9,.28,1) both;
-}
-@keyframes pk-halo {
-  from { transform: translate(-50%,-50%) scale(0.3); opacity: 0; }
-  to   { transform: translate(-50%,-50%) scale(1); opacity: 1; }
-}
-@keyframes pk-icon-rise {
-  from { transform: translate3d(0,20px,0) scale(0.9); opacity: 0; }
-  to   { transform: translate3d(0,0,0) scale(1); opacity: 1; }
-}
-@keyframes pk-glow-burst {
-  0%   { opacity: 0; transform: scale3d(0.3,0.3,1); }
-  30%  { opacity: 1; transform: scale3d(1.1,1.1,1); }
-  100% { opacity: 0; transform: scale3d(1.8,1.8,1); }
 }
 @keyframes pk-tag {
   from { opacity: 0; transform: translate3d(0,5px,0); }
@@ -275,30 +225,7 @@ table { border-spacing: 0; }
   will-change: transform;
 }
 .landing-ready .pelikn-ios-mark {
-  animation: pelikn-mark-pop 0.45s cubic-bezier(0.2, 1.25, 0.35, 1) both,
-             pelikn-figma-glow 3s 0.5s ease-in-out infinite;
-}
-.pelikn-ios-mark::after {
-  content: "";
-  position: absolute;
-  inset: -4px;
-  border-radius: 999px;
-  border: 1.5px solid theme(colors.white/20%);
-  opacity: 0;
-}
-.landing-ready .pelikn-ios-mark::after {
-  animation: pelikn-mark-ring-pulse 3s 0.5s ease-in-out infinite;
-}
-.pelikn-ios-mark::before {
-  content: "";
-  position: absolute;
-  inset: -12px;
-  border-radius: 999px;
-  border: 1px solid theme(colors.white/8%);
-  opacity: 0;
-}
-.landing-ready .pelikn-ios-mark::before {
-  animation: pelikn-mark-ring-outer 3s 0.5s ease-in-out infinite;
+  animation: pelikn-mark-pop 0.45s cubic-bezier(0.2, 1.25, 0.35, 1) both;
 }
 
 .pelikn-ios-brand p {
@@ -552,29 +479,9 @@ table { border-spacing: 0; }
   from { opacity: 0; transform: scale3d(0, 0, 1); }
   to   { opacity: 1; transform: scale3d(1, 1, 1); }
 }
-@keyframes pelikn-figma-glow {
-  0%, 100% { box-shadow: 0 0 20px theme(colors.white/25%), 0 0 0 theme(colors.goodDark/0%); }
-  50% { box-shadow: 0 0 35px theme(colors.white/50%), 0 0 56px theme(colors.goodDark/18%); }
-}
-@keyframes pelikn-mark-ring-pulse {
-  0%, 100% { opacity: 0.2; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.06); }
-}
-@keyframes pelikn-mark-ring-outer {
-  0%, 100% { opacity: 0; transform: scale(0.96); }
-  50% { opacity: 0.4; transform: scale(1.1); }
-}
 @keyframes pelikn-mark-pop {
   from { transform: scale3d(0.72, 0.72, 1); }
   to   { transform: scale3d(1, 1, 1); }
-}
-@keyframes pelikn-loader-breathe {
-  0%, 100% { transform: scale(1); opacity: 0.85; }
-  50%      { transform: scale(1.06); opacity: 1; }
-}
-@keyframes pelikn-loader-ring {
-  0%   { transform: scale(0.8); opacity: 0.5; }
-  100% { transform: scale(1.5); opacity: 0; }
 }
 @keyframes pelikn-figma-brand {
   from { opacity: 0; transform: translate3d(0, -20px, 0); }
@@ -829,29 +736,38 @@ html.dark .bg-danger\/8 {
   }
 }
 
-/* Loading screens: the bird breathes while a soft ring spreads out from it. */
+/* The mark drawn in as one solid line (LogoDraw): a wide line through the
+   middle of the bird, clipped to the logo, so it is solid from the first frame
+   and the finished frame is the exact logo. The looping version (loading
+   screens) holds, erases in the same direction, then repeats. */
 .pelikn-loader {
-  position: relative;
   display: grid;
   place-items: center;
   width: 112px;
   height: 112px;
 }
-.pelikn-loader::before,
-.pelikn-loader::after {
-  content: "";
-  position: absolute;
-  inset: 8px;
-  border-radius: 999px;
-  border: 1.5px solid currentColor;
-  opacity: 0;
-  animation: pelikn-loader-ring 2.2s ease-out infinite;
+.pelikn-draw { overflow: visible; }
+.pelikn-draw-line {
+  stroke-width: 66;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  animation: pelikn-draw-line 1.4s cubic-bezier(.6,.1,.35,1) both;
 }
-.pelikn-loader::after { animation-delay: 1.1s; }
-.pelikn-loader > svg { animation: pelikn-loader-breathe 2.2s ease-in-out infinite; }
+.pelikn-draw-loop .pelikn-draw-line {
+  animation: pelikn-draw-line-loop 3s cubic-bezier(.6,.1,.35,1) infinite both;
+}
+@keyframes pelikn-draw-line {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes pelikn-draw-line-loop {
+  0%        { stroke-dashoffset: 1; }
+  48%, 70%  { stroke-dashoffset: 0; }
+  94%, 100% { stroke-dashoffset: -1; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .pelikn-loader::before,
-  .pelikn-loader::after,
-  .pelikn-loader > svg { animation: none; }
-  .pelikn-loader > svg { opacity: 1; }
+  .pelikn-draw .pelikn-draw-line { animation: none; stroke-dashoffset: 0; }
+}
 }

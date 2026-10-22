@@ -1,3 +1,5 @@
+import { useId } from "react"
+
 /**
  * The Pelikn logo, drawn from the supplied brand artwork (pelikn-inline.svg).
  * This is the one place the mark is drawn; the colour follows the text colour.
@@ -43,13 +45,56 @@ export default function Logo({ variant = "mark", size = "md", height, tone = "au
   )
 }
 
+// One continuous line through the middle of the bird, anticlockwise from the
+// tail tip (bottom right): up the neck, round the head, down through the beak
+// into the bowl, left along its rim, round the bowl, and out along the beak to
+// its tip. Stroked wide and clipped to the real shape, it paints the logo in a
+// single solid stroke.
+const BIRD_SPINE =
+  "M 574 552 C 568 551 549 550 537 545 C 525 540 514 532 504 524 C 494 516 486 505 480 496 C 474 487 472 481 470 472 C 468 463 466 451 466 441 C 466 431 466 420 468 410 C 470 400 475 390 481 379 C 487 368 494 357 504 344 C 514 331 531 315 544 303 C 557 291 568 285 582 272 C 596 259 615 242 626 227 C 637 212 644 198 649 183 C 654 168 654 154 654 140 C 654 126 653 115 646 101 C 639 87 627 66 613 54 C 599 42 579 32 562 27 C 545 22 528 21 510 24 C 492 27 468 34 452 44 C 436 54 423 70 411 83 C 399 96 388 111 380 125 C 372 139 362 149 360 165 C 358 181 364 203 366 222 C 368 241 378 268 372 278 C 366 288 350 280 330 283 C 310 286 280 290 250 295 C 220 300 179 306 150 310 C 121 314 92 317 75 322 C 58 327 54 330 51 340 C 48 350 50 365 54 383 C 58 401 65 430 72 446 C 79 462 86 470 97 481 C 108 492 126 506 141 514 C 156 522 173 526 190 526 C 207 526 225 524 243 516 C 261 508 283 492 298 478 C 313 464 322 447 332 430 C 342 413 351 394 360 375 C 369 356 380 330 388 316 C 396 302 397 301 408 290 C 419 279 445 262 452 250 C 459 238 460 220 448 216 C 436 212 413 223 380 226 C 347 229 293 233 250 236 C 207 239 159 243 120 246 C 81 249 32 251 14 252"
+
+/**
+ * The mark drawn in as one solid line.
+ *   loop  false (default)  draws once and stays (splash, app sign-in)
+ *         true             draws, holds, erases, repeats (loading screens)
+ */
+/** @param {{ height?: number, tone?: "auto" | "onBrand", loop?: boolean, className?: string }} props */
+export function LogoDraw({ height = 48, tone = "auto", loop = false, className = "" }) {
+  const v = VIEWS.mark
+  const clipId = `pk-bird-${useId().replace(/:/g, "")}`
+  const colour = tone === "onBrand" ? "text-white" : "text-brand dark:text-white"
+  return (
+    <svg
+      role="img"
+      aria-label="Pelikn"
+      viewBox={v.box}
+      width={Math.round(height * v.ratio)}
+      height={height}
+      className={`pelikn-draw ${loop ? "pelikn-draw-loop" : ""} shrink-0 ${colour} ${className}`}
+    >
+      <g transform="scale(0.32490975)">
+        <clipPath id={clipId}>
+          <path d={BIRD} clipRule="evenodd" />
+        </clipPath>
+        <path
+          className="pelikn-draw-line"
+          d={BIRD_SPINE}
+          clipPath={`url(#${clipId})`}
+          pathLength={1}
+          fill="none"
+          stroke="currentColor"
+        />
+      </g>
+    </svg>
+  )
+}
+
 /** Animated mark for full-screen loading states. */
 /** @param {{ tone?: "auto" | "onBrand" }} props */
 export function LogoLoader({ tone = "auto" }) {
-  const colour = tone === "onBrand" ? "text-white" : "text-brand dark:text-white"
   return (
-    <span className={`pelikn-loader ${colour}`}>
-      <Logo variant="mark" height={48} tone={tone} />
+    <span className="pelikn-loader">
+      <LogoDraw height={56} tone={tone} loop />
     </span>
   )
 }
