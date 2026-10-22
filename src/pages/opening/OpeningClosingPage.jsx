@@ -8,7 +8,6 @@ import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import { reportError } from '../../lib/reportError'
 import LoadError from '../../components/ui/LoadError'
-import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import OpeningClosingExportModal from './OpeningClosingExportModal'
 import { useViewerDepartments } from '../../hooks/useDepartments'
 import { useAppSettings } from '../../hooks/useSettings'
@@ -18,7 +17,7 @@ import Button, { CloseButton } from '../../components/ui/Button'
 import { CHECK_DAYS, DEFAULT_CHECK_DAYS, formatCheckDaysCompact } from '../../lib/temperatureChecks'
 import { isCheckDueOn, dateFromISO } from '../../lib/openingChecks'
 import { updateOpeningCheck } from '../../lib/api/openingChecks'
-import { errorOf } from '../../lib/api/writes'
+import { insertRow } from '../../lib/api/writes'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -168,24 +167,94 @@ const daysToStore = (days) => (days.length === 7 ? null : days.slice().sort((a, 
 const daysFromCheck = (check) =>
   Array.isArray(check?.check_days) && check.check_days.length > 0 ? check.check_days : [...DEFAULT_CHECK_DAYS]
 
-// ── EditCheckModal ────────────────────────────────────────────────────────────
+// The days a list runs on. Days are set for the whole list, but older checks
+// may each have their own, so take the most common pattern.
+function listDaysOf(checks) {
+  if (checks.length === 0) return { days: [...DEFAULT_CHECK_DAYS], mixed: false }
+  const counts = new Map()
+  checks.forEach(c => {
+    const key = daysFromCheck(c).slice().sort((x, y) => x - y).join(',')
+    counts.set(key, (counts.get(key) ?? 0) + 1)
+  })
+  const [key] = [...counts.entries()].sort((x, y) => y[1] - x[1])[0]
+  return { days: key.split(',').map(Number), mixed: counts.size > 1 }
+}
 
-function EditCheckModal({ check, venueId, departments, onClose, onSaved }) {
+// Grows with its text, so a long check reads in full instead of scrolling.
+function GrowingTextarea(props) {
+  const fit = (el) => { if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px` } }
+  return <textarea rows={1} {...props} ref={fit} onInput={e => fit(e.currentTarget)} />
+}
+
+// ── ChecklistEditor ───────────────────────────────────────────────────────────
+
+// Edits one list (say, Kitchen opening checks) in one go: wording, the days
+// the list runs, department, removals and new checks (added at the bottom) are
+// all held here and written on Save, so Cancel really does throw them away.
+function ChecklistEditor({ title, type, departmentId, checks, venueId, departments, onClose, onSaved }) {
   const toast = useToast()
-  const [days, setDays] = useState(() => daysFromCheck(check))
-  const [departmentId, setDepartmentId] = useState(check.department_id ?? '')
+  const [rows, setRows] = useState(() => checks.map(c => ({
+    key: c.id, id: c.id, title: c.title, departmentId: c.department_id ?? '',
+  })))
+  const [removed, setRemoved] = useState([]) // ids of existing checks
+  const initialDays = useMemo(() => listDaysOf(checks), [checks])
+  const [days, setDays] = useState(initialDays.days)
+  const [daysTouched, setDaysTouched] = useState(false)
   const [saving, setSaving] = useState(false)
 
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  const patch = (key, values) => setRows(rs => rs.map(r => (r.key === key ? { ...r, ...values } : r)))
+  const remove = (row) => {
+    setRows(rs => rs.filter(r => r.key !== row.key))
+    if (row.id) setRemoved(ids => [...ids, row.id])
+  }
+  const addRow = () => {
+    const key = `new-${Date.now()}`
+    setRows(rs => [...rs, { key, id: null, title: '', departmentId: departmentId ?? '' }])
+  }
+
+  // A brand-new row left blank is just dropped; an existing one can't be blanked.
+  const kept = rows.filter(r => r.id || r.title.trim())
+  const invalid = days.length === 0 || kept.some(r => !r.title.trim())
+
   const save = async () => {
-    if (days.length === 0) return
+    if (invalid) return
     setSaving(true)
-    const error = await errorOf(updateOpeningCheck(check.id, venueId, {
-      check_days: daysToStore(days), department_id: departmentId || null,
-    }))
+    const original = new Map(checks.map(c => [c.id, c]))
+    const listDays = daysToStore(days)
+    const sameDays = (x, y) => JSON.stringify(x) === JSON.stringify(y)
+    let nextOrder = checks.reduce((max, c) => Math.max(max, c.sort_order ?? 0), -1) + 1
+    const writes = removed.map(id => updateOpeningCheck(id, venueId, { is_active: false }))
+    kept.forEach(r => {
+      const title = r.title.trim()
+      const department_id = r.departmentId || null
+      if (!r.id) {
+        writes.push(insertRow('opening_closing_checks', {
+          title, department_id, check_days: listDays, sort_order: nextOrder++, type, venue_id: venueId,
+        }))
+        return
+      }
+      const was = original.get(r.id)
+      const values = {}
+      if (title !== was.title) values.title = title
+      if (department_id !== (was.department_id ?? null)) values.department_id = department_id
+      // Untouched days leave each older check's own days alone.
+      if (daysTouched && !sameDays(listDays, was.check_days ?? null)) values.check_days = listDays
+      if (Object.keys(values).length) writes.push(updateOpeningCheck(r.id, venueId, values))
+    })
+    const results = await Promise.allSettled(writes)
     setSaving(false)
-    if (error) { toast(error.message, 'error'); return }
-    toast('Check updated')
+    const failed = results.find(r => r.status === 'rejected')
+    // Some writes may have landed, so reload either way.
     onSaved()
+    if (failed) { toast(failed.reason?.message ?? 'Some changes could not be saved.', 'error'); return }
+    toast('Checklist saved')
+    onClose()
   }
 
   return (
@@ -195,38 +264,73 @@ function EditCheckModal({ check, venueId, departments, onClose, onSaved }) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white dark:bg-paperDark rounded-card w-full max-w-md p-6 flex flex-col gap-5 shadow-2xl max-h-[90dvh] overflow-y-auto"
-        style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
+        role="dialog"
+        aria-label={title}
+        className="bg-white dark:bg-paperDark rounded-card w-full max-w-lg flex flex-col shadow-2xl max-h-[90dvh]"
       >
-        <div>
-          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Edit check</p>
-          <h3 className="font-semibold text-charcoal dark:text-white text-lg break-words">{check.title}</h3>
-        </div>
-        <div>
-          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Needed on</p>
-          <DayPicker value={days} onChange={setDays} />
-          <p className="text-caption text-charcoal/40 dark:text-white/35 mt-2">
-            On other days this check isn't listed and doesn't count towards the dashboard.
-          </p>
-        </div>
-        {departments.length > 0 && (
+        <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-3">
           <div>
-            <label htmlFor="check-department" className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
-              Department
-            </label>
-            <select
-              id="check-department"
-              value={departmentId}
-              onChange={e => setDepartmentId(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm"
-            >
-              <option value="">No department (everyone)</option>
-              {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-            </select>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Edit list</p>
+            <h3 className="font-semibold text-charcoal dark:text-white text-lg">{title}</h3>
           </div>
-        )}
-        <div className="flex gap-2">
-          <Button loading={saving} onClick={save} disabled={saving || days.length === 0} className="flex-1">Save</Button>
+          <CloseButton onClick={onClose} />
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 pb-2 flex flex-col gap-4">
+          <div>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Needed on</p>
+            <DayPicker value={days} onChange={d => { setDays(d); setDaysTouched(true) }} />
+            <p className="text-caption text-charcoal/40 dark:text-white/35 mt-2">
+              {initialDays.mixed && !daysTouched
+                ? 'Some checks in this list are set to different days. Change the days here to set them all the same.'
+                : "On other days this list isn't shown and doesn't count towards the dashboard."}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Checks</p>
+            <div className="flex flex-col gap-2">
+              {rows.length === 0 && (
+                <p className="text-sm text-charcoal/40 dark:text-white/35 italic py-2">No checks in this list.</p>
+              )}
+              {rows.map((row, index) => (
+                <div key={row.key} className="flex items-start gap-1">
+                  <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                    <GrowingTextarea
+                      value={row.title}
+                      onChange={e => patch(row.key, { title: e.target.value })}
+                      placeholder="e.g. Check all fridges are at temperature"
+                      aria-label={`Check ${index + 1}`}
+                      autoFocus={!row.id && index === rows.length - 1}
+                      className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm leading-snug resize-none overflow-hidden focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                    />
+                    {departments.length > 0 && (
+                      <select
+                        value={row.departmentId}
+                        onChange={e => patch(row.key, { departmentId: e.target.value })}
+                        aria-label="Department"
+                        className="self-start max-w-full px-2 py-1.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-caption"
+                      >
+                        <option value="">No department</option>
+                        {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                      </select>
+                    )}
+                  </div>
+                  <CloseButton label="Remove check" onClick={() => remove(row)} className="mt-0.5" />
+                </div>
+              ))}
+            </div>
+            <Button variant="secondary" size="sm" onClick={addRow} className="mt-3">+ Add a check</Button>
+            {removed.length > 0 && (
+              <p className="text-caption text-charcoal/50 dark:text-white/40 mt-2">
+                {removed.length} check{removed.length > 1 ? 's' : ''} will be removed. Past records stay in the log.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex gap-2 px-5 pt-3 border-t border-charcoal/8 dark:border-white/8" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
+          <Button loading={saving} onClick={save} disabled={saving || invalid} className="flex-1">Save list</Button>
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
         </div>
       </div>
@@ -236,12 +340,12 @@ function EditCheckModal({ check, venueId, departments, onClose, onSaved }) {
 
 // ── CheckRow ──────────────────────────────────────────────────────────────────
 
-function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRemove, onEdit, saving }) {
+function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, saving }) {
   const done = !!completion
   const hasIssue = completion?.has_issue ?? false
 
   return (
-    <div className={`flex items-start gap-3 px-5 py-3 group ${done ? 'opacity-70' : ''}`}>
+    <div className={`flex items-start gap-3 px-5 py-3 ${done ? 'opacity-70' : ''}`}>
       {/* Leading tap-to-complete circle — tap marks OK, this IS the action */}
       {done ? (
         <span
@@ -290,7 +394,7 @@ function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRem
         )}
       </div>
 
-      {/* Flag issue + remove */}
+      {/* Flag issue */}
       {!done && !readOnly && (
         <button
           onClick={() => onIssue(check)}
@@ -300,52 +404,58 @@ function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRem
           Issue
         </button>
       )}
-      {isManager && !readOnly && (
-        <Button variant="ghost" size="sm" onClick={() => onEdit(check)}>Edit</Button>
-      )}
-      {isManager && !readOnly && (
-        <CloseButton label="Remove check" className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 shrink-0" onClick={() => onRemove(check.id)} />
-      )}
     </div>
   )
 }
 
 // ── CheckSection ──────────────────────────────────────────────────────────────
 
-function CheckSection({ type, label, departmentId, departmentName, checks, scheduledCount, completions, doneAtLoad, onOK, onIssue, isManager, onAddCheck, onRemoveCheck, onEditCheck, moveHint, venueId, readOnly, savingCheckId }) {
+function CheckSection({ type, label, departmentId, departmentName, departments, checks, scheduledChecks, completions, doneAtLoad, onOK, onIssue, isManager, onChecksChanged, moveHint, venueId, readOnly, savingCheckId }) {
   const toast = useToast()
   const typeChecks      = checks.filter(c => c.type === type)
   const typeCompletions = completions.filter(c => c.session_type === type)
   const doneCount       = typeChecks.filter(c => typeCompletions.some(cp => cp.check_id === c.id)).length
   const issueCount      = typeCompletions.filter(c => c.has_issue).length
   const allDone         = typeChecks.length > 0 && doneCount === typeChecks.length
+  const listChecks      = scheduledChecks.filter(c => c.type === type)
 
   const [showAdd, setShowAdd] = useState(false)
   const [newTitle, setNewTitle] = useState('')
-  const [newDays, setNewDays]   = useState([...DEFAULT_CHECK_DAYS])
   const [saving, setSaving]   = useState(false)
+  const [editing, setEditing] = useState(false)
 
   const handleAdd = async () => {
-    if (!newTitle.trim() || newDays.length === 0) return
+    if (!newTitle.trim()) return
     setSaving(true)
     const { error } = await supabase.from('opening_closing_checks').insert({
       title: newTitle.trim(),
       type,
       department_id: departmentId,
-      check_days: daysToStore(newDays),
-      sort_order: typeChecks.length,
+      check_days: daysToStore(listDaysOf(listChecks).days),
+      sort_order: listChecks.reduce((max, c) => Math.max(max, c.sort_order ?? 0), -1) + 1,
       venue_id: venueId,
     })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     setNewTitle('')
-    setNewDays([...DEFAULT_CHECK_DAYS])
     setShowAdd(false)
-    onAddCheck()
+    onChecksChanged()
   }
 
   return (
     <div className="bg-white dark:bg-paperDark rounded-card overflow-hidden flex flex-col">
+      {editing && (
+        <ChecklistEditor
+          title={departmentName ? `${departmentName} ${label.toLowerCase()}` : label}
+          type={type}
+          departmentId={departmentId}
+          checks={listChecks}
+          venueId={venueId}
+          departments={departments}
+          onClose={() => setEditing(false)}
+          onSaved={onChecksChanged}
+        />
+      )}
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-4 pb-3">
         <div>
@@ -370,6 +480,9 @@ function CheckSection({ type, label, departmentId, departmentName, checks, sched
             <span className="text-micro font-bold tracking-widest uppercase text-warning bg-warning/10 px-2.5 py-1 rounded-full">
               <span className="inline-flex items-center gap-1">Complete <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
             </span>
+          )}
+          {isManager && !readOnly && listChecks.length > 0 && !showAdd && (
+            <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>Edit</Button>
           )}
           {isManager && !readOnly && (
             <Button
@@ -406,14 +519,10 @@ function CheckSection({ type, label, departmentId, departmentName, checks, sched
           <Button
             loading={saving}
             onClick={handleAdd}
-            disabled={saving || !newTitle.trim() || newDays.length === 0}
+            disabled={saving || !newTitle.trim()}
           >
             Add →
           </Button>
-          </div>
-          <div>
-            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1.5">Needed on</p>
-            <DayPicker value={newDays} onChange={setNewDays} />
           </div>
         </div>
       )}
@@ -439,18 +548,16 @@ function CheckSection({ type, label, departmentId, departmentName, checks, sched
               onIssue={onIssue}
               readOnly={readOnly}
               isManager={isManager}
-              onRemove={onRemoveCheck}
-              onEdit={onEditCheck}
               saving={savingCheckId === check.id}
             />
           )
         })}
-        {typeChecks.length === 0 && scheduledCount > 0 && (
+        {typeChecks.length === 0 && listChecks.length > 0 && (
           <p className="text-sm text-charcoal/35 dark:text-white/30 italic px-5 py-4">
             No {label.toLowerCase()} needed on this day.
           </p>
         )}
-        {typeChecks.length === 0 && scheduledCount === 0 && (
+        {typeChecks.length === 0 && listChecks.length === 0 && (
           <p className="text-sm text-charcoal/35 dark:text-white/30 italic px-5 py-4">
             No {label.toLowerCase()} set up yet.
             {isManager && ' Click "+ Add" to get started.'}
@@ -572,8 +679,6 @@ export default function OpeningClosingPage() {
   const [pendingIsIssue, setPendingIsIssue] = useState(false)
   const [saving, setSaving] = useState(false)
   const [savingCheckId, setSavingCheckId] = useState(null)
-  const [removeTarget, setRemoveTarget] = useState(null) // check object
-  const [editTarget, setEditTarget]     = useState(null) // check object
 
   const openOK = (check) => {
     if (savingCheckId) return
@@ -614,13 +719,6 @@ export default function OpeningClosingPage() {
     reloadCompletions()
   }
 
-  const removeCheck = async (id) => {
-    const { error } = await supabase.from('opening_closing_checks').update({ is_active: false }).eq('id', id)
-    if (error) { toast(error.message, 'error'); return }
-    toast('Check removed')
-    reloadChecks()
-  }
-
   if (checksLoading) {
     return <PageSkeleton />
   }
@@ -637,26 +735,6 @@ export default function OpeningClosingPage() {
   return (
     <div className="flex flex-col gap-4">
       <OpeningClosingExportModal open={showExport} onClose={() => setShowExport(false)} />
-
-      <ConfirmDialog
-        open={!!removeTarget}
-        title="Remove check?"
-        message={removeTarget ? `Remove "${removeTarget.title}"? This can't be undone.` : ''}
-        confirmLabel="Remove"
-        danger
-        onClose={() => setRemoveTarget(null)}
-        onConfirm={() => { removeCheck(removeTarget.id); setRemoveTarget(null) }}
-      />
-
-      {editTarget && (
-        <EditCheckModal
-          check={editTarget}
-          venueId={venueId}
-          departments={departments}
-          onClose={() => setEditTarget(null)}
-          onSaved={() => { setEditTarget(null); reloadChecks() }}
-        />
-      )}
 
       {/* Issue modal (shown when staff taps "Issue") */}
       {pendingCheck && pendingIsIssue && (
@@ -713,7 +791,7 @@ export default function OpeningClosingPage() {
         const deptChecks = dueChecks.filter(c => (c.department_id ?? null) === dept.id)
         const deptScheduled = checks.filter(c => (c.department_id ?? null) === dept.id)
         const moveHint = dept.id === null && departments.length > 0 && isManager
-          ? 'These checks are not in a department yet. Tap Edit on each to move it into one.'
+          ? 'These checks are not in a department yet. Tap Edit to move them into one.'
           : null
         return (
           <div key={dept.id ?? 'ungrouped'} className="grid md:grid-cols-2 gap-4">
@@ -722,16 +800,15 @@ export default function OpeningClosingPage() {
               label="Opening Checks"
               departmentId={dept.id}
               departmentName={dept.name}
+              departments={departments}
               checks={deptChecks}
-              scheduledCount={deptScheduled.filter(c => c.type === 'opening').length}
+              scheduledChecks={deptScheduled}
               completions={completions}
               doneAtLoad={doneAtLoad}
               onOK={openOK}
               onIssue={openIssue}
               isManager={isManager}
-              onAddCheck={reloadChecks}
-              onRemoveCheck={(id) => setRemoveTarget(checks.find(c => c.id === id))}
-              onEditCheck={setEditTarget}
+              onChecksChanged={reloadChecks}
               moveHint={moveHint}
               venueId={venueId}
               readOnly={readOnly}
@@ -742,16 +819,15 @@ export default function OpeningClosingPage() {
               label="Closing Checks"
               departmentId={dept.id}
               departmentName={dept.name}
+              departments={departments}
               checks={deptChecks}
-              scheduledCount={deptScheduled.filter(c => c.type === 'closing').length}
+              scheduledChecks={deptScheduled}
               completions={completions}
               doneAtLoad={doneAtLoad}
               onOK={openOK}
               onIssue={openIssue}
               isManager={isManager}
-              onAddCheck={reloadChecks}
-              onRemoveCheck={(id) => setRemoveTarget(checks.find(c => c.id === id))}
-              onEditCheck={setEditTarget}
+              onChecksChanged={reloadChecks}
               moveHint={moveHint}
               venueId={venueId}
               readOnly={readOnly}
