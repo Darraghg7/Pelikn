@@ -10,10 +10,11 @@ import { previousHolidayYear } from '../../lib/holidayYear'
 import { useLastYearLeft } from '../../hooks/useHolidayBalances'
 import Button from '../../components/ui/Button'
 
-const INPUT = 'w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20'
+// min-h-11 + appearance-none: iOS shrinks an empty date input to a sliver.
+const INPUT = 'w-full min-h-11 appearance-none px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20'
 const LABEL = 'text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1'
 
-const MODES = [['leave', 'Past leave'], ['paid', 'Holiday already paid'], ['carry', 'Carry over']]
+const MODES = [['leave', 'Past leave'], ['paid', 'Already paid'], ['carry', 'Carry over']]
 
 /**
  * From the "+" on a team holiday row. Three jobs:
@@ -31,7 +32,7 @@ export default function ManualLeaveModal({ staff, holiday, paidOut = [], carryOv
   return (
     <Modal open onClose={onClose} title={staff.name}>
       <div className="flex flex-col gap-4">
-        <div className="flex gap-2 flex-wrap" role="radiogroup" aria-label="What are you recording?">
+        <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="What are you recording?">
           {MODES.map(([value, label]) => (
             <Button
               key={value}
@@ -40,6 +41,7 @@ export default function ManualLeaveModal({ staff, holiday, paidOut = [], carryOv
               role="radio"
               aria-checked={mode === value}
               onClick={() => setMode(value)}
+              className="w-full px-2"
             >
               {label}
             </Button>
@@ -99,9 +101,13 @@ function PastLeaveForm({ staff, holiday, venueId, managerId, onClose, onSaved })
 
   return (
     <>
+      <p className="text-caption text-charcoal/50 dark:text-white/45 -mt-1">
+        Time off {staff.name} has already taken, on dates you know — for example a week away before you started using Pelikn. It's saved as approved leave on those dates. Use Already paid instead if you only know how much holiday payroll has paid, not when it was taken.
+      </p>
+
       {/* Leave type */}
       <div>
-        <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Leave Type</label>
+        <p className={LABEL}>Leave type</p>
         <div className="flex gap-2 flex-wrap">
           {leaveTypeChoices({ isManager: true }).map(t => (
             <button
@@ -124,29 +130,31 @@ function PastLeaveForm({ staff, holiday, venueId, managerId, onClose, onSaved })
       {/* Date range */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35 block mb-1">Start date</label>
-          <input aria-label="Start date"
+          <label htmlFor="manual-start-date" className={LABEL}>Start date</label>
+          <input
+            id="manual-start-date"
             type="date"
             value={form.startDate}
             onChange={e => setForm(f => ({ ...f, startDate: e.target.value, endDate: f.endDate || e.target.value }))}
-            className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+            className={INPUT}
           />
         </div>
         <div>
-          <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35 block mb-1">End date</label>
-          <input aria-label="End date"
+          <label htmlFor="manual-end-date" className={LABEL}>End date</label>
+          <input
+            id="manual-end-date"
             type="date"
             value={form.endDate}
             min={form.startDate}
             onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))}
-            className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+            className={INPUT}
           />
         </div>
       </div>
 
       {asksForHours && (
         <div>
-          <label htmlFor="manual-paid-hours" className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Holiday hours paid</label>
+          <label htmlFor="manual-paid-hours" className={LABEL}>Holiday hours paid</label>
           <input
             id="manual-paid-hours"
             type="number"
@@ -156,7 +164,7 @@ function PastLeaveForm({ staff, holiday, venueId, managerId, onClose, onSaved })
             value={hoursText}
             onChange={e => setForm(f => ({ ...f, paidHours: e.target.value }))}
             placeholder="e.g. 12"
-            className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+            className={INPUT}
           />
           {suggested != null && (
             <p className="text-caption text-charcoal/45 dark:text-white/40 mt-1">About {suggested} h from their average week. Change it to what payroll actually paid.</p>
@@ -166,21 +174,24 @@ function PastLeaveForm({ staff, holiday, venueId, managerId, onClose, onSaved })
 
       {/* Optional note */}
       <div>
-        <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35 block mb-1">Note (optional)</label>
+        <label htmlFor="manual-note" className={LABEL}>Note (optional)</label>
         <input
+          id="manual-note"
           type="text"
           value={form.note}
           onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
-          placeholder="e.g. Summer holiday 2024"
-          className="w-full px-3 py-2.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+          placeholder="e.g. Summer holiday"
+          className={INPUT}
         />
       </div>
 
-      <p className="text-caption text-charcoal/35 dark:text-white/30 -mt-2">
-        {form.leaveType === 'annual'
-          ? `This will be recorded as approved leave and counted against ${staff.name}'s holiday.`
-          : `This will be recorded as approved time off. It doesn't use ${staff.name}'s holiday.`}
-      </p>
+      {form.leaveType && (
+        <p className="text-caption text-charcoal/50 dark:text-white/45">
+          {form.leaveType === 'annual'
+            ? `Counted against ${staff.name}'s holiday.`
+            : `Doesn't use ${staff.name}'s holiday.`}
+        </p>
+      )}
 
       <Button
         fullWidth
@@ -241,7 +252,7 @@ function PaidOutForm({ staff, paidOut, holidayYear, venueId, managerId, onSaved 
   return (
     <>
       <p className="text-caption text-charcoal/50 dark:text-white/45 -mt-1">
-        Holiday {staff.name} has already been paid for in {holidayYear.label} that isn't booked in Pelikn — for example, paid through payroll before you started tracking holiday here. It comes off their remaining balance.
+        Holiday pay {staff.name} has already had in {holidayYear.label} with no dates in Pelikn — for example paid through payroll before you tracked holiday here, or paid out instead of taken. Just enter the amount; it comes off their holiday left. If you know the dates they were off, use Past leave instead.
       </p>
 
       <div className="grid grid-cols-2 gap-3">
