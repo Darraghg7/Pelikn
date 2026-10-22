@@ -28,72 +28,40 @@ test.describe('Overview page', () => {
     await expect(page).toHaveURL(/\/v\//, { timeout: 5000 })
   })
 
-  test('multi-venue: shows "My Venues" or "Overview" heading', async ({ page }) => {
+  test('multi-venue: shows the group overview heading and headline', async ({ page }) => {
     if (!(await isOnOverviewPage(page))) {
       test.skip() // single-venue account — skip, not a failure
       return
     }
-    await expect(page.getByText(/my venues|overview/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/group overview/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/venues (need you|on track)/i).first()).toBeVisible({ timeout: 12000 })
   })
 
-  test('multi-venue: summary strip renders all 4 stat cells', async ({ page }) => {
+  test('multi-venue: list view filter and search (6+ venues)', async ({ page }) => {
     if (!(await isOnOverviewPage(page))) {
       test.skip()
       return
     }
-    await expect(page.getByText(/all clear/i).first()).toBeVisible({ timeout: 12000 })
-    await expect(page.getByText(/need attention/i).first()).toBeVisible({ timeout: 5000 })
-    await expect(page.getByText(/staff on shift/i).first()).toBeVisible({ timeout: 5000 })
-    await expect(page.getByText(/decisions pending/i).first()).toBeVisible({ timeout: 5000 })
+    const search = page.getByRole('searchbox', { name: /find a venue/i })
+    if (!(await search.isVisible({ timeout: 10000 }).catch(() => false))) {
+      test.skip() // 2–5 venues show cards, which have no filter or search
+      return
+    }
+    await page.getByRole('button', { name: /need you/i }).first().click()
+    await search.fill('zzzz-no-such-venue')
+    await expect(page.getByText(/no venues match/i)).toBeVisible()
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
   })
 
-  test('multi-venue: venue cards are visible', async ({ page }) => {
+  test('multi-venue: a venue link navigates into that venue', async ({ page }) => {
     if (!(await isOnOverviewPage(page))) {
       test.skip()
       return
     }
-    // Cards have a 3px coloured top border and contain venue names
-    const grid = page.locator('[class*="grid"], [class*="gap"]').first()
-    await expect(grid).toBeVisible({ timeout: 10000 })
-  })
-
-  test('multi-venue: clicking a summary cell activates filter', async ({ page }) => {
-    if (!(await isOnOverviewPage(page))) {
-      test.skip()
-      return
-    }
-    const cell = page.getByText(/need attention/i).first()
-    if (await cell.isVisible({ timeout: 10000 }).catch(() => false)) {
-      await cell.click()
-      await expect(page.locator('body')).not.toContainText('This screen hit a snag')
-    }
-  })
-
-  test('multi-venue: clear filter removes active state', async ({ page }) => {
-    if (!(await isOnOverviewPage(page))) {
-      test.skip()
-      return
-    }
-    const cell = page.getByText(/need attention/i).first()
-    if (await cell.isVisible({ timeout: 10000 }).catch(() => false)) {
-      await cell.click()
-      const clear = page.getByText(/clear|✕|×/i).first()
-      if (await clear.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await clear.click()
-        await expect(page.locator('body')).not.toContainText('This screen hit a snag')
-      }
-    }
-  })
-
-  test('multi-venue: venue card "Open →" link navigates into venue', async ({ page }) => {
-    if (!(await isOnOverviewPage(page))) {
-      test.skip()
-      return
-    }
-    const openBtn = page.getByRole('link', { name: /open/i }).first()
-    if (await openBtn.isVisible({ timeout: 10000 }).catch(() => false)) {
-      await openBtn.click()
-      await expect(page).toHaveURL(/\/v\//, { timeout: 10000 })
+    const venueLink = page.locator('a[href*="/dashboard"]').first()
+    if (await venueLink.isVisible({ timeout: 10000 }).catch(() => false)) {
+      await venueLink.click()
+      await expect(page).toHaveURL(/\/v\/[^/]+\/dashboard/, { timeout: 10000 })
     }
   })
 })
