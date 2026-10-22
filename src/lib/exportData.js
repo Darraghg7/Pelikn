@@ -780,13 +780,38 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i)
     doc.setFontSize(7); doc.setTextColor(...PDF.faint)
-    doc.text(
-      `${venueName || 'Pelikn'} · EHO Compliance Report · Generated ${format(now, 'dd/MM/yyyy HH:mm')} · Page ${i} of ${pageCount}`,
-      pageW / 2,
-      doc.internal.pageSize.getHeight() - 8,
-      { align: 'center' }
-    )
+    const footer = `${venueName || 'Pelikn'} · EHO Compliance Report · Generated ${format(now, 'dd/MM/yyyy HH:mm')} · Page ${i} of ${pageCount} · `
+    const footerY = doc.internal.pageSize.getHeight() - 8
+    const footerX = (pageW - doc.getTextWidth(footer + PELIKN_SITE)) / 2
+    doc.text(footer, footerX, footerY)
+    doc.textWithLink(PELIKN_SITE, footerX + doc.getTextWidth(footer), footerY, { url: PELIKN_URL })
   }
 
-  doc.save(`eho-report-${format(now, 'yyyy-MM-dd')}.pdf`)
+  doc.setProperties({ title: 'EHO Compliance Report', creator: `Pelikn (${PELIKN_SITE})` })
+  await saveOrSharePdf(doc, `eho-report-${format(now, 'yyyy-MM-dd')}.pdf`)
+}
+
+const PELIKN_SITE = 'get-pelikn.com'
+const PELIKN_URL  = 'https://get-pelikn.com'
+
+/**
+ * On a phone, hand the PDF to the share sheet instead of doc.save(). save()
+ * opens the file in the browser's own viewer, which shows the address the app
+ * was installed from (pelikn.vercel.app for older home-screen installs) above
+ * the report. The share sheet shows the file name and offers Save to Files,
+ * Mail, AirDrop. Falls back to save() where sharing files isn't supported or
+ * is refused (e.g. the tap has expired while the report was being built).
+ */
+async function saveOrSharePdf(doc, filename) {
+  const file = new File([doc.output('blob')], filename, { type: 'application/pdf' })
+  const touch = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches
+  if (touch && navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: 'EHO Compliance Report' })
+      return
+    } catch (err) {
+      if (err?.name === 'AbortError') return // they closed the share sheet
+    }
+  }
+  doc.save(filename)
 }
