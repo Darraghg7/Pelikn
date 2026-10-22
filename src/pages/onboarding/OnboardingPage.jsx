@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Logo from '../../components/ui/Logo'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
@@ -10,46 +11,57 @@ import Toggle from '../../components/ui/Toggle'
 import { useToast } from '../../components/ui/Toast'
 import { reportError } from '../../lib/reportError'
 import Button, { CloseButton } from '../../components/ui/Button'
+import { IconCheck } from '../signup/SignupIcons'
+
+// The setup wizard is drawn in the same language as the signup flow: one
+// question per screen, a big tightly-tracked headline, full-width tappable
+// rows and one pill button pinned to the bottom. It takes over the whole
+// screen (no app nav) so the owner only sees the question in front of them.
+
+/** Screen headline: a smaller cousin of the signup headline, so it fits a phone. */
+const HEADLINE = { fontSize: 'clamp(30px, 4.5vw, 40px)', lineHeight: 1.05, letterSpacing: '-0.04em', fontWeight: 600 }
+
+/** Small mono caption above a group. */
+const LABEL = 'font-mono text-micro tracking-[0.12em] uppercase text-charcoal/70 dark:text-white/60'
+
+/** Text input on a white card. */
+const INPUT = 'w-full min-w-0 h-12 px-4 rounded-control border border-transparent bg-cream dark:bg-white/8 text-body-lg text-charcoal dark:text-white placeholder:text-charcoal/50 dark:placeholder:text-white/40 outline-none focus:border-brand focus:ring-4 focus:ring-brand/10 dark:focus:border-white/40 transition-all'
+
+/** White grouped card that holds a list of rows. */
+const CARD = 'bg-paper dark:bg-paperDark rounded-card ring-1 ring-charcoal/8 dark:ring-white/10'
 
 /* ── Icons ───────────────────────────────────────────────────────────────────── */
+/** @type {React.SVGProps<SVGSVGElement>} */
+const svgProps = { width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }
+
 const VENUE_ICONS = {
   cafe: (
-    <div className="w-9 h-9 rounded-control bg-brand/8 text-brand dark:bg-white/10 dark:text-white flex items-center justify-center shrink-0">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/>
-        <line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
-      </svg>
-    </div>
+    <svg {...svgProps}>
+      <path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/>
+      <line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
+    </svg>
   ),
   pub: (
-    <div className="w-9 h-9 rounded-control bg-brand/8 text-brand dark:bg-white/10 dark:text-white flex items-center justify-center shrink-0">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 11h1a3 3 0 010 6h-1"/><path d="M3 11l1 9h12l1-9"/><path d="M3 11V7a2 2 0 012-2h12a2 2 0 012 2v4"/>
-      </svg>
-    </div>
+    <svg {...svgProps}>
+      <path d="M17 11h1a3 3 0 010 6h-1"/><path d="M3 11l1 9h12l1-9"/><path d="M3 11V7a2 2 0 012-2h12a2 2 0 012 2v4"/>
+    </svg>
   ),
   restaurant: (
-    <div className="w-9 h-9 rounded-control bg-brand/8 text-brand dark:bg-white/10 dark:text-white flex items-center justify-center shrink-0">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/>
-        <path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/>
-      </svg>
-    </div>
+    <svg {...svgProps}>
+      <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/>
+      <path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/>
+    </svg>
   ),
   hotel: (
-    <div className="w-9 h-9 rounded-control bg-brand/8 text-brand dark:bg-white/10 dark:text-white flex items-center justify-center shrink-0">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 22V8l9-6 9 6v14"/><path d="M6 22V12h4v10"/><path d="M14 22V12h4v10"/>
-      </svg>
-    </div>
+    <svg {...svgProps}>
+      <path d="M3 22V8l9-6 9 6v14"/><path d="M6 22V12h4v10"/><path d="M14 22V12h4v10"/>
+    </svg>
   ),
   other: (
-    <div className="w-9 h-9 rounded-control bg-brand/8 text-brand dark:bg-white/10 dark:text-white flex items-center justify-center shrink-0">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
-        <line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
-      </svg>
-    </div>
+    <svg {...svgProps}>
+      <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+      <line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+    </svg>
   ),
 }
 
@@ -77,21 +89,23 @@ function InfoIcon({ className = '' }) {
   )
 }
 
-/* ── MiniToggle ──────────────────────────────────────────────────────────────── */
-function MiniToggle({ checked, onChange, label }) {
+function BackIcon() {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      onClick={() => onChange(!checked)}
-      className={`relative w-8 h-[18px] rounded-full border-none transition-colors duration-200 ${checked ? 'bg-brand dark:bg-brand-400' : 'bg-charcoal/15 dark:bg-transparent dark:ring-[1.5px] dark:ring-inset dark:ring-white/50'}`}
-    >
-      <span
-        className={`absolute top-[3px] w-3 h-3 rounded-full bg-paper shadow transition-all duration-200 ${checked ? 'left-[17px]' : 'left-[3px] dark:bg-white/70'}`}
-      />
-    </button>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
+    </svg>
+  )
+}
+
+/* ── Screen heading ──────────────────────────────────────────────────────────── */
+function StepHeading({ title, children }) {
+  return (
+    <div className="mb-8 sm:mb-10">
+      <h1 className="text-charcoal dark:text-white" style={HEADLINE}>{title}</h1>
+      {children && (
+        <p className="text-body-lg sm:text-title-sm text-charcoal/70 dark:text-white/60 mt-3 leading-[1.45] max-w-md">{children}</p>
+      )}
+    </div>
   )
 }
 
@@ -108,7 +122,7 @@ function TimeSelect({ value, onChange, label }) {
       aria-label={label}
       value={value}
       onChange={e => onChange(e.target.value)}
-      className="px-2 py-1.5 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-body-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/20 appearance-none cursor-pointer min-w-[80px]"
+      className="h-10 px-3 rounded-control bg-cream dark:bg-white/8 text-body font-medium tabular-nums text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/20 appearance-none cursor-pointer text-center min-w-[72px]"
     >
       {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
     </select>
@@ -129,27 +143,29 @@ const FEAT_LABELS = {
 function UpgradeModal({ featureLabel, onClose }) {
   return (
     <div
-      className="fixed inset-0 bg-charcoal/50 dark:bg-white/50 z-50 flex items-center justify-center p-5"
+      className="fixed inset-0 bg-charcoal/50 z-[70] flex items-end sm:items-center justify-center sm:p-5"
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="bg-white dark:bg-paperDark rounded-sheet p-7 w-full max-w-[340px] shadow-2xl animate-[modalIn_180ms_ease]">
-        <div className="w-12 h-12 rounded-card bg-accent/10 text-accent flex items-center justify-center mx-auto mb-3.5">
-          <StarIcon size={22} />
+      <div className="bg-paper dark:bg-paperDark rounded-t-sheet sm:rounded-sheet p-7 pb-[max(28px,env(safe-area-inset-bottom))] sm:pb-7 w-full sm:max-w-[380px] shadow-2xl animate-[modalIn_180ms_ease]">
+        <div className="w-14 h-14 rounded-full bg-accent/10 text-accent flex items-center justify-center mx-auto mb-4">
+          <StarIcon size={24} />
         </div>
-        <h2 className="text-title-sm font-bold text-center mb-1.5">Upgrade to Pro</h2>
-        <p className="text-body-sm text-charcoal/45 dark:text-white/40 text-center leading-relaxed mb-3.5">
+        <h2 className="text-title font-semibold tracking-tight text-center text-charcoal dark:text-white mb-2">Upgrade to Pro</h2>
+        <p className="text-body text-charcoal/70 dark:text-white/60 text-center leading-relaxed mb-4">
           This feature requires Pelikn Pro — the full plan for team management, rotas, training records and more alongside your compliance tools.
         </p>
         {featureLabel && (
-          <div className="text-caption font-bold text-accent text-center py-2 px-3 bg-accent/6 rounded-control mb-4">
+          <div className="text-body-sm font-semibold text-accent dark:text-accentDark text-center py-2 px-3 bg-accent/6 rounded-full mb-5">
             {featureLabel}
           </div>
         )}
-        <Button variant="accent" fullWidth className="mb-2">
+        <Button variant="accent" size="lg" pill fullWidth className="mb-2">
           Upgrade to Pro · £30/mo
         </Button>
         <Button
-          variant="secondary"
+          variant="ghost"
+          size="lg"
+          pill
           fullWidth
           onClick={onClose}
         >
@@ -441,8 +457,18 @@ export default function OnboardingPage() {
   const openDayCount = dayHours.filter(d => d.open).length
   const enabledCount = [...enabledFeatures].filter(id => !PRO_ONLY_FEATURE_IDS.includes(id) || isPro).length
 
-  return (
-    <div className="min-h-dvh bg-surface dark:bg-bgDark flex flex-col font-sans">
+  // Each screen starts at the top, like turning a page.
+  const scrollRef = useRef(null)
+  useEffect(() => { scrollRef.current?.scrollTo?.(0, 0) }, [step])
+
+  const isLast = step === STEPS.length - 1
+  const progress = ((step + 1) / STEPS.length) * 100
+  const canSkipStep = step === 3 || (step === 4 && hasRotaStep)
+
+  // Rendered into <body>: the app shell fades each page in with a transform,
+  // which would pin a `fixed` screen to the page instead of the viewport.
+  return createPortal(
+    <div className="fixed inset-0 z-[60] bg-cream dark:bg-bgDark flex flex-col font-sans text-charcoal dark:text-white">
 
       {/* Upgrade modal */}
       {upgradeFeature && (
@@ -452,85 +478,85 @@ export default function OnboardingPage() {
         />
       )}
 
-      {/* Topbar */}
-      <div className="sticky top-0 z-10 bg-white dark:bg-paperDark border-b border-charcoal/8 dark:border-white/8 h-[52px] flex items-center justify-between px-5 shrink-0">
-        <Logo height={28} />
-        <div className="flex items-center gap-2.5">
-          <span className={`text-micro font-bold tracking-widest uppercase px-2.5 py-1 rounded-tag ${isPro ? 'bg-accent/12 text-accent' : 'bg-brand/9 text-brand dark:bg-white/10 dark:text-white'}`}>
-            {isPro ? 'Pro' : 'Starter'}
-          </span>
-          <div className="flex items-center gap-1 text-charcoal/30 dark:text-white/30 font-mono text-micro">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-            Secure setup
+      {/* Top bar: back, progress, skip */}
+      <div className="shrink-0 pt-[env(safe-area-inset-top)]">
+        <div className="max-w-[560px] mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
+          {step > 0 && !isLast ? (
+            <Button variant="ghost" iconOnly pill aria-label="Back" className="-ml-2" onClick={() => setStep(s => s - 1)}>
+              <BackIcon />
+            </Button>
+          ) : (
+            <div className="w-10 flex items-center -ml-0.5"><Logo height={24} /></div>
+          )}
+          <div
+            role="progressbar"
+            aria-label="Setup progress"
+            aria-valuemin={1}
+            aria-valuemax={STEPS.length}
+            aria-valuenow={step + 1}
+            aria-valuetext={`Step ${step + 1} of ${STEPS.length}: ${STEPS[step]}`}
+            className="flex-1 h-1 rounded-full bg-charcoal/10 dark:bg-white/12 overflow-hidden"
+          >
+            <div className="h-full rounded-full bg-brand dark:bg-white transition-[width] duration-500 ease-out" style={{ width: `${progress}%` }} />
           </div>
-        </div>
-      </div>
-
-      {/* Progress stepper */}
-      <div className="bg-white dark:bg-paperDark border-b border-charcoal/8 dark:border-white/8 px-5 py-2.5 shrink-0">
-        <div className="flex items-start max-w-[540px] mx-auto">
-          {STEPS.map((label, i) => {
-            const state = i < step ? 'done' : i === step ? 'cur' : 'todo'
-            return (
-              <div key={label} className="flex items-center flex-1">
-                <div className="flex flex-col items-center gap-1">
-                  <button
-                    onClick={() => { if (i < step) setStep(i) }}
-                    className={[
-                      'w-6 h-6 rounded-full flex items-center justify-center text-micro font-bold font-mono border-none shrink-0 transition-all',
-                      state === 'done' ? 'bg-brand text-white cursor-pointer' :
-                      state === 'cur'  ? 'bg-brand text-white shadow-[0_0_0_4px_theme(colors.brand/15%)]' :
-                                         'bg-charcoal/12 dark:bg-white/15 text-charcoal/40 dark:text-white/35 cursor-default',
-                    ].join(' ')}
-                  >
-                    {state === 'done'
-                      ? <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
-                      : i + 1
-                    }
-                  </button>
-                  <span className={`text-micro font-semibold tracking-wider uppercase hidden sm:block whitespace-nowrap ${state === 'todo' ? 'text-charcoal/30 dark:text-white/30' : 'text-brand dark:text-white/80'}`}>
-                    {label}
-                  </span>
-                </div>
-                {i < STEPS.length - 1 && (
-                  <div className={`flex-1 h-[1.5px] mx-1 mb-3.5 sm:mb-[14px] transition-colors ${state === 'done' ? 'bg-brand dark:bg-white/50' : 'bg-charcoal/14 dark:bg-white/15'}`} />
-                )}
-              </div>
-            )
-          })}
+          {!isLast ? (
+            <Button variant="ghost" size="sm" pill className="-mr-2" onClick={skipSetup}>
+              Skip setup
+            </Button>
+          ) : (
+            <div className="w-10" />
+          )}
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="w-full max-w-[540px] mx-auto px-5 pt-6 pb-32">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain">
+        <div key={step} className="w-full max-w-[560px] mx-auto px-4 sm:px-6 pt-6 sm:pt-12 pb-10 animate-fade-in">
+
+          {!isLast && (
+            <p className={`${LABEL} mb-4`}>Step {step + 1} of {STEPS.length} · {STEPS[step]}</p>
+          )}
 
           {/* Step 0: Venue Type */}
           {step === 0 && (
             <div>
-              <h1 className="text-title-sm font-bold text-charcoal dark:text-white mb-1 tracking-tight">What kind of venue are you?</h1>
-              <p className="text-body-sm text-charcoal/45 dark:text-white/40 mb-[18px] leading-relaxed">
-                We'll pre-select the right modules for your business. You can change this any time in Settings.
-              </p>
-              <div className="grid grid-cols-2 gap-2.5">
-                {VENUE_PRESETS.map(preset => (
-                  <button
-                    key={preset.id}
-                    onClick={() => selectPreset(preset)}
-                    className={[
-                      'p-4 rounded-card border-2 text-left flex items-start gap-3 transition-all',
-                      selectedPreset?.id === preset.id
-                        ? 'border-brand bg-brand/[0.04] dark:border-white/70 dark:bg-white/[0.06]'
-                        : 'border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark hover:border-charcoal/30 dark:hover:border-white/30',
-                    ].join(' ')}
-                  >
-                    <div>{VENUE_ICONS[preset.icon]}</div>
-                    <div>
-                      <p className="font-bold text-body-sm text-charcoal dark:text-white mb-0.5">{preset.label}</p>
-                      <p className="text-caption text-charcoal/40 dark:text-white/35 leading-[1.4]">{preset.description}</p>
-                    </div>
-                  </button>
-                ))}
+              <StepHeading title="What kind of venue are you?">
+                We'll switch on the right tools for you. You can change this any time in Settings.
+              </StepHeading>
+              <div role="radiogroup" aria-label="Venue type" className="flex flex-col gap-3">
+                {VENUE_PRESETS.map(preset => {
+                  const on = selectedPreset?.id === preset.id
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={on}
+                      onClick={() => selectPreset(preset)}
+                      className={[
+                        'w-full flex items-center gap-4 p-4 rounded-card text-left transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-brand',
+                        'bg-paper dark:bg-paperDark',
+                        on
+                          ? 'ring-2 ring-charcoal dark:ring-white'
+                          : 'ring-1 ring-charcoal/8 dark:ring-white/10 hover:ring-charcoal/25 dark:hover:ring-white/30',
+                      ].join(' ')}
+                    >
+                      <span className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-colors ${on ? 'bg-brand text-cream dark:bg-white dark:text-charcoal' : 'bg-cream text-brand dark:bg-white/10 dark:text-white'}`}>
+                        {VENUE_ICONS[preset.icon]}
+                      </span>
+                      <span className="flex-1 min-w-0">
+                        <span className="block text-body-lg font-semibold text-charcoal dark:text-white">{preset.label}</span>
+                        <span className="block text-body-sm text-charcoal/70 dark:text-white/60 mt-0.5 leading-snug">{preset.description}</span>
+                      </span>
+                      <span
+                        aria-hidden="true"
+                        className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all ${on ? 'bg-charcoal text-cream dark:bg-white dark:text-charcoal' : 'border-2 border-charcoal/15 dark:border-white/25'}`}
+                      >
+                        {on && <IconCheck size={12} />}
+                      </span>
+                    </button>
+                  )
+                })}
               </div>
             </div>
           )}
@@ -538,134 +564,120 @@ export default function OnboardingPage() {
           {/* Step 1: Modules */}
           {step === 1 && (
             <div>
-              <h1 className="text-title-sm font-bold text-charcoal dark:text-white mb-1 tracking-tight">Choose your modules</h1>
-              <p className="text-body-sm text-charcoal/45 dark:text-white/40 mb-[18px] leading-relaxed">
-                Pre-selected based on your venue type. Toggle what you need{!isPro ? ' — Pro features can be unlocked with an upgrade.' : '.'}
-              </p>
-              {FEATURE_GROUPS.map(group => {
-                const allPro = group.features.every(f => PRO_ONLY_FEATURE_IDS.includes(f.id))
+              <StepHeading title="Choose your tools">
+                Pre-selected for your venue type. Switch on what you need{!isPro ? ' — Pro features unlock with an upgrade.' : '.'}
+              </StepHeading>
+              <div className="flex flex-col gap-8">
+                {FEATURE_GROUPS.map(group => {
+                  const allPro = group.features.every(f => PRO_ONLY_FEATURE_IDS.includes(f.id))
 
-                if (allPro && !isPro) {
-                  return (
-                    <div key={group.id} className="mb-5">
-                      <p className="font-mono text-micro tracking-[0.12em] uppercase text-charcoal/40 dark:text-white/35 mb-1.5 flex items-center gap-2 px-0.5">
-                        {group.label}
-                        <span className="text-micro font-bold tracking-widest uppercase px-1.5 py-0.5 rounded-tag bg-accent/12 text-accent">Pro only</span>
-                      </p>
-                      <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/10 dark:border-white/10 overflow-hidden">
-                        <div className="flex items-center gap-3 px-4 py-3 bg-accent/[0.06] border-b border-accent/10">
-                          <div className="w-7 h-7 rounded-control bg-accent/12 text-accent flex items-center justify-center shrink-0">
-                            <StarIcon size={14} />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-caption font-bold text-charcoal dark:text-white">Available on Pro</p>
-                            <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">Unlock {group.label} for £30/mo</p>
-                          </div>
-                          <Button
-                            variant="accent"
-                            size="sm"
-                            onClick={() => setUpgradeFeature(group.features[0].id)}
-                          >
-                            Upgrade
-                          </Button>
-                        </div>
-                        {group.features.map(feature => (
-                          <div key={feature.id} className="flex items-center justify-between px-4 py-3 border-b border-charcoal/5 dark:border-white/5 last:border-b-0 bg-charcoal/[0.018] opacity-70">
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm text-charcoal/50 dark:text-white/40">{feature.label}</p>
-                              <p className="text-caption text-charcoal/25 dark:text-white/25 mt-0.5">{feature.description}</p>
+                  if (allPro && !isPro) {
+                    return (
+                      <div key={group.id}>
+                        <p className={`${LABEL} mb-3 flex items-center gap-2`}>
+                          {group.label}
+                          <span className="font-bold text-accent dark:text-accentDark bg-accent/10 px-2 py-0.5 rounded-full">Pro</span>
+                        </p>
+                        <div className={`${CARD} overflow-hidden`}>
+                          <div className="flex items-center gap-3 p-4 bg-accent/[0.06]">
+                            <div className="w-10 h-10 rounded-full bg-accent/12 text-accent dark:text-accentDark flex items-center justify-center shrink-0">
+                              <StarIcon size={16} />
                             </div>
-                            <button
-                              onClick={() => setUpgradeFeature(feature.id)}
-                              className="flex items-center gap-1.5 text-micro font-bold text-accent bg-accent/8 border border-accent/18 px-2.5 py-1 rounded-control ml-3 shrink-0 hover:bg-accent/14 transition-colors"
+                            <div className="flex-1 min-w-0">
+                              <p className="text-body font-semibold text-charcoal dark:text-white">Available on Pro</p>
+                              <p className="text-body-sm text-charcoal/70 dark:text-white/60">Unlock {group.label} for £30/mo</p>
+                            </div>
+                            <Button
+                              variant="accent"
+                              size="sm"
+                              pill
+                              onClick={() => setUpgradeFeature(group.features[0].id)}
                             >
-                              <LockIcon size={10} />
-                              Pro
-                            </button>
+                              Upgrade
+                            </Button>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                }
-
-                return (
-                  <div key={group.id} className="mb-5">
-                    <p className="font-mono text-micro tracking-[0.12em] uppercase text-charcoal/40 dark:text-white/35 mb-1.5 px-0.5">
-                      {group.label}
-                    </p>
-                    <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/10 dark:border-white/10 overflow-hidden">
-                      {group.features.map(feature => {
-                        const isProLocked = PRO_ONLY_FEATURE_IDS.includes(feature.id) && !isPro
-                        return (
-                          <div
-                            key={feature.id}
-                            className={`flex items-center justify-between px-4 py-3 border-b border-charcoal/5 dark:border-white/5 last:border-b-0 ${isProLocked ? 'bg-charcoal/[0.018]' : ''}`}
-                          >
-                            <div className="min-w-0 flex-1">
-                              <p className={`text-sm ${isProLocked ? 'text-charcoal/40 dark:text-white/35' : 'text-charcoal dark:text-white'}`}>
-                                {feature.label}
-                                {isProLocked && (
-                                  <span className="font-mono ml-1.5 text-micro font-bold tracking-widest uppercase text-accent">
-                                    PRO
-                                  </span>
-                                )}
-                              </p>
-                              <p className={`text-caption mt-0.5 ${isProLocked ? 'text-charcoal/25 dark:text-white/25' : 'text-charcoal/35 dark:text-white/30'}`}>
-                                {feature.description}
-                              </p>
-                            </div>
-                            {isProLocked ? (
+                          {group.features.map(feature => (
+                            <div key={feature.id} className="flex items-center justify-between gap-3 px-4 py-3.5 border-t border-charcoal/6 dark:border-white/6">
+                              <div className="min-w-0 flex-1 opacity-70">
+                                <p className="text-body-lg text-charcoal dark:text-white">{feature.label}</p>
+                                <p className="text-body-sm text-charcoal/70 dark:text-white/60 mt-0.5">{feature.description}</p>
+                              </div>
                               <button
+                                type="button"
                                 onClick={() => setUpgradeFeature(feature.id)}
-                                className="flex items-center gap-1.5 text-micro font-bold text-accent bg-accent/8 border border-accent/18 px-2.5 py-1 rounded-control ml-3 shrink-0 hover:bg-accent/14 transition-colors"
+                                className="flex items-center gap-1.5 text-caption font-semibold text-accent dark:text-accentDark bg-accent/8 px-3 h-8 rounded-full shrink-0 hover:bg-accent/14 transition-colors"
                               >
                                 <LockIcon size={10} />
                                 Pro
                               </button>
-                            ) : (
-                              <Toggle
-                                aria-label={feature.label}
-                                checked={enabledFeatures.has(feature.id)}
-                                onChange={() => toggleFeature(feature.id)}
-                                size="sm"
-                              />
-                            )}
-                          </div>
-                        )
-                      })}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <div key={group.id}>
+                      <p className={`${LABEL} mb-3`}>{group.label}</p>
+                      <div className={`${CARD} divide-y divide-charcoal/6 dark:divide-white/6`}>
+                        {group.features.map(feature => {
+                          const isProLocked = PRO_ONLY_FEATURE_IDS.includes(feature.id) && !isPro
+                          return (
+                            <div key={feature.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
+                              <div className={`min-w-0 flex-1 ${isProLocked ? 'opacity-70' : ''}`}>
+                                <p className="text-body-lg text-charcoal dark:text-white">{feature.label}</p>
+                                <p className="text-body-sm text-charcoal/70 dark:text-white/60 mt-0.5">{feature.description}</p>
+                              </div>
+                              {isProLocked ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setUpgradeFeature(feature.id)}
+                                  className="flex items-center gap-1.5 text-caption font-semibold text-accent dark:text-accentDark bg-accent/8 px-3 h-8 rounded-full shrink-0 hover:bg-accent/14 transition-colors"
+                                >
+                                  <LockIcon size={10} />
+                                  Pro
+                                </button>
+                              ) : (
+                                <Toggle
+                                  aria-label={feature.label}
+                                  checked={enabledFeatures.has(feature.id)}
+                                  onChange={() => toggleFeature(feature.id)}
+                                />
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
                     </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
           )}
 
           {/* Step 2: Hours */}
           {step === 2 && (
             <div>
-              <h1 className="text-title-sm font-bold text-charcoal dark:text-white mb-1 tracking-tight">When are you open?</h1>
-              <p className="text-body-sm text-charcoal/45 dark:text-white/40 mb-[18px] leading-relaxed">
-                Set hours per day — used for rota planning, clock-in, and compliance schedules.
-              </p>
-              <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/10 dark:border-white/10 overflow-hidden">
+              <StepHeading title="When are you open?">
+                Used for rota planning, clock-in and your check schedules.
+              </StepHeading>
+              <div className={`${CARD} divide-y divide-charcoal/6 dark:divide-white/6`}>
                 {dayHours.map((d, i) => (
-                  <div
-                    key={d.day}
-                    className={`flex items-center gap-3 px-4 py-3 border-b border-charcoal/5 dark:border-white/5 last:border-b-0 ${!d.open ? 'bg-charcoal/[0.018]' : ''}`}
-                  >
-                    <div className="flex items-center gap-2 w-[100px] shrink-0">
-                      <span className="text-body-sm font-semibold text-charcoal dark:text-white w-9">{d.day.slice(0, 3)}</span>
-                      <MiniToggle label={`${d.day} open`} checked={d.open} onChange={v => updateDay(i, { open: v })} />
-                    </div>
+                  <div key={d.day} className="flex items-center gap-3 px-4 min-h-[60px] py-2.5">
+                    <Toggle aria-label={`${d.day} open`} checked={d.open} onChange={v => updateDay(i, { open: v })} />
+                    <span className={`text-body-lg font-medium w-10 sm:w-24 shrink-0 ${d.open ? 'text-charcoal dark:text-white' : 'text-charcoal/50 dark:text-white/40'}`}>
+                      <span className="sm:hidden">{d.day.slice(0, 3)}</span>
+                      <span className="hidden sm:inline">{d.day}</span>
+                    </span>
                     {d.open ? (
-                      <div className="flex items-center gap-2 flex-1 justify-end">
+                      <div className="flex items-center gap-1.5 flex-1 justify-end">
                         <TimeSelect label={`${d.day} opening time`} value={d.start} onChange={v => updateDay(i, { start: v })} />
-                        <span className="text-charcoal/30 dark:text-white/30 text-sm">–</span>
+                        <span className="text-charcoal/50 dark:text-white/40 text-body">–</span>
                         <TimeSelect label={`${d.day} closing time`} value={d.end} onChange={v => updateDay(i, { end: v })} />
                       </div>
                     ) : (
-                      <span className="text-charcoal/35 dark:text-white/30 text-caption italic flex-1 text-right">Closed</span>
+                      <span className="text-charcoal/60 dark:text-white/50 text-body flex-1 text-right">Closed</span>
                     )}
                   </div>
                 ))}
@@ -674,9 +686,9 @@ export default function OnboardingPage() {
                 variant="link"
                 size="sm"
                 onClick={applyFirstToAll}
-                className="mt-3"
+                className="mt-4"
               >
-                Apply first open day's hours to all open days
+                Copy the first open day's hours to every open day
               </Button>
             </div>
           )}
@@ -684,53 +696,62 @@ export default function OnboardingPage() {
           {/* Step 3: Team */}
           {step === 3 && (
             <div>
-              <h1 className="text-title-sm font-bold text-charcoal dark:text-white mb-1 tracking-tight">Add your team</h1>
-              <p className="text-body-sm text-charcoal/45 dark:text-white/40 mb-[18px] leading-relaxed">
-                Add a few staff members to get started.
-              </p>
-              <div className="flex items-start gap-2 p-3 rounded-control bg-white dark:bg-paperDark border border-charcoal/8 dark:border-white/8 mb-4 text-caption text-charcoal/50 dark:text-white/40 leading-relaxed">
-                <InfoIcon className="w-3.5 h-3.5 mt-0.5 shrink-0 text-charcoal/30 dark:text-white/30" />
-                <span>You can add more staff, set permissions, and assign roles in <strong className="text-charcoal/60 dark:text-white/50">Settings → Staff</strong> at any time.</span>
-              </div>
-              <div className="flex flex-col gap-2">
+              <StepHeading title="Add your team">
+                Add a few people now so they can sign in with their PIN.
+              </StepHeading>
+              <div className="flex flex-col gap-3">
                 {staffEntries.map((entry, idx) => (
-                  <div key={idx} className="flex items-start gap-2">
-                    <div className="flex-1 min-w-0 grid grid-cols-2 sm:grid-cols-[1fr_76px_120px] gap-1.5">
+                  <div key={idx} className={`${CARD} p-4`}>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className={LABEL}>Person {idx + 1}</p>
+                      <CloseButton label="Remove staff member" className="-my-2 -mr-2" onClick={() => removeStaffRow(idx)} />
+                    </div>
+                    <div className="grid grid-cols-[minmax(0,1fr)_96px] gap-2">
                       <input
+                        aria-label={`Person ${idx + 1} name`}
                         value={entry.name}
                         onChange={e => updateStaff(idx, 'name', e.target.value)}
                         placeholder="Name"
-                        className="w-full min-w-0 px-3 py-2.5 rounded-control border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-body-sm text-charcoal dark:text-white placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
+                        className={`${INPUT} col-span-2`}
+                      />
+                      <input
+                        type="text"
+                        aria-label={`Person ${idx + 1} job role`}
+                        value={entry.jobRole}
+                        onChange={e => updateStaff(idx, 'jobRole', e.target.value)}
+                        placeholder="Role, e.g. Manager"
+                        className={INPUT}
                       />
                       <input
                         type="password"
+                        aria-label={`Person ${idx + 1} 4-digit PIN`}
                         inputMode="numeric"
                         maxLength={4}
                         value={entry.pin}
                         onChange={e => updateStaff(idx, 'pin', e.target.value.replace(/\D/g, '').slice(0, 4))}
                         placeholder="PIN"
-                        className="w-full min-w-0 px-3 py-2.5 rounded-control border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-body-sm text-charcoal dark:text-white tracking-widest placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
-                      />
-                      <input
-                        type="text"
-                        value={entry.jobRole}
-                        onChange={e => updateStaff(idx, 'jobRole', e.target.value)}
-                        placeholder="Role (e.g. Manager)"
-                        className="col-span-2 sm:col-span-1 w-full min-w-0 px-3 py-2.5 rounded-control border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-body-sm text-charcoal dark:text-white placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
+                        className={`${INPUT} tracking-widest text-center`}
                       />
                     </div>
-                    <CloseButton label="Remove staff member" className="mt-1" onClick={() => removeStaffRow(idx)} />
                   </div>
                 ))}
               </div>
-              <Button
-                variant="secondary"
-                fullWidth
-                onClick={addStaffRow}
-                className="mt-3"
-              >
-                + Add another staff member
-              </Button>
+              {staffEntries.length < 10 && (
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  pill
+                  fullWidth
+                  onClick={addStaffRow}
+                  className="mt-3"
+                >
+                  + Add another person
+                </Button>
+              )}
+              <div className="flex items-start gap-2.5 mt-6 text-body-sm text-charcoal/70 dark:text-white/60 leading-relaxed">
+                <InfoIcon className="w-4 h-4 mt-0.5 shrink-0" />
+                <span>Each person needs a name and a 4-digit PIN. You can add more people, permissions and roles later in <strong className="font-semibold text-charcoal dark:text-white">Team → Staff</strong>.</span>
+              </div>
             </div>
           )}
 
@@ -738,86 +759,84 @@ export default function OnboardingPage() {
           {step === 4 && hasRotaStep && (() => {
             const validStaff = staffEntries.filter(s => s.name.trim() && s.pin.length === 4)
             const presetRoles = ROLE_PRESETS[selectedPreset?.id] ?? []
+            const customRoles = rolesInput.filter(r => !presetRoles.includes(r))
             return (
-              <div className="flex flex-col gap-6">
+              <div>
+                <StepHeading title="What roles do you have?">
+                  Used to match people to the right shifts when your rota fills itself in.
+                </StepHeading>
+
                 {/* Section A: Define roles */}
-                <div>
-                  <h2 className="text-title-sm font-bold text-charcoal dark:text-white mb-0.5">What roles do you have?</h2>
-                  <p className="text-body-sm text-charcoal/45 dark:text-white/40 mb-4">Used to match staff to the right shifts when auto-filling your rota.</p>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {presetRoles.map(role => {
-                      const active = rolesInput.includes(role)
-                      return (
-                        <button
-                          key={role}
-                          onClick={() => toggleRole(role)}
-                          className={[
-                            'px-3 py-1.5 rounded-full text-body-sm font-semibold border transition-all',
-                            active
-                              ? 'bg-brand text-white border-brand'
-                              : 'bg-white dark:bg-paperDark text-charcoal/60 dark:text-white/50 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
-                          ].join(' ')}
-                        >
-                          {active && <span className="mr-1">✓</span>}{role}
-                        </button>
-                      )
-                    })}
-                  </div>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={customRoleText}
-                      onChange={e => setCustomRoleText(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && addCustomRole()}
-                      placeholder="Add custom role…"
-                      className="flex-1 px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-body-sm text-charcoal dark:text-white placeholder-charcoal/30 dark:placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-brand/20"
-                    />
-                    <Button
-                      variant="secondary"
-                      onClick={addCustomRole}
-                      disabled={!customRoleText.trim()}
-                    >
-                      Add
-                    </Button>
-                  </div>
-                  {rolesInput.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {rolesInput.filter(r => !presetRoles.includes(r)).map(role => (
-                        <span key={role} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-brand/8 text-brand dark:bg-white/10 dark:text-white text-caption font-semibold">
-                          {role}
-                          <button onClick={() => toggleRole(role)} className="ml-0.5 opacity-60 hover:opacity-100">×</button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {[...presetRoles, ...customRoles].map(role => {
+                    const active = rolesInput.includes(role)
+                    return (
+                      <button
+                        key={role}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => toggleRole(role)}
+                        className={[
+                          'inline-flex items-center gap-1.5 h-10 px-4 rounded-full text-body font-medium transition-all',
+                          active
+                            ? 'bg-charcoal text-cream dark:bg-white dark:text-charcoal'
+                            : 'bg-paper dark:bg-paperDark text-charcoal dark:text-white ring-1 ring-charcoal/12 dark:ring-white/15 hover:ring-charcoal/30 dark:hover:ring-white/30',
+                        ].join(' ')}
+                      >
+                        {active && <IconCheck size={13} />}{role}
+                      </button>
+                    )
+                  })}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    aria-label="Custom role name"
+                    value={customRoleText}
+                    onChange={e => setCustomRoleText(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && addCustomRole()}
+                    placeholder="Add your own role…"
+                    className={`${INPUT} flex-1 bg-paper dark:bg-paperDark ring-1 ring-charcoal/8 dark:ring-white/10`}
+                  />
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    pill
+                    onClick={addCustomRole}
+                    disabled={!customRoleText.trim()}
+                  >
+                    Add
+                  </Button>
                 </div>
 
                 {/* Section B: Assign roles to staff */}
                 {rolesInput.length > 0 && validStaff.length > 0 && (
-                  <div>
-                    <h3 className="text-body font-bold text-charcoal dark:text-white mb-0.5">Who can work each role?</h3>
-                    <p className="text-caption text-charcoal/40 dark:text-white/35 mb-3">Tick the roles each team member is qualified to cover.</p>
-                    <div className="flex flex-col gap-2">
+                  <div className="mt-10">
+                    <h2 className="text-title font-semibold tracking-tight text-charcoal dark:text-white">Who can work each role?</h2>
+                    <p className="text-body text-charcoal/70 dark:text-white/60 mt-1 mb-4">Tick the roles each person can cover.</p>
+                    <div className="flex flex-col gap-3">
                       {validStaff.map(member => {
                         const assigned = roleAssignments[member.name] ?? []
                         return (
-                          <div key={member.name} className="bg-white dark:bg-paperDark rounded-control border border-charcoal/8 dark:border-white/8 px-4 py-3">
-                            <p className="text-body-sm font-semibold text-charcoal dark:text-white mb-2">{member.name}</p>
+                          <div key={member.name} className={`${CARD} p-4`}>
+                            <p className="text-body-lg font-semibold text-charcoal dark:text-white mb-3">{member.name}</p>
                             <div className="flex flex-wrap gap-2">
                               {rolesInput.map(role => {
                                 const checked = assigned.includes(role)
                                 return (
                                   <button
                                     key={role}
+                                    type="button"
+                                    aria-pressed={checked}
                                     onClick={() => toggleStaffRole(member.name, role)}
                                     className={[
-                                      'px-2.5 py-1 rounded-control text-caption font-medium border transition-all',
+                                      'inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-body-sm font-medium transition-all',
                                       checked
-                                        ? 'bg-brand/10 text-brand border-brand/25 dark:bg-white/10 dark:text-white dark:border-white/30'
-                                        : 'bg-charcoal/3 dark:bg-white/5 text-charcoal/45 dark:text-white/40 border-charcoal/10 dark:border-white/10 hover:border-charcoal/25 dark:hover:border-white/25',
+                                        ? 'bg-brand text-white dark:bg-white dark:text-charcoal'
+                                        : 'bg-cream dark:bg-white/8 text-charcoal/70 dark:text-white/60 hover:text-charcoal dark:hover:text-white',
                                     ].join(' ')}
                                   >
-                                    {checked && '✓ '}{role}
+                                    {checked && <IconCheck size={12} />}{role}
                                   </button>
                                 )
                               })}
@@ -831,23 +850,29 @@ export default function OnboardingPage() {
 
                 {/* Section C: Daily counts */}
                 {rolesInput.length > 0 && (
-                  <div>
-                    <h3 className="text-body font-bold text-charcoal dark:text-white mb-0.5">How many of each role per day?</h3>
-                    <p className="text-caption text-charcoal/40 dark:text-white/35 mb-3">Applied to all open days when auto-filling your rota.</p>
-                    <div className="flex flex-col gap-2">
+                  <div className="mt-10">
+                    <h2 className="text-title font-semibold tracking-tight text-charcoal dark:text-white">How many of each per day?</h2>
+                    <p className="text-body text-charcoal/70 dark:text-white/60 mt-1 mb-4">Used for every open day when filling in your rota.</p>
+                    <div className={`${CARD} divide-y divide-charcoal/6 dark:divide-white/6`}>
                       {rolesInput.map(role => (
-                        <div key={role} className="flex items-center justify-between bg-white dark:bg-paperDark rounded-control border border-charcoal/8 dark:border-white/8 px-4 py-3">
-                          <span className="text-body-sm font-medium text-charcoal dark:text-white">{role}</span>
-                          <div className="flex items-center gap-2">
-                            <button
+                        <div key={role} className="flex items-center justify-between gap-3 px-4 py-3">
+                          <span className="text-body-lg font-medium text-charcoal dark:text-white">{role}</span>
+                          <div className="flex items-center gap-3">
+                            <Button
+                              variant="secondary"
+                              iconOnly
+                              pill
+                              aria-label={`Fewer ${role}`}
                               onClick={() => setDailyCounts(prev => ({ ...prev, [role]: Math.max(1, (prev[role] ?? 1) - 1) }))}
-                              className="w-7 h-7 rounded-control border border-charcoal/15 dark:border-white/15 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-all flex items-center justify-center text-base font-medium"
-                            >−</button>
-                            <span className="w-6 text-center text-body-sm font-semibold text-charcoal dark:text-white tabular-nums">{dailyCounts[role] ?? 1}</span>
-                            <button
+                            >−</Button>
+                            <span className="w-6 text-center text-title-sm font-semibold text-charcoal dark:text-white tabular-nums">{dailyCounts[role] ?? 1}</span>
+                            <Button
+                              variant="secondary"
+                              iconOnly
+                              pill
+                              aria-label={`More ${role}`}
                               onClick={() => setDailyCounts(prev => ({ ...prev, [role]: (prev[role] ?? 1) + 1 }))}
-                              className="w-7 h-7 rounded-control border border-charcoal/15 dark:border-white/15 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-all flex items-center justify-center text-base font-medium"
-                            >+</button>
+                            >+</Button>
                           </div>
                         </div>
                       ))}
@@ -856,62 +881,59 @@ export default function OnboardingPage() {
                 )}
 
                 {rolesInput.length === 0 && (
-                  <div className="bg-charcoal/3 dark:bg-white/5 rounded-control border border-charcoal/8 dark:border-white/8 px-4 py-6 text-center">
-                    <p className="text-body-sm text-charcoal/40 dark:text-white/35">Select at least one role above, or skip this step and configure later in Settings.</p>
-                  </div>
+                  <p className="mt-8 text-body text-charcoal/70 dark:text-white/60">Pick at least one role, or skip this step and set roles up later in Settings.</p>
                 )}
               </div>
             )
           })()}
 
           {/* Step 4/5: All Set */}
-          {step === STEPS.length - 1 && (
-            <div className="text-center pt-2">
-              <div className="w-16 h-16 rounded-card bg-success/10 text-success flex items-center justify-center mx-auto mb-4">
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          {isLast && (
+            <div className="pt-4 sm:pt-8">
+              <div className="w-20 h-20 rounded-full bg-goodBg dark:bg-good/20 text-good dark:text-goodDark flex items-center justify-center mb-8">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
               </div>
-              <h1 className="text-title-sm font-bold text-charcoal dark:text-white mb-1.5 tracking-tight">You're all set</h1>
-              <p className="text-body-sm text-charcoal/45 dark:text-white/40 mb-4 max-w-sm mx-auto leading-relaxed">
-                Your venue is configured and ready to go. Everything can be adjusted in Settings at any time.
-              </p>
-              {selectedPreset && (
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-control bg-brand/7 border border-brand/14 dark:bg-white/[0.06] dark:border-white/15 mb-1">
-                  {VENUE_ICONS[selectedPreset.icon]}
-                  <span className="text-body-sm font-bold text-brand dark:text-white">{selectedPreset.label}</span>
-                </div>
-              )}
-              <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 p-[18px] mt-[18px] text-left">
-                <p className="font-mono text-micro tracking-[0.12em] uppercase text-charcoal/40 dark:text-white/35 mb-2.5">
-                  Setup summary
-                </p>
+              <StepHeading title="You're all set">
+                Your venue is ready to go. Everything can be changed in Settings at any time.
+              </StepHeading>
+              <div className={`${CARD} divide-y divide-charcoal/6 dark:divide-white/6`}>
+                {selectedPreset && (
+                  <div className="flex items-center gap-4 px-4 py-4">
+                    <span className="w-10 h-10 rounded-full bg-brand text-cream dark:bg-white dark:text-charcoal flex items-center justify-center shrink-0 [&_svg]:w-5 [&_svg]:h-5">
+                      {VENUE_ICONS[selectedPreset.icon]}
+                    </span>
+                    <span className="text-body-lg font-semibold text-charcoal dark:text-white flex-1">{selectedPreset.label}</span>
+                  </div>
+                )}
                 {[
-                  { label: 'Modules enabled', value: `${enabledCount} feature${enabledCount !== 1 ? 's' : ''}` },
-                  { label: 'Operating days', value: `${openDayCount} day${openDayCount !== 1 ? 's' : ''}/week` },
-                  ...(validStaffCount > 0 ? [{ label: 'Staff added', value: `${validStaffCount} member${validStaffCount !== 1 ? 's' : ''}` }] : []),
+                  { label: 'Tools switched on', value: `${enabledCount} feature${enabledCount !== 1 ? 's' : ''}` },
+                  { label: 'Open', value: `${openDayCount} day${openDayCount !== 1 ? 's' : ''} a week` },
+                  ...(validStaffCount > 0 ? [{ label: 'Team', value: `${validStaffCount} ${validStaffCount !== 1 ? 'people' : 'person'}` }] : []),
                 ].map(row => (
-                  <div key={row.label} className="flex items-center gap-2.5 py-2 border-b border-charcoal/8 dark:border-white/8 last:border-b-0">
-                    <div className="w-6 h-6 rounded-tag bg-success/10 text-success flex items-center justify-center shrink-0">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    </div>
-                    <span className="text-body-sm font-medium text-charcoal dark:text-white flex-1">{row.label}</span>
-                    <span className="text-caption text-charcoal/40 dark:text-white/35">{row.value}</span>
+                  <div key={row.label} className="flex items-center gap-4 px-4 py-4">
+                    <span className="w-10 h-10 rounded-full bg-goodBg dark:bg-good/20 text-good dark:text-goodDark flex items-center justify-center shrink-0">
+                      <IconCheck size={16} />
+                    </span>
+                    <span className="text-body-lg text-charcoal dark:text-white flex-1">{row.label}</span>
+                    <span className="text-body text-charcoal/70 dark:text-white/60">{row.value}</span>
                   </div>
                 ))}
               </div>
               {!isPro && (
-                <div className="mt-4 flex items-center gap-3 p-3 rounded-control bg-accent/[0.04] border border-accent/14 text-left">
-                  <div className="w-8 h-8 rounded-control bg-accent/12 text-accent flex items-center justify-center shrink-0">
-                    <StarIcon size={15} />
+                <div className="mt-4 flex items-center gap-3 p-4 rounded-card bg-accentBg dark:bg-accent/15">
+                  <div className="w-10 h-10 rounded-full bg-accent/12 text-accent dark:text-accentDark flex items-center justify-center shrink-0">
+                    <StarIcon size={16} />
                   </div>
-                  <div className="flex-1">
-                    <p className="text-body-sm font-bold text-accent">Unlock Pro features</p>
-                    <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">Rota, timesheets, training records, time off and more</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-body font-semibold text-accent dark:text-accentDark">Unlock Pro features</p>
+                    <p className="text-body-sm text-charcoal/70 dark:text-white/60 mt-0.5">Rota, timesheets, training records, time off and more</p>
                   </div>
                   <Button
                     variant="accent"
                     size="sm"
+                    pill
                     onClick={() => setUpgradeFeature('rota')}
                   >
                     Upgrade
@@ -924,59 +946,45 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      {/* Sticky footer nav — on phones it sits on top of the MobileNav bar
-          (h-14 + iOS safe area), matching the Staff save bar */}
-      <div className="sticky bottom-[calc(56px+env(safe-area-inset-bottom,0px))] lg:bottom-0 left-0 right-0 bg-surface/90 dark:bg-bgDark/90 backdrop-blur-sm border-t border-charcoal/8 dark:border-white/8 p-3 z-10 shrink-0">
-        <div className="flex gap-2 max-w-[540px] mx-auto">
-          {step > 0 && step < STEPS.length - 1 && (
-            <Button
-              variant="secondary"
-              onClick={() => setStep(s => s - 1)}
-            >
-              Back
-            </Button>
-          )}
-          {(step === 3 || (step === 4 && hasRotaStep)) && (
-            <Button
-              variant="ghost"
-              onClick={() => setStep(s => s + 1)}
-            >
-              Skip
-            </Button>
-          )}
+      {/* Pinned footer: one main action */}
+      <div className="shrink-0 bg-cream dark:bg-bgDark border-t border-charcoal/6 dark:border-white/8 pt-3 pb-[max(16px,env(safe-area-inset-bottom))]">
+        <div className="max-w-[560px] mx-auto px-4 sm:px-6 flex flex-col gap-1">
           <Button
+            size="lg"
+            pill
+            fullWidth
             loading={saving}
             onClick={next}
             disabled={!canAdvance() || saving}
-            className="flex-1"
           >
-            {step === STEPS.length - 1
+            {isLast
               ? (saving ? 'Setting up…' : 'Go to Dashboard')
               : step === STEPS.length - 2
                 ? 'Finish setup'
                 : 'Continue'
             }
           </Button>
-        </div>
-        {step < STEPS.length - 1 && (
-          <div className="text-center mt-1.5">
+          {canSkipStep && (
             <Button
-              variant="link"
-              size="sm"
-              onClick={skipSetup}
+              variant="ghost"
+              size="lg"
+              pill
+              fullWidth
+              onClick={() => setStep(s => s + 1)}
             >
-              Already set up? Skip this →
+              Skip this step
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <style>{`
         @keyframes modalIn {
-          from { opacity: 0; transform: scale(.94) translateY(8px); }
+          from { opacity: 0; transform: translateY(16px); }
           to   { opacity: 1; transform: none; }
         }
       `}</style>
-    </div>
+    </div>,
+    document.body,
   )
 }
