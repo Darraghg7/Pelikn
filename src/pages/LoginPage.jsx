@@ -11,6 +11,7 @@ import { captureSilent } from '../lib/reportError'
 import { staffListState } from '../lib/loginScreenState'
 import Avatar from '../components/ui/Avatar'
 import Button, { CloseButton } from '../components/ui/Button'
+import ConfirmDialog from '../components/ui/ConfirmDialog'
 import { radius } from '../lib/tokens'
 import { ownerPinPending } from '../lib/api/signup'
 
@@ -399,7 +400,7 @@ async function fetchLoginStaff(venueId) {
 export default function LoginPage() {
   const { signIn, signOut, switchVenue, session, loading } = useSession()
   const { venueId, venueSlug, venueName } = useVenue()
-  const { user: authUser, authLoading, signOutVenue } = useAuth()
+  const { user: authUser, signOutVenue } = useAuth()
   const navigate = useNavigate()
 
   // An owner who signed up but never chose a PIN can't use the staff screen:
@@ -443,6 +444,19 @@ export default function LoginPage() {
   }, [venueId, venueSlug, venueName])
 
   const [showAddModal, setShowAddModal] = useState(false)
+  const [confirmSignOut, setConfirmSignOut] = useState(false)
+
+  // Full sign-out: ends any PIN session and owner email login, and forgets
+  // every venue this device had added, so nothing brings it back to a PIN
+  // screen. Getting back in means the venue code or the owner's email.
+  const handleFullSignOut = useCallback(async () => {
+    signOut()
+    writeDeviceVenues([])
+    try { localStorage.removeItem('pelikn_last_venue') } catch { /* storage unavailable — nothing to forget */ }
+    // Always, not only when authUser is set: auth may still be loading.
+    await signOutVenue()
+    navigate('/login', { replace: true })
+  }, [signOut, signOutVenue, navigate])
 
   const handleAddVenues = useCallback((newVenues) => {
     setDeviceVenues(prev => {
@@ -615,10 +629,6 @@ export default function LoginPage() {
 
   const showTabs     = deviceVenues.length > 1
   const listState    = staffListState({ loading: staffLoading, failed: staffFailed, staff })
-  // Only a manager/owner email sign-in on this device has anything to sign
-  // out of here: a staff PIN session never sees this screen (it redirects to
-  // the dashboard above).
-  const showSignOut  = !authLoading && !!authUser
   const filteredStaff = staffQuery
     ? staff.filter(s => s.name.toLowerCase().includes(staffQuery.toLowerCase()))
     : staff
@@ -863,22 +873,26 @@ export default function LoginPage() {
         )}
       </div>
 
-      {/* Sign out — only when a manager/owner is signed in on this device */}
-      {showSignOut && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={async () => {
-            signOut()
-            await signOutVenue()
-            navigate('/login', { replace: true })
-          }}
-          className="mt-6"
-          style={ready ? { animation: 'login-fade-enter 0.4s 0.3s ease both' } : { opacity: 0 }}
-        >
-          Sign out of venue
-        </Button>
-      )}
+      {/* Sign out — always available, otherwise a device that only ever used
+          the venue code is stuck on this screen for good */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setConfirmSignOut(true)}
+        className="mt-6"
+        style={ready ? { animation: 'login-fade-enter 0.4s 0.3s ease both' } : { opacity: 0 }}
+      >
+        {showTabs ? 'Sign out of all venues' : 'Sign out of venue'}
+      </Button>
+
+      <ConfirmDialog
+        open={confirmSignOut}
+        title={showTabs ? 'Sign out of all venues?' : 'Sign out of venue?'}
+        message={`This device will forget ${showTabs ? 'these venues' : (venueName || 'this venue')}. To get back in, enter the venue code or sign in with the owner's email.`}
+        confirmLabel="Sign out"
+        onClose={() => setConfirmSignOut(false)}
+        onConfirm={handleFullSignOut}
+      />
     </div>
   )
 }
