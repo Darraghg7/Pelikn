@@ -1,4 +1,5 @@
-# Quality gates — lint + typecheck + unit tests on every PR and push to main.
+# Quality gates — lint + typecheck + unit tests + production build on every PR
+# and push to main.
 # These checks were green on 31 July 2026; if this workflow fails, the change
 # being merged broke them. Fix the change, don't skip the check.
 name: CI
@@ -37,3 +38,9 @@ jobs:
 
       - name: Unit tests
         run: npm run test:unit
+
+      # The same build Vercel runs. The dev server forgives things the production
+      # build does not (a stray } in index.css passed every step above and only
+      # failed on Vercel, 23 Oct 2026), so build here too.
+      - name: Production build
+        run: npm run build
