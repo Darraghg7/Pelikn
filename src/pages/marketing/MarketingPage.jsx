@@ -981,7 +981,7 @@ export default function MarketingPage() {
                 <Phone><MockChecksHub /></Phone>
               </div>
             </div>
-            <p className="text-body-lg text-charcoal/70 mt-8 lg:pl-[17rem] max-w-md">The manager dashboard in any browser. Staff use the same app on their own phones.</p>
+            <p className="text-body-lg text-charcoal/70 mt-8 lg:pl-[17rem]">The manager dashboard in any browser. Staff use the same app on their own phones.</p>
           </FadeUp>
         </div>
       </section>
