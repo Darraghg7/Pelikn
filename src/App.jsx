@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react'
-import Logo from './components/ui/Logo'
+import Logo, { LogoLoader } from './components/ui/Logo'
 import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from 'react-router-dom'
 import { QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Capacitor } from '@capacitor/core'
@@ -322,17 +322,13 @@ function isNativeShell() {
 
 // ── Splash screen ────────────────────────────────────────────────────────────
 
-function SplashLogo({ size = 120 }) {
-  return (
-    <Logo variant="mark" height={size} tone="onBrand" />
-  )
-}
-
-// Splash timing. The brand animation itself (halo → icon rise → glow → tag)
-// finishes 1550 ms after the -run class lands; the numbers below are derived
-// from the keyframes in index.css and must move together with them.
+// Splash timing. The splash plays the loading-screen animation (LogoLoader):
+// its line is fully drawn 1440 ms in (48% of the 3s .pelikn-draw-loop cycle)
+// and starts erasing at 2100 ms (70%). The hand-off lands in that hold, fade
+// included, so the splash never shows the line erasing. These numbers are
+// derived from the keyframes in index.css and must move together with them.
 const SPLASH_LEAD_IN  = 250   // beat before the animation starts
-const SPLASH_ANIM_MS  = 1550  // longest entrance animation (glow: 1s @ .55s delay)
+const SPLASH_ANIM_MS  = 1750  // draw-in (1.44s) + a beat; fade ends by 2.1s
 const SPLASH_FADE_MS  = 320   // matches .pelikn-fake-splash-exit
 const SPLASH_MAX_MS   = 4000  // safety net: never hold the splash past this
 
@@ -390,10 +386,8 @@ function SplashScreen() {
       className={`pelikn-fake-splash${running ? ' pelikn-fake-splash-run' : ''}${exiting ? ' pelikn-fake-splash-exit' : ''}`}
       aria-hidden="true"
     >
-      <div className="pelikn-fake-splash-halo" />
       <div className="pelikn-fake-splash-icon-wrap">
-        <div className="pelikn-fake-splash-glow" />
-        <SplashLogo size={120} />
+        {running && <LogoLoader tone="onBrand" />}
       </div>
     </div>
   )

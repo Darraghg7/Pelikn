@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import { Capacitor } from '@capacitor/core'
-import Logo, { LogoLoader } from '../components/ui/Logo'
+import Logo, { LogoDraw, LogoLoader } from '../components/ui/Logo'
 import Button from '../components/ui/Button'
 import useForceLight from '../hooks/useForceLight'
 import { HEADLINE, LABEL, INPUT } from './signup/styles'
@@ -309,7 +309,7 @@ export default function LandingPage() {
           <div className="pelikn-ios-flow pelikn-ios-flow-one" aria-hidden="true" />
 
           <div className="pelikn-ios-brand">
-            <div className="pelikn-ios-mark"><Logo variant="mark" height={44} tone="onBrand" /></div>
+            <div className="pelikn-ios-mark">{ready && <LogoDraw height={44} tone="onBrand" />}</div>
             <p>Sign in to Pelikn</p>
           </div>
 
