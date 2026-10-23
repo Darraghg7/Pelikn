@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { format, parseISO, isToday, isYesterday, subDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
@@ -59,7 +59,7 @@ function useCompletionsForDate(sessionDate, venueId) {
     if (!venueId || !sessionDate) return
     const { data, error } = await supabase
       .from('opening_closing_completions')
-      .select('id, check_id, session_date, session_type, completed_at, staff_name, corrective_action')
+      .select('id, check_id, session_date, session_type, completed_at, staff_name, has_issue, corrective_action')
       .eq('venue_id', venueId)
       .eq('session_date', sessionDate)
     // An empty list would show done checks as still to do.
@@ -69,7 +69,11 @@ function useCompletionsForDate(sessionDate, venueId) {
     setDoneAtLoad(prev => prev.date === sessionDate ? prev : { date: sessionDate, ids: new Set(rows.map(r => r.check_id)) })
   }, [sessionDate, venueId])
   useEffect(() => { load() }, [load])
-  return { completions, doneAtLoad: doneAtLoad.ids, reload: load }
+  // Show a tick the moment it's tapped, before the save comes back. The next
+  // load replaces it with the saved row.
+  const addLocal = useCallback(row => setCompletions(prev => [...prev, row]), [])
+  const removeLocal = useCallback(id => setCompletions(prev => prev.filter(r => r.id !== id)), [])
+  return { completions, doneAtLoad: doneAtLoad.ids, reload: load, addLocal, removeLocal }
 }
 
 // ── IssueModal ────────────────────────────────────────────────────────────────
@@ -410,7 +414,7 @@ function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, savin
 
 // ── CheckSection ──────────────────────────────────────────────────────────────
 
-function CheckSection({ type, label, departmentId, departmentName, departments, checks, scheduledChecks, completions, doneAtLoad, onOK, onIssue, isManager, onChecksChanged, moveHint, venueId, readOnly, savingCheckId }) {
+function CheckSection({ type, label, departmentId, departmentName, departments, checks, scheduledChecks, completions, doneAtLoad, onOK, onIssue, isManager, onChecksChanged, moveHint, venueId, readOnly, savingIds }) {
   const toast = useToast()
   const typeChecks      = checks.filter(c => c.type === type)
   const typeCompletions = completions.filter(c => c.session_type === type)
@@ -548,7 +552,7 @@ function CheckSection({ type, label, departmentId, departmentName, departments, 
               onIssue={onIssue}
               readOnly={readOnly}
               isManager={isManager}
-              saving={savingCheckId === check.id}
+              saving={savingIds.has(check.id)}
             />
           )
         })}
@@ -637,7 +641,7 @@ export default function OpeningClosingPage() {
   const [showExport, setShowExport]     = useState(false)
 
   const { checks, loading: checksLoading, failed: checksFailed, reload: reloadChecks } = useChecks(venueId)
-  const { completions, doneAtLoad, reload: reloadCompletions } = useCompletionsForDate(selectedDate, venueId)
+  const { completions, doneAtLoad, reload: reloadCompletions, addLocal, removeLocal } = useCompletionsForDate(selectedDate, venueId)
   // Staff see the departments they're in (none = all of them); managers pick
   // one department or all. Same rule as cleaning and Tasks — lib/roleFilter.
   const {
@@ -678,15 +682,24 @@ export default function OpeningClosingPage() {
   const [pendingCheck, setPendingCheck] = useState(null)   // check object
   const [pendingIsIssue, setPendingIsIssue] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [savingCheckId, setSavingCheckId] = useState(null)
+  // Checks whose save is in flight. Each check saves on its own, so ticking
+  // down the list quickly never ignores a tap.
+  const [savingIds, setSavingIds] = useState(() => new Set())
+  // Same set, read synchronously — two taps in one instant both see the
+  // state from before either landed, and would save the check twice.
+  const inFlight = useRef(new Set())
+  const setCheckSaving = (id, on) => setSavingIds(prev => {
+    const next = new Set(prev)
+    if (on) next.add(id); else next.delete(id)
+    return next
+  })
 
   const openOK = (check) => {
-    if (savingCheckId) return
     doComplete(check, false, null)
   }
 
   const openIssue = (check) => {
-    if (savingCheckId) return
+    if (savingIds.has(check.id)) return
     setPendingCheck(check)
     setPendingIsIssue(true)
   }
@@ -697,10 +710,10 @@ export default function OpeningClosingPage() {
   }
 
   const doComplete = async (check, hasIssue, correctiveAction) => {
-    if (savingCheckId) return
-    setSaving(true)
-    setSavingCheckId(check.id)
-    const { error } = await supabase.from('opening_closing_completions').insert({
+    if (inFlight.current.has(check.id)) return
+    // A ticked check already shows as done, so it can't be tapped again.
+    if (completions.some(c => c.check_id === check.id)) return
+    const row = {
       check_id:          check.id,
       session_date:      selectedDate,
       session_type:      check.type,
@@ -710,12 +723,29 @@ export default function OpeningClosingPage() {
       corrective_action: correctiveAction || null,
       notes:             null,
       venue_id:          venueId,
-    })
-    setSaving(false)
-    setSavingCheckId(null)
-    setPendingCheck(null)
-    setPendingIsIssue(false)
-    if (error) { toast(error.message, 'error'); return }
+    }
+    // One tap = done. The tick shows straight away; it used to wait for the
+    // save, then briefly fall back to an empty circle until the list
+    // reloaded, so people tapped again thinking the first tap missed.
+    const localId = `local-${check.id}`
+    if (!hasIssue) addLocal({ ...row, id: localId, completed_at: new Date().toISOString() })
+    if (hasIssue) setSaving(true)
+    inFlight.current.add(check.id)
+    setCheckSaving(check.id, true)
+    const { error } = await supabase.from('opening_closing_completions').insert(row)
+    inFlight.current.delete(check.id)
+    setCheckSaving(check.id, false)
+    if (hasIssue) {
+      setSaving(false)
+      setPendingCheck(null)
+      setPendingIsIssue(false)
+    }
+    if (error) {
+      removeLocal(localId)
+      toast(error.message, 'error')
+      return
+    }
+    if (hasIssue) addLocal({ ...row, id: localId, completed_at: new Date().toISOString() })
     reloadCompletions()
   }
 
@@ -812,7 +842,7 @@ export default function OpeningClosingPage() {
               moveHint={moveHint}
               venueId={venueId}
               readOnly={readOnly}
-              savingCheckId={savingCheckId}
+              savingIds={savingIds}
             />
             <CheckSection
               type="closing"
@@ -831,7 +861,7 @@ export default function OpeningClosingPage() {
               moveHint={moveHint}
               venueId={venueId}
               readOnly={readOnly}
-              savingCheckId={savingCheckId}
+              savingIds={savingIds}
             />
           </div>
         )
