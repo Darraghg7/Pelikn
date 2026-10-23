@@ -770,4 +770,3 @@ html.dark .bg-danger\/8 {
 @media (prefers-reduced-motion: reduce) {
   .pelikn-draw .pelikn-draw-line { animation: none; stroke-dashoffset: 0; }
 }
-}
