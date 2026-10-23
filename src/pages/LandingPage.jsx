@@ -216,7 +216,9 @@ export default function LandingPage() {
     if (err) {
       setError(err.message === 'Invalid login credentials'
         ? 'Incorrect email or password'
-        : err.message)
+        : err.message === 'Email not confirmed'
+          ? "You haven't confirmed your email yet. Open the link we sent you when you signed up."
+          : err.message)
       setLoading(false)
       return
     }
