@@ -58,16 +58,6 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
         </div>
       )}
 
-      {/* Email verification nudge */}
-      <div className="w-full flex items-start gap-4 px-1">
-        <svg className="shrink-0 mt-1 text-charcoal/70" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
-        </svg>
-        <p className="text-body-lg text-charcoal/75 leading-[1.5]">
-          We've sent a verification email to your inbox. Click the link to confirm your account. You can still use Pelikn in the meantime.
-        </p>
-      </div>
-
       <div>
         <Button pill size="lg" onClick={() => navigate(`/v/${venueSlug}`)} className="px-8">
           Go to your dashboard
