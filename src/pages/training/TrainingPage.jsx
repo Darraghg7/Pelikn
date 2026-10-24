@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { format, isPast, parseISO, differenceInDays } from 'date-fns'
+import { format, parseISO } from 'date-fns'
+import { documentStatus } from '../../hooks/useDocuments'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
@@ -41,12 +42,13 @@ const CERT_CATEGORIES = [
 ]
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+// A certificate is valid for the whole of its expiry date. This used isPast on
+// midnight at the start of that day, so it showed "Expired" (and dropped the
+// person from the allergen-trained count) a day early. documentStatus counts
+// calendar days, as the Documents page does.
 function certStatus(record) {
-  if (!record.expiry_date) return 'valid'
-  const expiry = parseISO(record.expiry_date)
-  if (isPast(expiry)) return 'expired'
-  if (differenceInDays(expiry, new Date()) <= 30) return 'expiring'
-  return 'valid'
+  const { status } = documentStatus(record)
+  return status === 'none' ? 'valid' : status
 }
 
 

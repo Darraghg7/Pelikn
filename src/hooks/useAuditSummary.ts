@@ -3,6 +3,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { subDays } from 'date-fns'
 import { useVenue } from '../contexts/VenueContext'
 import { fetchAuditData, type AuditRawData } from '../lib/api/audit'
+import { documentStatus } from './useDocuments'
+import { readingOutOfRange } from '../lib/utils'
 
 const EXPLAINED = ['delivery', 'defrost', 'service_access']
 
@@ -11,9 +13,11 @@ function deriveAuditStats(raw: AuditRawData, sinceTs: string) {
 
   // ── Temp analysis ──────────────────────────────────────────────────
   const tempTotal = temps.length
+  // Against the range the fridge had when the reading was taken (163), so
+  // widening a range later can't turn past failures into passes.
   const failedTemps = temps.filter((t: any) =>
     t.fridge &&
-    (t.temperature < t.fridge.min_temp || t.temperature > t.fridge.max_temp) &&
+    readingOutOfRange(t, t.fridge) &&
     !EXPLAINED.includes(t.exceedance_reason) &&
     !t.is_resolved
   )
@@ -37,10 +41,14 @@ function deriveAuditStats(raw: AuditRawData, sinceTs: string) {
   const caCritical = openActions.filter((a: any) => a.severity === 'critical').length
 
   // ── Training ──────────────────────────────────────────────────────
-  const today = new Date()
-  const expiredCertsList = certs.filter((c: any) => c.expiry_date && new Date(c.expiry_date) < today && !c.is_resolved)
+  // A certificate is valid for the whole of its expiry date (calendar days, as
+  // the Documents page counts them). It stays expired until its expiry date is
+  // actually updated: it used to disappear from this list when someone tapped
+  // "Renewed", leaving the screen saying all was well while the EHO PDF still
+  // listed it as expired.
+  const expiredCertsList = certs.filter((c: any) => documentStatus(c).status === 'expired')
   const expiredCerts = expiredCertsList.length
-  const validCerts = certs.filter((c: any) => !c.expiry_date || new Date(c.expiry_date) >= today).length
+  const validCerts = certs.filter((c: any) => documentStatus(c).status !== 'expired').length
 
   return {
     tempTotal, tempFails, tempPassRate, failedTemps: failedTemps.slice(0, 15),
@@ -65,7 +73,7 @@ export function useAuditSummary(range: number) {
   const sinceTs = useMemo(() => subDays(new Date(), range).toISOString(), [range])
   const queryKey = ['audit-summary', venueId, range]
 
-  const { data: raw, isLoading } = useQuery({
+  const { data: raw, isLoading, isError, refetch } = useQuery({
     queryKey,
     queryFn: () => fetchAuditData(venueId!, sinceTs),
     enabled: !!venueId,
@@ -92,5 +100,7 @@ export function useAuditSummary(range: number) {
     })
   }
 
-  return { data, loading: isLoading, queryKey, markResolvedInCache }
+  // `failed` is only true when there is nothing to show: a background refresh
+  // that fails keeps the last good summary on screen.
+  return { data, loading: isLoading, failed: isError && !raw, retry: refetch, queryKey, markResolvedInCache }
 }

@@ -98,7 +98,9 @@ export async function fetchFridgeMatrix(
     fetchActiveFridges(venueId),
     supabase
       .from('fridge_temperature_logs')
-      .select('id, fridge_id, temperature, logged_at, check_period, exceedance_reason, logged_by_name, notes')
+      // '*', not a column list: the audit-trail columns (163) arrive when they
+      // exist, and the read doesn't break on a database that doesn't have them yet.
+      .select('*')
       .eq('venue_id', venueId)
       .gte('logged_at', londonDayStartInstant(dateFrom).toISOString())
       .lt('logged_at', londonDayStartInstant(nextLondonDate(dateTo)).toISOString())
@@ -136,9 +138,17 @@ export async function fetchFridgeHistory(
     .eq('venue_id', venueId)
     .order('logged_at', { ascending: false })
 
+  // The date pickers hand over bare "yyyy-MM-dd" dates. Compared as-is against
+  // a timestamp, `<= '2026-10-24'` means midnight at the START of the 24th, so
+  // the "Today" preset always came back empty and every range lost its last
+  // day. A bare date now means that whole London day: from its first instant
+  // up to (not including) the next day's.
+  const isDay = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s)
   if (fridgeId) q = q.eq('fridge_id', fridgeId)
-  if (dateFrom) q = q.gte('logged_at', dateFrom)
-  if (dateTo)   q = q.lte('logged_at', dateTo)
+  if (dateFrom) q = q.gte('logged_at', isDay(dateFrom) ? londonDayStartInstant(dateFrom).toISOString() : dateFrom)
+  if (dateTo)   q = isDay(dateTo)
+    ? q.lt('logged_at', londonDayStartInstant(nextLondonDate(dateTo)).toISOString())
+    : q.lte('logged_at', dateTo)
 
   const { data, error } = await q
   if (error) throw error

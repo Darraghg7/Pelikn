@@ -5,7 +5,7 @@ import { errorOf } from '../../lib/api/writes'
 import { useFridges, useFridgeHistory } from '../../hooks/useFridgeLogs'
 import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
-import { isTempOutOfRange, formatTemp, formatDateTime } from '../../lib/utils'
+import { readingOutOfRange, formatTemp, formatDateTime } from '../../lib/utils'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import DateRangePresets, { presetToDates } from '../../components/ui/DateRangePresets'
 import { useToast } from '../../components/ui/Toast'
@@ -131,9 +131,9 @@ export default function FridgeHistoryPage() {
               </thead>
               <tbody>
                 {logs.map((log) => {
-                  const min       = log.fridges?.min_temp ?? 0
-                  const max       = log.fridges?.max_temp ?? 5
-                  const oor       = isTempOutOfRange(log.temperature, min, max)
+                  // Judged against the range the fridge had when this was taken (163),
+                  // falling back to its current range for older readings.
+                  const oor       = readingOutOfRange(log, { min_temp: log.fridges?.min_temp ?? 0, max_temp: log.fridges?.max_temp ?? 5 })
                   const explained = oor && log.exceedance_reason &&
                     ['delivery', 'defrost', 'service_access'].includes(log.exceedance_reason)
                   const isEditing = editingId === log.id
@@ -179,6 +179,14 @@ export default function FridgeHistoryPage() {
                           </div>
                           {log.notes && (
                             <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5 max-w-[220px] truncate">{log.notes}</p>
+                          )}
+                          {/* The audit trail: a reading entered after the fact, and any change of reason */}
+                          {(log.is_backfilled || log.reason_changed_at) && (
+                            <p className="text-caption text-charcoal/45 dark:text-white/40 mt-0.5 max-w-[260px]">
+                              {log.is_backfilled && `Entered late${log.recorded_at ? ` (${formatDateTime(log.recorded_at)})` : ''}`}
+                              {log.is_backfilled && log.reason_changed_at && ' · '}
+                              {log.reason_changed_at && `Reason changed by ${log.reason_changed_by ?? 'someone'} on ${formatDateTime(log.reason_changed_at)} (${log.reason_previous ? `was ${REASON_LABELS[log.reason_previous] ?? log.reason_previous}` : 'none before'})`}
+                            </p>
                           )}
                         </td>
                         <td className="text-center px-3 py-3">

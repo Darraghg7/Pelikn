@@ -177,7 +177,7 @@ export default function FridgeBackfillModal({ open, onClose, fridge, dateStr, pe
         </div>
 
         <p className="text-caption text-charcoal/35 dark:text-white/30 leading-relaxed">
-          Backfilled readings are flagged in your audit log with the time you choose above and the staff member currently signed in.
+          Backfilled readings are saved under the time you choose above and the staff member currently signed in. The history and exports mark them as late entries, showing when they were really recorded.
         </p>
       </div>
     </Modal>

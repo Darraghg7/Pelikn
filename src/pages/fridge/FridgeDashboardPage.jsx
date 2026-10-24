@@ -7,6 +7,8 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useFridges, useTodayCheckStatus } from '../../hooks/useFridgeLogs'
 import { useSession } from '../../contexts/SessionContext'
 import { isTempOutOfRange, formatTemp } from '../../lib/utils'
+import { sendPush } from '../../lib/sendPush'
+import LoadError from '../../components/ui/LoadError'
 import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
@@ -144,6 +146,19 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
         : `${fridge.name}: ${formatTemp(parsedTemp)} logged`,
       outOfRange && !isExplained ? 'error' : undefined,
     )
+    // Tell the managers, as the full "Log temperature" page already did. A
+    // reading logged from this tab (where most are) alerted nobody, so most
+    // excursions went unnoticed until someone looked at the dashboard.
+    if (outOfRange) {
+      sendPush({
+        venueId,
+        notificationType: 'temperature_alert',
+        title: 'Temperature Alert',
+        body: `${fridge.name} at ${parsedTemp}°C — outside safe range (${fridge.min_temp}–${fridge.max_temp}°C)`,
+        url: '/fridge',
+        roles: ['manager', 'owner'],
+      })
+    }
     setTemp('')
     setReason(null)
     setComment('')
@@ -212,6 +227,7 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
             canSubmit={canSave}
             saving={saving}
             autoSave
+            allowNegative={Number(fridge.min_temp) < 0}
             warn={outOfRange}
             placeholder={`${currentPeriod.toUpperCase()} reading`}
             ariaLabel={`${fridge.name} ${currentPeriod.toUpperCase()} reading in °C`}
@@ -302,8 +318,8 @@ const FRIDGE_RANGE_HINT = {
 export default function FridgeDashboardPage() {
   const toast = useToast()
   const { venueId, venueSlug } = useVenue()
-  const { fridges, loading: fridgesLoading, reload: reloadFridges } = useFridges()
-  const { status: checkStatus, loading: dashLoading, reload: reloadDash } = useTodayCheckStatus()
+  const { fridges, loading: fridgesLoading, failed: fridgesFailed, reload: reloadFridges } = useFridges()
+  const { status: checkStatus, loading: dashLoading, failed: statusFailed, reload: reloadDash } = useTodayCheckStatus()
   const { session, isManager, hasPermission } = useSession()
   const canLog = hasPermission('log_temps')
   const [searchParams, setSearchParams] = useSearchParams()
@@ -396,13 +412,21 @@ export default function FridgeDashboardPage() {
 
       {/* ── Log tab ── */}
       {tab === 'log' && (
-        fridges.length === 0 ? (
+        // A failed read must not look like "no fridges set up": that invites
+        // managers to add duplicates, and hides what needs checking.
+        fridgesFailed ? (
+          <div className={CARD}><LoadError what="your fridges" onRetry={reloadFridges} /></div>
+        ) : fridges.length === 0 ? (
           <div className={`${CARD} p-8 text-center flex flex-col items-center gap-2.5`}>
             <p className="text-body-sm text-ink3 dark:text-white/45">No fridges set up yet.</p>
             {isManager && <AddDashedButton label="Add fridge or freezer" onClick={() => setShowAdd(true)} />}
           </div>
         ) : (
           <>
+            {/* Without today's readings every fridge looks unlogged, and staff log them again. */}
+            {statusFailed && (
+              <div className={CARD}><LoadError what="today's readings" onRetry={reloadDash} /></div>
+            )}
             {totalToday > 0 && (
               <div className={`${CARD} px-3.5 sm:px-3.5 py-2`}>
                 <div className="flex items-center gap-2.5">

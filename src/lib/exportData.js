@@ -3,7 +3,7 @@
  * Each function fetches data and renders a formatted jsPDF report
  * suitable for EHO inspections.
  */
-import { format, subDays } from 'date-fns'
+import { format, parseISO, subDays } from 'date-fns'
 import { supabase } from './supabase'
 import { throwIfError } from './queryErrors'
 import { reportError } from './reportError'
@@ -13,7 +13,9 @@ import { coolingOutcome, formatCoolingMinutes, COOLING_TARGET_MINUTES } from './
 import { buildPdfReport, loadPdfLibs, PDF } from './pdfUtils'
 import { fetchMockInspections } from './api/mockInspections'
 import { fetchAllPages } from './api/holidayData'
+import { resolvedPestIssueIds, pestStatusOf } from './api/pestControl'
 import { documentStatus } from '../hooks/useDocuments'
+import { readingOutOfRange, readingAuditNotes } from './utils'
 
 /* ── Shared colour helpers ─────────────────────────────────────────────── */
 const RED   = PDF.bad
@@ -28,6 +30,18 @@ function passFailCell(hookData, colIndex, passValue = 'PASS') {
     hookData.cell.styles.textColor = RED
     hookData.cell.styles.fontStyle = 'bold'
   }
+}
+
+// A reading's own note, plus what the audit trail (163) says about it: entered
+// late, or its reason changed. An inspector should be able to see both.
+const withAuditNotes = (r) => [r.notes, ...readingAuditNotes(r)].filter(Boolean).join(' · ')
+
+// A certificate is valid for the whole of its expiry date, so "EXPIRED" only
+// starts the day after (this used `expiry < now` on midnight UTC and printed
+// EXPIRED on the expiry day itself). Same calendar-day rule as the app.
+const certStatusLabel = (r) => {
+  const { status } = documentStatus(r)
+  return status === 'none' ? 'No expiry' : status === 'expired' ? 'EXPIRED' : 'VALID'
 }
 
 /**
@@ -51,7 +65,8 @@ export async function exportTempLogs(venueId, days = 90) {
   const since = subDays(new Date(), days).toISOString()
   const { data, error } = await supabase
     .from('fridge_temperature_logs')
-    .select('temperature, logged_at, notes, exceedance_reason, check_period, fridge:fridge_id(name, min_temp, max_temp), logged_by_name')
+    // '*' so the range snapshot and audit-trail columns (163) come back when they exist
+    .select('*, fridge:fridge_id(name, min_temp, max_temp)')
     .eq('venue_id', venueId)
     .gte('logged_at', since)
     .order('logged_at', { ascending: false })
@@ -67,9 +82,8 @@ export async function exportTempLogs(venueId, days = 90) {
   }
 
   const rows = (data ?? []).map(r => {
-    const oor = r.fridge
-      ? (r.temperature < r.fridge.min_temp || r.temperature > r.fridge.max_temp)
-      : false
+    // Against the range the fridge had when the reading was taken (163)
+    const oor = r.fridge ? readingOutOfRange(r, r.fridge) : false
     const explained = oor && EXPLAINED.includes(r.exceedance_reason)
     let status = oor ? (explained ? 'EXPLAINED' : 'OUT OF RANGE') : 'PASS'
     return [
@@ -81,7 +95,7 @@ export async function exportTempLogs(venueId, days = 90) {
       status,
       r.exceedance_reason ? (REASON_LABELS[r.exceedance_reason] ?? r.exceedance_reason) : '-',
       r.logged_by_name ?? '-',
-      r.notes ?? '',
+      withAuditNotes(r),
     ]
   })
 
@@ -283,8 +297,8 @@ export async function exportTrainingRecords(venueId) {
 
   const now = new Date()
   const rows = (data ?? []).map(r => {
-    const expiry = r.expiry_date ? new Date(r.expiry_date) : null
-    const status = !expiry ? 'No expiry' : expiry < now ? 'EXPIRED' : 'VALID'
+    const expiry = r.expiry_date ? parseISO(r.expiry_date) : null
+    const status = certStatusLabel(r)
     return [
       r.staff?.name ?? '-',
       r.title ?? '-',
@@ -359,7 +373,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
   const [temps, deliveries, probes, actions, training, cooling, hotHolding, pest, cleaning, mockInspections, fhrs, documents] =
     await Promise.all([
       allRows(() => supabase.from('fridge_temperature_logs')
-        .select('temperature, logged_at, exceedance_reason, is_resolved, fridge:fridge_id(name, min_temp, max_temp), logged_by_name')
+        .select('*, fridge:fridge_id(name, min_temp, max_temp)')
         .eq('venue_id', venueId).gte('logged_at', since).order('logged_at', { ascending: false })),
       allRows(() => supabase.from('delivery_checks')
         .select('supplier_name, overall_pass, is_resolved, checked_at')
@@ -381,7 +395,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
         .select('item_name, temperature, logged_at, logged_by_name')
         .eq('venue_id', venueId).gte('logged_at', since).order('logged_at', { ascending: false })),
       allRows(() => supabase.from('pest_control_logs')
-        .select('log_type, pest_type, severity, status, logged_at, logged_by_name')
+        .select('*')
         .eq('venue_id', venueId).gte('logged_at', since).order('logged_at', { ascending: false })),
       allRows(() => supabase.from('cleaning_completions')
         .select('completed_at, completed_by_name, task:cleaning_task_id(title)')
@@ -400,7 +414,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
   // ── Compute summary stats ────────────────────────────────────────────────
   const EXPLAINED = ['delivery', 'defrost', 'service_access']
   const t = temps.data ?? []
-  const tempFails    = t.filter(x => x.fridge && (x.temperature < x.fridge.min_temp || x.temperature > x.fridge.max_temp) && !EXPLAINED.includes(x.exceedance_reason) && !x.is_resolved).length
+  const tempFails    = t.filter(x => x.fridge && readingOutOfRange(x, x.fridge) && !EXPLAINED.includes(x.exceedance_reason) && !x.is_resolved).length
   const tempPassRate = t.length > 0 ? Math.round(((t.length - tempFails) / t.length) * 100) : 100
 
   const d = deliveries.data ?? []
@@ -414,13 +428,16 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
   const openActions  = a.filter(x => x.status === 'open').length
 
   const tr = training.data ?? []
-  const expiredCerts = tr.filter(x => x.expiry_date && new Date(x.expiry_date) < now).length
+  const expiredCerts = tr.filter(x => documentStatus(x).status === 'expired').length
 
   const cl = cooling.data ?? []
   const coolingFails = cl.filter(x => coolingOutcome(x).fail).length
 
   const p = pest.data ?? []
-  const openPest = p.filter(x => x.status === 'open' && (x.log_type === 'sighting' || x.log_type === 'treatment')).length
+  // An entry about an issue that has since been closed is closed too.
+  const resolvedPestIssues = await resolvedPestIssueIds(venueId, p)
+  const pestStatus = (x) => pestStatusOf(x, resolvedPestIssues)
+  const openPest = p.filter(x => pestStatus(x) === 'open' && (x.log_type === 'sighting' || x.log_type === 'treatment')).length
 
   const mi = mockInspections ?? []
   const latestMock = mi[0] ?? null
@@ -553,9 +570,9 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
     sectionHead('TEMPERATURE MONITORING')
     autoTable(doc, {
       startY: y,
-      head: [['Date', 'Fridge', 'Temp (°C)', 'Status', 'Recorded By']],
+      head: [['Date', 'Fridge', 'Temp (°C)', 'Status', 'Recorded By', 'Audit note']],
       body: t.map(r => {
-        const oor = r.fridge ? (r.temperature < r.fridge.min_temp || r.temperature > r.fridge.max_temp) : false
+        const oor = r.fridge ? readingOutOfRange(r, r.fridge) : false
         const exp = oor && EXPLAINED.includes(r.exceedance_reason)
         return [
           format(new Date(r.logged_at), 'dd/MM/yy HH:mm'),
@@ -563,6 +580,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
           Number(r.temperature).toFixed(1),
           oor ? (exp ? 'EXPLAINED' : 'OUT OF RANGE') : 'PASS',
           r.logged_by_name ?? '-',
+          readingAuditNotes(r).join(' · '),
         ]
       }),
       headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 8 },
@@ -720,8 +738,8 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
       startY: y,
       head: [['Staff', 'Certificate', 'Expiry', 'Status']],
       body: tr.map(r => {
-        const expiry = r.expiry_date ? new Date(r.expiry_date) : null
-        const status = !expiry ? 'No expiry' : expiry < now ? 'EXPIRED' : 'VALID'
+        const expiry = r.expiry_date ? parseISO(r.expiry_date) : null
+        const status = certStatusLabel(r)
         return [
           r.staff?.name ?? '-',
           r.title ?? '-',
@@ -752,7 +770,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
         r.log_type ?? '-',
         r.pest_type ?? '-',
         (r.severity ?? '-').toUpperCase(),
-        (r.status ?? '-').toUpperCase(),
+        (pestStatus(r) ?? '-').toUpperCase(),
       ]),
       headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 8 },
       bodyStyles: { fontSize: 7 },

@@ -4,7 +4,10 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import { useAuditSummary } from '../../hooks/useAuditSummary'
-import { resolveAuditRecord, resolveCorrectiveAction } from '../../lib/api/audit'
+import { resolveAuditRecord, resolveCorrectiveAction, renewCertificate } from '../../lib/api/audit'
+import { useSession } from '../../contexts/SessionContext'
+import Modal from '../../components/ui/Modal'
+import LoadError from '../../components/ui/LoadError'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import { exportTempLogs, exportCleaningRecords, exportDeliveryChecks, exportCorrectiveActions, exportProbeCalibrations, exportTrainingRecords, exportFullReport, exportEHOReport, runExport } from '../../lib/exportData'
 import { computeComplianceScore, COMPLIANCE_RANGE_DAYS } from '../../lib/compliance'
@@ -25,6 +28,49 @@ function StatRow({ label, value, sub, warn }) {
         {sub && <p className="text-caption text-charcoal/35 dark:text-white/30">{sub}</p>}
       </div>
     </div>
+  )
+}
+
+// The PDF downloads. They read their own data, so they work even when the
+// on-screen summary couldn't load.
+function ExportCards({ venueId, venueName, range, toast }) {
+  return (
+    <>
+      {/* EHO Inspection Report */}
+      <div className="bg-white dark:bg-paperDark rounded-card px-5 py-4">
+        <p className="text-micro font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">EHO Inspection Report</p>
+        <p className="text-xs text-charcoal/45 dark:text-white/40 mb-3">One comprehensive PDF covering all compliance areas — ready to show an EHO inspector.</p>
+        <Button
+          fullWidth
+          onClick={() => runExport(() => exportEHOReport(venueId, venueName, range), toast)}
+        >
+          ↓ Download EHO Inspection Report
+        </Button>
+      </div>
+
+      {/* Data Export */}
+      <div className="bg-white dark:bg-paperDark rounded-card px-5 py-4">
+        <p className="text-micro font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Export Records (PDF)</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {[
+            { label: 'Temp Logs',  fn: () => exportTempLogs(venueId, range) },
+            { label: 'Cleaning',   fn: () => exportCleaningRecords(venueId, range) },
+            { label: 'Deliveries', fn: () => exportDeliveryChecks(venueId, range) },
+            { label: 'Actions',    fn: () => exportCorrectiveActions(venueId, range) },
+            { label: 'Probe Cal.', fn: () => exportProbeCalibrations(venueId, range) },
+            { label: 'Training',   fn: () => exportTrainingRecords(venueId) },
+          ].map(btn => (
+            <Button variant="secondary" size="sm" key={btn.label} onClick={() => runExport(btn.fn, toast)}>
+              ↓ {btn.label}
+            </Button>
+          ))}
+        </div>
+        <Button fullWidth onClick={() => runExport(() => exportFullReport(venueId, range), toast)}
+          className="mt-3">
+          ↓ Download All Reports (PDF)
+        </Button>
+      </div>
+    </>
   )
 }
 
@@ -60,7 +106,7 @@ function DrillTable({ headers, rows }) {
                       onClick={row.action.fn}
                       disabled={row.action.loading}
                     >
-                      <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Resolved</span>
+                      <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> {row.action.label ?? 'Resolved'}</span>
                     </Button>
                   )}
                 </td>
@@ -114,8 +160,11 @@ export default function EHOAuditPage() {
   const [range, setRange] = useState(COMPLIANCE_RANGE_DAYS)
   const [openSection, setOpenSection] = useState(null)
   const [resolving, setResolving] = useState(null) // id of reading being resolved
+  const [renewing, setRenewing] = useState(null)     // certificate being renewed
+  const [newExpiry, setNewExpiry] = useState('')
+  const { session } = useSession()
 
-  const { data, loading, markResolvedInCache } = useAuditSummary(range)
+  const { data, loading, retry, markResolvedInCache } = useAuditSummary(range)
 
   // Auto-open section from URL hash (e.g. /audit#temps)
   useEffect(() => {
@@ -145,13 +194,31 @@ export default function EHOAuditPage() {
   // Corrective actions use status field instead of is_resolved
   const resolveAction = useCallback(async (id) => {
     setResolving(id)
-    const { error } = await resolveCorrectiveAction(id)
+    const { error } = await resolveCorrectiveAction(id, session?.staffId)
     setResolving(null)
     if (error) { toast(error.message ?? 'Failed to resolve', 'error'); return }
     toast('Action marked resolved')
     markResolvedInCache('actions', id, { status: 'resolved' })
     queryClient.invalidateQueries({ queryKey: ['widget', 'compliance_score', venueId] })
-  }, [toast, queryClient, venueId, markResolvedInCache])
+  }, [toast, queryClient, venueId, markResolvedInCache, session?.staffId])
+
+  // A certificate is renewed by giving it its new expiry date, which is what
+  // makes it valid again (here and on the EHO PDF). The old "Renewed" button
+  // only hid it, so the screen said all certificates were up to date while the
+  // PDF still listed it as expired.
+  const openRenew = (cert) => { setRenewing(cert); setNewExpiry('') }
+  const saveRenewal = useCallback(async () => {
+    if (!renewing || !newExpiry) return
+    if (newExpiry < format(new Date(), 'yyyy-MM-dd')) { toast('The new expiry date must be today or later', 'error'); return }
+    setResolving(renewing.id)
+    const { error } = await renewCertificate(renewing.id, newExpiry)
+    setResolving(null)
+    if (error) { toast(error.message ?? 'Could not renew the certificate', 'error'); return }
+    toast('Certificate renewed')
+    markResolvedInCache('certs', renewing.id, { expiry_date: newExpiry, is_resolved: false })
+    queryClient.invalidateQueries({ queryKey: ['widget', 'compliance_score', venueId] })
+    setRenewing(null)
+  }, [renewing, newExpiry, toast, queryClient, venueId, markResolvedInCache])
 
   const getOverallStatus = () => {
     if (!data) return 'neutral'
@@ -204,7 +271,15 @@ export default function EHOAuditPage() {
 
       {loading ? (
         <SkeletonList rows={5} />
-      ) : !data ? null : (
+      ) : !data ? (
+        // The summary failed to load. Showing nothing looked like an empty
+        // audit and hid the exports, but the PDF pack fetches its own data and
+        // is still what a manager needs in front of an inspector.
+        <>
+          <LoadError what="the audit summary" onRetry={retry} />
+          <ExportCards venueId={venueId} venueName={venueName} range={range} toast={toast} />
+        </>
+      ) : (
         <>
           {/* Overall status banner */}
           <div className={`rounded-card border px-4 py-3.5 flex items-center gap-3 ${
@@ -451,7 +526,7 @@ export default function EHOAuditPage() {
                         { text: c.title ?? '—' },
                         { text: format(new Date(c.expiry_date), 'dd/MM/yyyy'), color: 'text-danger', bold: true },
                       ],
-                      action: { label: 'Renewed', loading: resolving === c.id, fn: () => resolveRecord('staff_training', c.id, 'certs') },
+                      action: { label: 'Renew', loading: resolving === c.id, fn: () => openRenew(c) },
                     }))}
                   />
                 </div>
@@ -462,40 +537,7 @@ export default function EHOAuditPage() {
             </SectionCard>
           </div>
 
-          {/* EHO Inspection Report */}
-          <div className="bg-white dark:bg-paperDark rounded-card px-5 py-4">
-            <p className="text-micro font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">EHO Inspection Report</p>
-            <p className="text-xs text-charcoal/45 dark:text-white/40 mb-3">One comprehensive PDF covering all compliance areas — ready to show an EHO inspector.</p>
-            <Button
-              fullWidth
-              onClick={() => runExport(() => exportEHOReport(venueId, venueName, range), toast)}
-            >
-              ↓ Download EHO Inspection Report
-            </Button>
-          </div>
-
-          {/* Data Export */}
-          <div className="bg-white dark:bg-paperDark rounded-card px-5 py-4">
-            <p className="text-micro font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Export Records (PDF)</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {[
-                { label: 'Temp Logs',  fn: () => exportTempLogs(venueId, range) },
-                { label: 'Cleaning',   fn: () => exportCleaningRecords(venueId, range) },
-                { label: 'Deliveries', fn: () => exportDeliveryChecks(venueId, range) },
-                { label: 'Actions',    fn: () => exportCorrectiveActions(venueId, range) },
-                { label: 'Probe Cal.', fn: () => exportProbeCalibrations(venueId, range) },
-                { label: 'Training',   fn: () => exportTrainingRecords(venueId) },
-              ].map(btn => (
-                <Button variant="secondary" size="sm" key={btn.label} onClick={() => runExport(btn.fn, toast)}>
-                  ↓ {btn.label}
-                </Button>
-              ))}
-            </div>
-            <Button fullWidth onClick={() => runExport(() => exportFullReport(venueId, range), toast)}
-              className="mt-3">
-              ↓ Download All Reports (PDF)
-            </Button>
-          </div>
+          <ExportCards venueId={venueId} venueName={venueName} range={range} toast={toast} />
 
           {/* Guidance note */}
           <div className="bg-white dark:bg-paperDark rounded-card px-5 py-4">
@@ -511,6 +553,39 @@ export default function EHOAuditPage() {
           </div>
         </>
       )}
+
+      <Modal open={!!renewing} onClose={() => setRenewing(null)} title="Renew certificate">
+        {renewing && (
+          <form
+            className="flex flex-col gap-4"
+            onSubmit={e => { e.preventDefault(); saveRenewal() }}
+          >
+            <p className="text-sm text-charcoal/70 dark:text-white/60">
+              <strong>{renewing.staff?.name ?? 'Staff member'}</strong> · {renewing.title ?? 'Certificate'}
+              <br />Expired {format(new Date(renewing.expiry_date), 'd MMM yyyy')}
+            </p>
+            <label className="flex flex-col gap-1">
+              <span className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">New expiry date</span>
+              <input
+                type="date"
+                required
+                autoFocus
+                value={newExpiry}
+                min={format(new Date(), 'yyyy-MM-dd')}
+                onChange={e => setNewExpiry(e.target.value)}
+                className="px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              />
+            </label>
+            <p className="text-xs text-charcoal/45 dark:text-white/40">
+              The certificate counts as current once it has a new expiry date. Upload the new certificate under Training.
+            </p>
+            <div className="flex gap-2">
+              <Button type="submit" loading={resolving === renewing.id} disabled={!newExpiry || resolving === renewing.id}>Save renewal</Button>
+              <Button type="button" variant="secondary" onClick={() => setRenewing(null)}>Cancel</Button>
+            </div>
+          </form>
+        )}
+      </Modal>
     </div>
   )
 }

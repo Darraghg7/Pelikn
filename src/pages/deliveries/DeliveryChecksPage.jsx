@@ -238,6 +238,10 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
       setOcrItems([])
       setCategorisingIdx(0)
       setPhotoPath('')
+      // The modal stays mounted, so this state was set once when the page
+      // loaded: a delivery logged at 11:30 on a page opened at 08:00 was saved
+      // as 08:00. Take the time when the check is opened.
+      setCheckedAt(nowDatetimeLocal())
     }
   }, [open])
 

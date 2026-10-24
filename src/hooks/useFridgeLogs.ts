@@ -22,17 +22,20 @@ function loadSharedFridges(queryClient: QueryClient, venueId: string) {
   })
 }
 
-export function useFridges(): { fridges: Fridge[]; loading: boolean; reload: () => void } {
+export function useFridges(): { fridges: Fridge[]; loading: boolean; failed: boolean; reload: () => void } {
   const { venueId } = useVenue()
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['fridges', venueId],
     queryFn: () => fetchActiveFridges(venueId!),
     enabled: !!venueId,
     staleTime: FRIDGES_STALE_MS,
   })
 
-  return { fridges: (data ?? []) as Fridge[], loading: isLoading, reload: refetch }
+  // `failed` only when there is nothing to show: a background refresh that
+  // fails keeps the last good list. Without it a failed read looked like
+  // "No fridges set up yet" and invited managers to add duplicates.
+  return { fridges: (data ?? []) as Fridge[], loading: isLoading, failed: isError && !data, reload: refetch }
 }
 
 export function useFridgeDashboard(): { data: unknown[]; loading: boolean; reload: () => void } {
@@ -47,28 +50,30 @@ export function useFridgeDashboard(): { data: unknown[]; loading: boolean; reloa
   return { data: (data ?? []) as unknown[], loading: isLoading, reload: refetch }
 }
 
-export function useTodayCheckStatus(): { status: FridgeTodayStatus[]; loading: boolean; reload: () => void } {
+export function useTodayCheckStatus(): { status: FridgeTodayStatus[]; loading: boolean; failed: boolean; reload: () => void } {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['todayCheckStatus', venueId],
     queryFn: () => fetchTodayCheckStatus(venueId!, isCheckRequired, () => loadSharedFridges(queryClient, venueId!)),
     enabled: !!venueId,
   })
 
-  return { status: (data ?? []) as FridgeTodayStatus[], loading: isLoading, reload: refetch }
+  // A failed read made every fridge look unlogged, so staff logged them again.
+  return { status: (data ?? []) as FridgeTodayStatus[], loading: isLoading, failed: isError && !data, reload: refetch }
 }
 
 export function useFridgeMatrix(dateFrom: string, dateTo: string): {
   fridges: Fridge[]
   matrix: Record<string, unknown>
   loading: boolean
+  failed: boolean
   reload: () => void
 } {
   const { venueId } = useVenue()
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['fridgeMatrix', venueId, dateFrom, dateTo],
     queryFn: () => fetchFridgeMatrix(venueId!, dateFrom, dateTo),
     enabled: !!venueId && !!dateFrom && !!dateTo,
@@ -78,6 +83,7 @@ export function useFridgeMatrix(dateFrom: string, dateTo: string): {
     fridges: ((data as { fridges?: Fridge[] })?.fridges ?? []),
     matrix: ((data as { matrix?: Record<string, unknown> })?.matrix ?? {}),
     loading: isLoading,
+    failed: isError && !data,
     reload: refetch,
   }
 }

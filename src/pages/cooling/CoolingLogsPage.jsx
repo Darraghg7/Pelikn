@@ -396,7 +396,7 @@ export default function CoolingLogsPage() {
   const tab = searchParams.get('tab') === 'history' ? 'history' : 'log'
   const setTab = (next) => setSearchParams(next === 'log' ? {} : { tab: next }, { replace: true })
 
-  const { batches, loading: batchesLoading, reload: reloadBatches } = useCoolingInProgress()
+  const { batches, loading: batchesLoading, failed: batchesFailed, reload: reloadBatches } = useCoolingInProgress()
   const todayStr     = format(new Date(), 'yyyy-MM-dd')
   const yesterdayStr = format(subDays(new Date(), 1), 'yyyy-MM-dd')
   const { logs: recent, loading: recentLoading, reload: reloadRecent } = useCoolingLogs(yesterdayStr, todayStr)
@@ -458,6 +458,8 @@ export default function CoolingLogsPage() {
 
       {tab === 'log' && (
         <>
+          {/* Without this, batches still cooling simply vanished on a failed read. */}
+          {batchesFailed && <LoadError what="the batches still cooling" onRetry={reloadBatches} />}
           {batches.length > 0 && (
             <>
               <SectionHeading aside={`Target ≤${COOLING_TARGET_TEMP}°C within ${COOLING_TARGET_MINUTES} min`}>Cooling now</SectionHeading>

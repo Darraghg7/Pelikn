@@ -62,13 +62,13 @@ export function useCoolingLogs(dateFrom: string | null, dateTo: string | null): 
 }
 
 /** Batches still cooling (no end temperature yet), oldest first. */
-export function useCoolingInProgress(): { batches: CoolingLog[]; loading: boolean; reload: () => void } {
+export function useCoolingInProgress(): { batches: CoolingLog[]; loading: boolean; failed: boolean; reload: () => void } {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
 
   const queryKey = ['cooling_in_progress', venueId]
 
-  const { data: batches = [], isLoading: loading } = useQuery({
+  const { data: batchData, isLoading: loading, isError } = useQuery({
     queryKey,
     queryFn: () => selectWithFallback((columns) => supabase
       .from('cooling_logs')
@@ -84,7 +84,10 @@ export function useCoolingInProgress(): { batches: CoolingLog[]; loading: boolea
 
   const reload = () => queryClient.invalidateQueries({ queryKey })
 
-  return { batches, loading, reload }
+  // A failed read made batches that are still cooling disappear (and their
+  // 90-minute timers with them), so a batch that went over time was never
+  // acted on. `failed` is only true when there is nothing to show.
+  return { batches: batchData ?? [], loading, failed: isError && !batchData, reload }
 }
 
 /** Most-logged food items over the last 60 days, for quick-pick chips. */
