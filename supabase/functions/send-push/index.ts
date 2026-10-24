@@ -4,17 +4,24 @@
  * Sends a push notification to all subscribed managers/owners at a venue,
  * or to a specific list of staff IDs.
  *
- * Body: { venueId, title, body, url, roles? }
- *   venueId  — the venue to target
- *   title    — notification title
- *   body     — notification body text
- *   url      — path to open on click (e.g. '/timeoff')
- *   roles    — optional array of staff roles to target (default: ['manager','owner'])
+ * Body: { venueId, sessionToken, notificationType, title, body, url, roles?, staffIds? }
+ *   venueId          — the venue to target
+ *   sessionToken     — the caller's staff session
+ *   notificationType — one of PUSH_TYPES (_shared/pushRules.ts)
+ *   title            — notification title
+ *   body             — notification body text
+ *   url              — in-app path to open on click (e.g. '/time-off')
+ *   roles            — optional array of staff roles to target (default: ['manager','owner'])
+ *   staffIds         — optional specific people (managers only)
+ *
+ * Staff can only notify managers; see planPush for the rules.
  */
 
 import webpush from 'npm:web-push'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { allowOrigin } from '../_shared/cors.ts'
+import { planPush, safeAppPath, venuePath } from '../_shared/pushRules.ts'
+import { resolvePushCaller } from '../_shared/pushCaller.ts'
 
 const VAPID_PUBLIC_KEY  = 'BBDUCYpy030Ejbra3lzqTxIo663ciiqK_H-qCDmMQZ1wNwt9icOCYvjqhcyYAIyTIKorp4gpsS81MOp5InvjJDc'
 const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY') ?? ''
@@ -60,10 +67,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { venueId, title, body, url = '/', roles, staffIds, sessionToken, notificationType } = await req.json()
+    const request = await req.json()
+    const { venueId, sessionToken } = request
 
-    if (!venueId || !title || !body) {
-      return jsonResponse({ error: 'venueId, title and body are required' }, 400, corsHeaders)
+    if (!venueId) {
+      return jsonResponse({ error: 'venueId is required' }, 400, corsHeaders)
     }
     if (!sessionToken) {
       return jsonResponse({ error: 'Missing session token' }, 401, corsHeaders)
@@ -71,19 +79,27 @@ Deno.serve(async (req) => {
 
     const db = createClient(SUPABASE_URL, SUPABASE_SERVICE)
 
-    const { data: allowed, error: authErr } = await db.rpc('validate_staff_session_for_venue', {
-      p_session_token: sessionToken,
-      p_venue_id:      venueId,
+    const caller = await resolvePushCaller(db, sessionToken, venueId)
+    if (!caller) return jsonResponse({ error: 'Unauthorized' }, 403, corsHeaders)
+
+    const plan = planPush({
+      callerRole:       caller.role,
+      notificationType: request.notificationType,
+      title:            request.title,
+      body:             request.body,
+      roles:            request.roles,
+      staffIds:         request.staffIds,
     })
-    if (authErr) throw authErr
-    if (!allowed) return jsonResponse({ error: 'Unauthorized' }, 403, corsHeaders)
+    if (!plan.ok) return jsonResponse({ error: plan.error }, plan.status, corsHeaders)
+    const { title, body, notificationType, roles, staffIds } = plan
+    const url = venuePath(safeAppPath(request.url), caller.venueSlug)
 
     // Look up push subscriptions — either for specific staff or by role
     let query = db
       .from('push_subscriptions')
       .select('id, endpoint, p256dh, auth_key, staff_id, staff:staff_id(role, venue_id)')
 
-    if (staffIds?.length) {
+    if (staffIds.length) {
       const { data: staffAtVenue } = await db
         .from('staff')
         .select('id')
@@ -102,13 +118,14 @@ Deno.serve(async (req) => {
 
       query = query.in('staff_id', targetIds)
     } else {
-      // Filter to the target venue and roles
-      const targetRoles = roles ?? ['manager', 'owner']
+      // Filter to the target venue and roles. Leavers keep their old push
+      // subscription, so only active staff are notified.
       const { data: staffAtVenue } = await db
         .from('staff')
         .select('id')
         .eq('venue_id', venueId)
-        .in('role', targetRoles)
+        .in('role', roles)
+        .eq('is_active', true)
 
       if (!staffAtVenue?.length) {
         return jsonResponse({ sent: 0, message: 'No matching staff with push subscriptions' }, 200, corsHeaders)
@@ -157,6 +174,6 @@ Deno.serve(async (req) => {
     return jsonResponse({ sent, expired: expiredIds.length }, 200, corsHeaders)
   } catch (err) {
     console.error('send-push error:', err)
-    return jsonResponse({ error: String(err) }, 500, corsHeaders)
+    return jsonResponse({ error: 'Push failed' }, 500, corsHeaders)
   }
 })

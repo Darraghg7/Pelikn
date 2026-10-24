@@ -82,6 +82,20 @@ function makeJwt(staffId: string, venueId: string, sessionToken: string): Promis
   })
 }
 
+// The PIN check's outcome as an HTTP error. Since 161 a wrong PIN comes back
+// as a null token (raising would undo the failure count). Database faults
+// are reported as 503 with no detail, so the app neither calls them a wrong
+// PIN nor shows raw Postgres text.
+function pinFailure(error: { message?: string } | null): { msg: string; status: number } {
+  if (!error) return { msg: 'Incorrect PIN', status: 401 }
+  const msg = error.message ?? ''
+  if (/too many failed/i.test(msg)) return { msg, status: 429 }
+  if (/inactive/i.test(msg)) return { msg, status: 403 }
+  if (/incorrect pin|invalid credentials/i.test(msg)) return { msg, status: 401 }
+  console.error('pin-login: PIN check failed', error)
+  return { msg: 'Sign-in is unavailable right now', status: 503 }
+}
+
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
@@ -116,10 +130,7 @@ Deno.serve(async (req) => {
       })
 
       if (error || !sessionToken) {
-        const msg = error?.message ?? 'Invalid PIN'
-        const status = msg.toLowerCase().includes('too many') ? 429
-          : msg.toLowerCase().includes('inactive')           ? 403
-          : 401
+        const { msg, status } = pinFailure(error)
         return json({ error: msg }, status)
       }
 
@@ -181,10 +192,7 @@ Deno.serve(async (req) => {
       })
 
       if (error || !sessionToken) {
-        const msg = error?.message ?? 'Invalid PIN'
-        const status = msg.toLowerCase().includes('too many') ? 429
-          : msg.toLowerCase().includes('inactive')           ? 403
-          : 401
+        const { msg, status } = pinFailure(error)
         return json({ error: msg }, status)
       }
 

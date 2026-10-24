@@ -95,7 +95,15 @@ self.addEventListener('push', event => {
 
 self.addEventListener('notificationclick', event => {
   event.notification.close()
-  const targetPath = event.notification.data?.url ?? '/dashboard'
+  // Only ever open pages on this site. The url comes from whoever sent the
+  // push, so a link to anywhere else falls back to the app's home.
+  let targetPath = event.notification.data?.url ?? '/dashboard'
+  try {
+    const target = new URL(targetPath, self.location.origin)
+    targetPath = target.origin === self.location.origin ? target.pathname + target.search : '/'
+  } catch {
+    targetPath = '/'
+  }
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
       for (const client of clientList) {

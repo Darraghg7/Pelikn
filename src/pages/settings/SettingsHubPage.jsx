@@ -51,8 +51,17 @@ function SRow({ icon, label, sub, value, attention, last, onClick, danger }) {
 export default function SettingsHubPage() {
   const navigate = useNavigate()
   const { venueSlug, venueName } = useVenue()
-  const { session } = useSession()
+  const { session, signOut } = useSession()
   const { signOutVenue } = useAuth()
+
+  // End this person's PIN session as well as any email login. Signing out of
+  // the email login alone left the manager's PIN session live, so the next
+  // person on a shared tablet still had manager access.
+  const handleSignOut = () => {
+    signOut()
+    signOutVenue()
+    navigate(`/v/${venueSlug}`, { replace: true })
+  }
   const { lateGraceMins } = useAppSettings()
 
   const vp = (path) => `/v/${venueSlug}${path}`
@@ -173,7 +182,7 @@ export default function SettingsHubPage() {
         variant="danger-ghost"
         size="lg"
         fullWidth
-        onClick={signOutVenue}
+        onClick={handleSignOut}
         className="mt-3.5"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

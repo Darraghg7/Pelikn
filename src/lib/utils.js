@@ -32,6 +32,11 @@ export const downloadCsv = (csvString, filename) => {
 /** Capitalise the first character of a string. */
 export const capitalize = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : ''
 
+/** Escape text for building HTML by hand (print windows), so user-entered names can't inject markup. */
+export const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+}[c]))
+
 /** Convert minutes to "Xh Ym" string. */
 export const formatMinutes = (totalMinutes) => {
   if (!totalMinutes || totalMinutes <= 0) return '0m'

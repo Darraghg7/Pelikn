@@ -81,14 +81,16 @@ export async function registerNativePush(staffId: string, venueId: string, navig
   }
 }
 
-/** Remove the stored APNs token for this device on logout */
-export async function unregisterNativePush(staffId: string): Promise<void> {
+/**
+ * Remove the stored APNs token for this device on logout. Sign-out clears
+ * the stored session first, so the caller passes the token it had.
+ */
+export async function unregisterNativePush(staffId: string, sessionToken?: string | null): Promise<void> {
   if (!Capacitor.isNativePlatform() || !staffId) return
   try {
     const { PushNotifications } = await import('@capacitor/push-notifications')
-    const result = await PushNotifications.getDeliveredNotifications()
     const { error } = await supabase.rpc('unregister_apns_tokens', {
-      p_session_token: localStorage.getItem(SESSION_TOKEN_KEY),
+      p_session_token: sessionToken ?? localStorage.getItem(SESSION_TOKEN_KEY),
       p_staff_id:      staffId,
     })
     // A stale token means this phone may still get alerts for whoever signed
@@ -96,8 +98,10 @@ export async function unregisterNativePush(staffId: string): Promise<void> {
     if (error) reportError(error, 'useNativePush:unregister_apns_tokens')
     // Remove all delivered notifications from the notification centre
     await PushNotifications.removeAllDeliveredNotifications()
+    // The registration listener captured this person's staff id; drop it so
+    // the next sign-in on this device registers the token for them instead.
+    await PushNotifications.removeAllListeners()
     listenersRegistered = false
-    void result
   } catch (err) {
     reportError(err, 'useNativePush:unregister')
   }

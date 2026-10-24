@@ -9,6 +9,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { supabase } from '../lib/supabase'
 import { visibleVenuesFor } from '../lib/demoAccounts'
 import { reportError } from '../lib/reportError'
+import { announceSignedOut } from '../lib/persistedCache'
 
 const AuthContext = createContext(null)
 
@@ -187,9 +188,22 @@ export function AuthProvider({ children }) {
     setUser(null)
     setVenues([])
     setVenueSlug(null)
-    // The local session is already cleared; a failed server-side revoke only
-    // leaves the refresh token valid until it expires — worth knowing about.
-    supabase.auth.signOut().catch((e) => reportError(e, 'AuthContext:signOut'))
+    announceSignedOut()
+    // supabase-js resolves (it doesn't reject) when /logout fails — offline,
+    // 5xx — and then keeps the stored session, so the owner was silently
+    // signed back in on the next app open. On any failure, drop the local
+    // session anyway; the server-side token just lives until it expires.
+    supabase.auth.signOut().then(
+      ({ error }) => {
+        if (!error) return
+        reportError(error, 'AuthContext:signOut')
+        return supabase.auth.signOut({ scope: 'local' })
+      },
+      (e) => {
+        reportError(e, 'AuthContext:signOut')
+        return supabase.auth.signOut({ scope: 'local' })
+      },
+    )
   }, [])
 
   const value = useMemo(() => ({

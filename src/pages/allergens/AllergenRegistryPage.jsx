@@ -14,6 +14,7 @@ import Toggle from '../../components/ui/Toggle'
 import LoadError from '../../components/ui/LoadError'
 import Button, { CloseButton } from '../../components/ui/Button'
 import { colors } from '../../lib/tokens'
+import { escapeHtml } from '../../lib/utils'
 
 function SectionLabel({ children, action }) {
   return (
@@ -52,7 +53,7 @@ export default function AllergenRegistryPage() {
   const printCard = () => {
     const win = window.open('', '_blank', 'width=420,height=560')
     const logoHtml = logoUrl
-      ? `<img src="${logoUrl}" alt="Logo" style="height:56px;width:auto;object-fit:contain;display:block;margin:0 auto 16px;" />`
+      ? `<img src="${escapeHtml(logoUrl)}" alt="Logo" style="height:56px;width:auto;object-fit:contain;display:block;margin:0 auto 16px;" />`
       : ''
     const canvas = qrRef.current?.querySelector('canvas')
     const qrDataUrl = canvas?.toDataURL('image/png') ?? ''
@@ -71,7 +72,7 @@ export default function AllergenRegistryPage() {
       </style></head><body>
       <div class="card">
         ${logoHtml}
-        <div class="venue">${venueName || 'Allergen Information'}</div>
+        <div class="venue">${escapeHtml(venueName || 'Allergen Information')}</div>
         <div class="sub">Allergen Information</div>
         <div class="qr"><img src="${qrDataUrl}" width="180" height="180" /></div>
         <div class="cta"><strong>Scan to view allergens</strong>Updated in real-time. Ask staff if you have any dietary requirements.</div>

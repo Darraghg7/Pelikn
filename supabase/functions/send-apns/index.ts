@@ -5,7 +5,8 @@
  * staff members. Mirrors the send-push interface so both can be called in
  * parallel from src/lib/sendPush.js.
  *
- * Body: { venueId, title, body, url, roles?, staffIds? }
+ * Body: { venueId, sessionToken, notificationType, title, body, url, roles?, staffIds? }
+ * Staff can only notify managers; see planPush in _shared/pushRules.ts.
  *
  * Required Supabase secrets:
  *   APNS_KEY_ID    — 10-char Key ID from Apple Developer portal
@@ -25,6 +26,8 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { allowOrigin } from '../_shared/cors.ts'
+import { planPush, safeAppPath, venuePath } from '../_shared/pushRules.ts'
+import { resolvePushCaller } from '../_shared/pushCaller.ts'
 
 const APNS_KEY_ID     = Deno.env.get('APNS_KEY_ID')     ?? ''
 const APNS_TEAM_ID    = Deno.env.get('APNS_TEAM_ID')    ?? ''
@@ -159,22 +162,31 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { venueId, title, body, url = '/', roles, staffIds, sessionToken, notificationType } = await req.json()
+    const request = await req.json()
+    const { venueId, sessionToken } = request
 
-    if (!venueId || !title || !body) {
-      return jsonResponse({ error: 'venueId, title and body are required' }, 400, corsHeaders)
+    if (!venueId) {
+      return jsonResponse({ error: 'venueId is required' }, 400, corsHeaders)
     }
     if (!sessionToken) {
       return jsonResponse({ error: 'Missing session token' }, 401, corsHeaders)
     }
 
     const db = createClient(SUPABASE_URL, SUPABASE_SERVICE)
-    const { data: allowed, error: authErr } = await db.rpc('validate_staff_session_for_venue', {
-      p_session_token: sessionToken,
-      p_venue_id:      venueId,
+    const caller = await resolvePushCaller(db, sessionToken, venueId)
+    if (!caller) return jsonResponse({ error: 'Unauthorized' }, 403, corsHeaders)
+
+    const plan = planPush({
+      callerRole:       caller.role,
+      notificationType: request.notificationType,
+      title:            request.title,
+      body:             request.body,
+      roles:            request.roles,
+      staffIds:         request.staffIds,
     })
-    if (authErr) throw authErr
-    if (!allowed) return jsonResponse({ error: 'Unauthorized' }, 403, corsHeaders)
+    if (!plan.ok) return jsonResponse({ error: plan.error }, plan.status, corsHeaders)
+    const { title, body, notificationType, roles } = plan
+    const url = venuePath(safeAppPath(request.url), caller.venueSlug)
 
     if (!APNS_KEY_ID || !APNS_TEAM_ID || !APNS_PRIVATE_KEY) {
       console.warn('APNs credentials not configured — skipping native push')
@@ -182,7 +194,7 @@ Deno.serve(async (req) => {
     }
 
     // ── Resolve which staff to notify ─────────────────────────────────────────
-    let targetStaffIds: string[] = staffIds ?? []
+    let targetStaffIds: string[] = plan.staffIds
 
     if (targetStaffIds.length) {
       const { data: staffAtVenue } = await db
@@ -194,12 +206,11 @@ Deno.serve(async (req) => {
 
       targetStaffIds = (staffAtVenue ?? []).map((s: any) => s.id)
     } else {
-      const targetRoles = roles ?? ['manager', 'owner']
       const { data: staffAtVenue } = await db
         .from('staff')
         .select('id')
         .eq('venue_id', venueId)
-        .in('role', targetRoles)
+        .in('role', roles)
         .eq('is_active', true)
 
       targetStaffIds = (staffAtVenue ?? []).map((s: any) => s.id)
@@ -242,6 +253,6 @@ Deno.serve(async (req) => {
     return jsonResponse({ sent, expired: expiredIds.length }, 200, corsHeaders)
   } catch (err) {
     console.error('send-apns error:', err)
-    return jsonResponse({ error: String(err) }, 500, corsHeaders)
+    return jsonResponse({ error: 'Push failed' }, 500, corsHeaders)
   }
 })

@@ -6,11 +6,12 @@ import { Capacitor } from '@capacitor/core'
 
 import { isConfigured }        from './lib/supabase'
 import { onDataWrite }         from './lib/cacheBus'
+import { onSignedOut }         from './lib/persistedCache'
 import { shouldRefresh, tablesWritten } from './lib/writeRefresh'
 import { reportQueryError }    from './lib/queryErrors'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { SessionProvider, useSession } from './contexts/SessionContext'
-import { VenueProvider }       from './contexts/VenueContext'
+import { VenueProvider, useVenue } from './contexts/VenueContext'
 import { ToastProvider }       from './components/ui/Toast'
 import SetupPage               from './pages/SetupPage'
 import AppShell                from './components/layout/AppShell'
@@ -175,9 +176,23 @@ function RequireVenueAuth({ children }) {
   return children
 }
 
+/**
+ * The PIN session, but only if it belongs to the venue in the URL. A session
+ * (and its venue-scoped JWT) from venue A used to open venue B's pages after a
+ * venue switch or a typed URL: every list was empty and writes went to venue
+ * A. A session for another venue now counts as no session here, so the guards
+ * send the person to this venue's PIN screen.
+ */
+function useSessionForVenue() {
+  const ctx = useSession()
+  const { venueId } = useVenue()
+  const otherVenue = ctx.session?.venueId && venueId && ctx.session.venueId !== venueId
+  return otherVenue ? { ...ctx, session: null, isManager: false } : ctx
+}
+
 /** Any authenticated staff (PIN session). */
 function RequireAuth({ children }) {
-  const { session, loading } = useSession()
+  const { session, loading } = useSessionForVenue()
   const { venueSlug } = useParams()
   if (loading) return <AppSkeleton />
   if (!session) return <Navigate to={`/v/${venueSlug}`} replace />
@@ -186,7 +201,7 @@ function RequireAuth({ children }) {
 
 /** Manager-only pages. */
 function RequireManager({ children }) {
-  const { session, loading, isManager } = useSession()
+  const { session, loading, isManager } = useSessionForVenue()
   const { venueSlug } = useParams()
   if (loading) return <AppSkeleton />
   if (!session) return <Navigate to={`/v/${venueSlug}`} replace />
@@ -212,7 +227,7 @@ function RequireNotRestricted({ children }) {
 
 /** Pages accessible to managers OR staff with a specific permission. */
 function RequirePermission({ permission, children }) {
-  const { session, loading, isManager, hasPermission } = useSession()
+  const { session, loading, isManager, hasPermission } = useSessionForVenue()
   const { venueSlug } = useParams()
   if (loading) return <AppSkeleton />
   if (!session) return <Navigate to={`/v/${venueSlug}`} replace />
@@ -557,6 +572,9 @@ onDataWrite((table) => {
     queryClient.invalidateQueries({ predicate: (q) => shouldRefresh(q, written) })
   }, 250)
 })
+
+// The next person on a shared device must not see the last person's data.
+onSignedOut(() => queryClient.clear())
 
 // ── App root ─────────────────────────────────────────────────────────────────
 
