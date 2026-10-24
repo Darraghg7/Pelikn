@@ -87,6 +87,23 @@ export function trialDaysLeft(trialEndsAt: string | null, now: number): number {
 /** Statuses where the owner already has a live subscription (don't start a second). */
 export const LIVE_STATUSES = ['trialing', 'active', 'past_due', 'unpaid', 'paused', 'incomplete']
 
+/**
+ * Should a Stripe update about `incoming` be ignored because the account has
+ * moved on to a different, live subscription? A late "cancelled" for the OLD
+ * subscription (after the owner re-subscribed) used to overwrite the new one's
+ * state and lock a venue that was paying. A different subscription that is
+ * itself live still replaces the stored one.
+ */
+export function isStaleSubscriptionEvent(
+  stored: { subscriptionId: string | null; status: string | null } | null,
+  incoming: { id: string; status: string },
+): boolean {
+  if (!stored?.subscriptionId || stored.subscriptionId === incoming.id) return false
+  const storedIsLive = LIVE_STATUSES.includes(stored.status ?? '')
+  const incomingIsLive = LIVE_STATUSES.includes(incoming.status)
+  return storedIsLive && !incomingIsLive
+}
+
 /** Only same-site paths inside a venue are allowed as Stripe return URLs. */
 export function safeReturnPath(path: unknown): string {
   return typeof path === 'string' && /^\/v\/[a-z0-9-]+\/[a-z0-9/_-]*$/i.test(path) ? path : '/'

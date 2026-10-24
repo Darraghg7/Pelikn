@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { format, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { deleteSplitRow } from '../../lib/api/tips'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useStaffJobTitles } from '../../hooks/useVenueRoles'
@@ -10,6 +11,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import LoadError from '../../components/ui/LoadError'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import Button, { CloseButton } from '../../components/ui/Button'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 
 // ── Hooks ────────────────────────────────────────────────────────────────────
 
@@ -58,15 +60,19 @@ function useActiveStaff(venueId) {
 
 // ── Add Tip Split Modal ──────────────────────────────────────────────────────
 
-function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
+// `editing` is an existing split being corrected. The corrected split is saved
+// first and the old one removed after, so a failure part-way never loses it.
+function AddTipSplitModal({ staff, venueId, managerId, editing, onSaved, onClose }) {
   const { labelFor } = useStaffJobTitles()
   const toast = useToast()
-  const [total, setTotal] = useState('')
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
-  const [notes, setNotes] = useState('')
-  const [amounts, setAmounts] = useState(() =>
-    Object.fromEntries(staff.map(s => [s.id, '']))
-  )
+  const [total, setTotal] = useState(editing ? String(editing.total_amount) : '')
+  const [date, setDate] = useState(editing?.split_date ?? new Date().toISOString().slice(0, 10))
+  const [notes, setNotes] = useState(editing?.notes ?? '')
+  const [amounts, setAmounts] = useState(() => {
+    const base = Object.fromEntries(staff.map(s => [s.id, '']))
+    for (const a of editing?.tip_allocations ?? []) base[a.staff_id] = String(a.amount)
+    return base
+  })
   const [saving, setSaving] = useState(false)
 
   const totalNum = parseFloat(total) || 0
@@ -128,7 +134,17 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
       setSaving(false)
       return
     }
-    toast('Tip split saved')
+    if (editing) {
+      const { error: oldErr } = await deleteSplitRow(editing.id, venueId)
+      if (oldErr) {
+        reportError(oldErr, 'TipsPage:edit-remove-old')
+        toast('The corrected split was saved, but the old one is still there. Please delete the old one.', 'error')
+        setSaving(false)
+        onSaved()
+        return
+      }
+    }
+    toast(editing ? 'Tip split updated' : 'Tip split saved')
     setSaving(false)
     onSaved()
   }
@@ -137,7 +153,7 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 p-4" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="bg-white dark:bg-paperDark rounded-card w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-charcoal/8 dark:border-white/8">
-          <h2 className="text-lg font-bold text-charcoal dark:text-white">Add Tip Split</h2>
+          <h2 className="text-lg font-bold text-charcoal dark:text-white">{editing ? 'Edit Tip Split' : 'Add Tip Split'}</h2>
           <CloseButton onClick={onClose} />
         </div>
 
@@ -238,7 +254,7 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
 
 // ── Tip Split Card ───────────────────────────────────────────────────────────
 
-function TipSplitCard({ split }) {
+function TipSplitCard({ split, onEdit, onDelete }) {
   const [expanded, setExpanded] = useState(false)
   const allocations = split.tip_allocations || []
   const createdBy = split.created_by_staff?.name || 'Unknown'
@@ -268,6 +284,13 @@ function TipSplitCard({ split }) {
         </div>
       </button>
 
+      {expanded && (
+        <div className="border-t border-charcoal/6 dark:border-white/8 px-4 py-2 flex justify-end gap-2">
+          <Button variant="secondary" size="sm" onClick={() => onEdit(split)}>Edit</Button>
+          <Button variant="danger-ghost" size="sm" onClick={() => onDelete(split)}>Delete</Button>
+        </div>
+      )}
+
       {expanded && allocations.length > 0 && (
         <div className="border-t border-charcoal/6 dark:border-white/8 px-4 py-3 flex flex-col gap-1.5">
           {allocations
@@ -293,6 +316,18 @@ export default function TipsPage() {
   const { splits, loading, failed, reload } = useTipSplits(venueId)
   const staff = useActiveStaff(venueId)
   const [showAdd, setShowAdd] = useState(false)
+  const [editing, setEditing] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const toast = useToast()
+
+  const confirmDelete = async () => {
+    const target = deleteTarget
+    setDeleteTarget(null)
+    const { error } = await deleteSplitRow(target.id, venueId)
+    if (error) { reportError(error, 'TipsPage:delete'); toast(error.message, 'error'); return }
+    toast('Tip split deleted')
+    reload()
+  }
 
   if (!isManager) {
     return (
@@ -330,19 +365,30 @@ export default function TipsPage() {
         />
       ) : (
         <div className="flex flex-col gap-3">
-          {splits.map(s => <TipSplitCard key={s.id} split={s} />)}
+          {splits.map(s => <TipSplitCard key={s.id} split={s} onEdit={setEditing} onDelete={setDeleteTarget} />)}
         </div>
       )}
 
-      {showAdd && (
+      {(showAdd || editing) && (
         <AddTipSplitModal
           staff={staff}
           venueId={venueId}
           managerId={session?.staffId}
-          onSaved={() => { setShowAdd(false); reload() }}
-          onClose={() => setShowAdd(false)}
+          editing={editing}
+          onSaved={() => { setShowAdd(false); setEditing(null); reload() }}
+          onClose={() => { setShowAdd(false); setEditing(null) }}
         />
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete tip split?"
+        message={deleteTarget ? `Delete the £${parseFloat(deleteTarget.total_amount).toFixed(2)} split from ${format(parseISO(deleteTarget.split_date), 'd MMM yyyy')}? This cannot be undone.` : ''}
+        confirmLabel="Delete"
+        danger
+        onConfirm={confirmDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }

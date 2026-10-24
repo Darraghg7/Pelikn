@@ -7,7 +7,8 @@ import { SkeletonList } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { useStaffTraining } from '../../hooks/useTraining'
 import { TRAINING_BUCKET, trainingFilePath, openTrainingFile } from '../../lib/trainingFiles'
-import { insertTrainingRecord } from '../../lib/api/training'
+import { insertTrainingRecord, deleteTrainingRecordWithFile } from '../../lib/api/training'
+import { reportError } from '../../lib/reportError'
 import Button, { CloseButton } from '../../components/ui/Button'
 
 const EMPTY_TRAINING = { title: '', issued_date: '', expiry_date: '', notes: '' }
@@ -64,9 +65,12 @@ export default function TrainingSection({ staffId }) {
   }
 
   const handleDelete = async (id) => {
-    const { error } = await supabase.from('staff_training').delete().eq('id', id).eq('venue_id', venueId)
+    const { error, fileError } = await deleteTrainingRecordWithFile(id, venueId)
     if (error) { toast(error.message, 'error'); return }
-    toast('Record deleted')
+    if (fileError) {
+      reportError(fileError, 'TrainingSection:delete-file')
+      toast('Record deleted, but its scanned file could not be removed. Tell the account owner.', 'error')
+    } else toast('Record deleted')
     reload()
   }
 

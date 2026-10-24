@@ -93,7 +93,7 @@ export function insertHRDocument(payload: Record<string, unknown>) {
   return supabase.from('staff_hr_documents').insert(payload)
 }
 export function deleteHRDocumentRow(id: string) {
-  return supabase.from('staff_hr_documents').delete().eq('id', id)
+  return supabase.from('staff_hr_documents').delete().eq('id', id).select('id')
 }
 export function uploadHRAttachment(bucket: string, path: string, file: File) {
   return supabase.storage.from(bucket).upload(path, file, { upsert: false })
@@ -128,7 +128,31 @@ export function insertFormalAction(payload: Record<string, unknown>) {
   return supabase.from('hr_formal_actions').insert(payload)
 }
 export function deleteFormalActionRow(id: string) {
-  return supabase.from('hr_formal_actions').delete().eq('id', id)
+  return supabase.from('hr_formal_actions').delete().eq('id', id).select('id')
+}
+
+/**
+ * Delete an HR record and its attached file, and say honestly what happened.
+ * `error` means the record is still there (refused, or nothing matched — access
+ * rules can filter a delete to zero rows without an error). `fileError` means
+ * the record is gone but its file is still in storage, which someone needs to
+ * know about. Used to ignore both and always report "deleted".
+ */
+export async function deleteHRRecordWithFile(
+  remove: () => PromiseLike<{ data: { id: string }[] | null; error: { message: string } | null }>,
+  bucket: string,
+  filePath: string | null | undefined,
+): Promise<{ error: { message: string } | null; fileError: { message: string } | null }> {
+  const { data, error } = await remove()
+  if (error) return { error, fileError: null }
+  if (!data?.length) return { error: { message: 'That record could not be deleted (it may already be gone, or you may not have access).' }, fileError: null }
+  if (!filePath) return { error: null, fileError: null }
+  try {
+    const { error: fileError } = await removeHRAttachment(bucket, filePath)
+    return { error: null, fileError: fileError ?? null }
+  } catch (e) {
+    return { error: null, fileError: { message: e instanceof Error ? e.message : 'File removal failed' } }
+  }
 }
 export function dismissStrikeRow(strikeId: string, dismissedBy: string | null) {
   return supabase.from('staff_disciplinary_log').update({ dismissed_at: new Date().toISOString(), dismissed_by: dismissedBy }).eq('id', strikeId)

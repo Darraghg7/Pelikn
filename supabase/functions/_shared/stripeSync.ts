@@ -8,7 +8,7 @@
  */
 import Stripe from 'npm:stripe@17.7.0'
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { describeItems, type PriceTable } from './billingPlan.ts'
+import { describeItems, isStaleSubscriptionEvent, type PriceTable } from './billingPlan.ts'
 
 export const STRIPE_API_VERSION = '2024-06-20'
 
@@ -51,6 +51,22 @@ export async function syncSubscription(
   sub: Stripe.Subscription,
 ): Promise<void> {
   const customerId = typeof sub.customer === 'string' ? sub.customer : sub.customer.id
+
+  // A late message about an old subscription must not overwrite the one that is
+  // paying now (it would lock a venue that has paid).
+  const { data: stored } = await db
+    .from('billing_accounts')
+    .select('stripe_subscription_id, subscription_status')
+    .eq('owner_id', ownerId)
+    .maybeSingle()
+  if (isStaleSubscriptionEvent(
+    stored ? { subscriptionId: stored.stripe_subscription_id, status: stored.subscription_status } : null,
+    { id: sub.id, status: sub.status },
+  )) {
+    console.warn(`syncSubscription: ignoring ${sub.status} update for old subscription ${sub.id}; ${stored?.stripe_subscription_id} is current`)
+    return
+  }
+
   const subAny = sub as unknown as { current_period_end?: number }
   const periodEnd = subAny.current_period_end
     ?? (sub.items.data[0] as unknown as { current_period_end?: number })?.current_period_end

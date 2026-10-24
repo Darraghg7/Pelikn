@@ -39,6 +39,9 @@ const ALLOWED_ORIGINS = [
   'http://localhost:4173',
 ]
 
+// Keep in step with STARTER_STAFF_LIMIT in src/lib/billing.ts and migration 138.
+const STARTER_STAFF_LIMIT = 5
+
 const prices = priceTableFromEnv(name => Deno.env.get(name))
 
 class HttpError extends Error {
@@ -145,6 +148,20 @@ Deno.serve(async (req) => {
         if (!isLive) {
           if (action === 'sync_venues') return json({ ok: true }) // nothing to re-price yet
           throw new HttpError(409, 'Add a payment method first')
+        }
+        // Starter includes up to STARTER_STAFF_LIMIT staff. Moving down with more
+        // than that used to go through and leave the venue on the cheaper plan
+        // with the bigger team.
+        if (action === 'change_plan' && body.plan !== 'pro') {
+          const { count: staffCount } = await db
+            .from('staff')
+            .select('id', { count: 'exact', head: true })
+            .eq('venue_id', venue.id)
+            .eq('is_active', true)
+            .neq('role', 'owner')
+          if ((staffCount ?? 0) > STARTER_STAFF_LIMIT) {
+            throw new HttpError(409, `Starter includes up to ${STARTER_STAFF_LIMIT} staff and you have ${staffCount}. Deactivate or remove ${(staffCount ?? 0) - STARTER_STAFF_LIMIT} first, then switch.`)
+          }
         }
         const sub = await stripe.subscriptions.retrieve(account.stripe_subscription_id)
         const currentPlan: Plan = sub.items.data.some(i => i.price.id === prices.month.pro || i.price.id === prices.year.pro)

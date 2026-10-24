@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  buildLineItems, describeItems, priceTableFromEnv, safeReturnPath, trialDaysLeft,
+  buildLineItems, describeItems, isStaleSubscriptionEvent, priceTableFromEnv, safeReturnPath, trialDaysLeft,
 } from '../billingPlan'
 
 const env: Record<string, string> = {
@@ -76,5 +76,27 @@ describe('safeReturnPath', () => {
     for (const bad of ['//evil.com/v/x/', 'https://evil.com', '/v/x/../../', '/login', 42, null]) {
       expect(safeReturnPath(bad)).toBe('/')
     }
+  })
+})
+
+describe('isStaleSubscriptionEvent', () => {
+  const current = { subscriptionId: 'sub_new', status: 'active' }
+
+  it('ignores a late cancellation of an old subscription while a new one is live', () => {
+    expect(isStaleSubscriptionEvent(current, { id: 'sub_old', status: 'canceled' })).toBe(true)
+  })
+
+  it('applies updates to the subscription it already holds', () => {
+    expect(isStaleSubscriptionEvent(current, { id: 'sub_new', status: 'canceled' })).toBe(false)
+  })
+
+  it('lets a different live subscription take over', () => {
+    expect(isStaleSubscriptionEvent(current, { id: 'sub_newer', status: 'active' })).toBe(false)
+  })
+
+  it('applies anything when nothing live is stored', () => {
+    expect(isStaleSubscriptionEvent(null, { id: 'sub_x', status: 'canceled' })).toBe(false)
+    expect(isStaleSubscriptionEvent({ subscriptionId: 'sub_old', status: 'canceled' }, { id: 'sub_new', status: 'active' })).toBe(false)
+    expect(isStaleSubscriptionEvent({ subscriptionId: 'sub_old', status: 'canceled' }, { id: 'sub_other', status: 'canceled' })).toBe(false)
   })
 })
