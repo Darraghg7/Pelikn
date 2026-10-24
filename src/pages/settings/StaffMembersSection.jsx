@@ -23,6 +23,7 @@ import { saveStaffPermissions } from '../../hooks/useStaffPermissions'
 import { CARD } from '../../components/temperature/TempPageParts'
 import { reportError } from '../../lib/reportError'
 import RestrictedFieldsNotice from '../../components/ui/RestrictedFieldsNotice'
+import { getRestrictedFieldsFailures } from '../../lib/api/staffRestricted'
 import Avatar from '../../components/ui/Avatar'
 import Button from '../../components/ui/Button'
 import StaffLeavingCard from './StaffLeavingCard'
@@ -231,6 +232,16 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
     setSavingStaff(true)
     let error
 
+    // If pay or the private fields failed to load, the form shows them blank.
+    // Saving those blanks used to overwrite the real values (£0/hr, no start
+    // date, no emergency contact) when the manager only meant to change, say,
+    // the rota colour. Leave anything that didn't load untouched: the RPC
+    // keeps the stored value for a null, and updateStaffFields only writes
+    // the keys it's given.
+    const loadFailures   = getRestrictedFieldsFailures()
+    const payUnknown     = !!editingId && loadFailures.has('pay')
+    const privateUnknown = !!editingId && loadFailures.has('private')
+
     if (editingId) {
       const { error: e } = await updateStaffMemberRpc({
         p_session_token:  session.token,
@@ -238,8 +249,8 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
         p_name:           staffForm.name.trim(),
         p_job_role:       staffForm.job_role,
         p_role:           staffForm.role,
-        p_email:          staffForm.email.trim() || null,
-        p_hourly_rate:    parseFloat(staffForm.hourly_rate) || 0,
+        p_email:          privateUnknown ? null : (staffForm.email.trim() || null),
+        p_hourly_rate:    payUnknown ? null : (parseFloat(staffForm.hourly_rate) || 0),
         p_new_pin:        staffForm.pin || null,
         p_show_temp_logs: staffForm.show_temp_logs,
         p_show_allergens: staffForm.show_allergens,
@@ -275,6 +286,12 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
       emergency_contact_phone: staffForm.emergency_contact_phone.trim() || null,
       holiday_pay_eligible:    staffForm.holiday_pay_eligible,
     }
+    if (privateUnknown) {
+      delete extraFields.contracted_hours
+      delete extraFields.start_date
+      delete extraFields.emergency_contact_name
+      delete extraFields.emergency_contact_phone
+    }
     // Newly-created staff aren't in `staff` yet at this point in the function,
     // so anything keyed on their id (extra fields, permissions, and — after
     // this save — the Roles picker below) needs their id resolved once here.
@@ -299,8 +316,8 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
         name:           staffForm.name.trim(),
         job_role:       staffForm.job_role,
         role:           staffForm.role,
-        email:          staffForm.email.trim() || null,
-        hourly_rate:    parseFloat(staffForm.hourly_rate) || 0,
+        ...(privateUnknown ? {} : { email: staffForm.email.trim() || null }),
+        ...(payUnknown ? {} : { hourly_rate: parseFloat(staffForm.hourly_rate) || 0 }),
         show_temp_logs: staffForm.show_temp_logs,
         show_allergens: staffForm.show_allergens,
         skills:         staffForm.skills || [],

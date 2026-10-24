@@ -10,7 +10,96 @@
  * which is what useTimesheetData asks PostgREST for. Out-of-order input pairs
  * clock-outs with the wrong session.
  */
-import { londonDateStr } from './time'
+import { londonDateStr, londonToday, londonDayStartInstant, nextLondonDate } from './time'
+
+// ── Pay periods ─────────────────────────────────────────────────────────────
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+const pad = (n) => String(n).padStart(2, '0')
+const ymd = (y, m, d) => `${y}-${pad(m)}-${pad(d)}`
+
+/** Calendar arithmetic on "yyyy-MM-dd" strings (UTC-anchored, so no DST drift). */
+function addDays(dateStr, n) {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const t = new Date(Date.UTC(y, m - 1, d + n))
+  return ymd(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate())
+}
+
+function monthBounds(y, m) {
+  const last = new Date(Date.UTC(y, m, 0)).getUTCDate()
+  return { periodFrom: ymd(y, m, 1), periodTo: ymd(y, m, last) }
+}
+
+/**
+ * The calendar dates and instants a timesheet period covers, in London time.
+ *
+ * The page used to cut `periodFrom` out of a UTC timestamp of local midnight,
+ * so from late March to late October every period started a day early (the
+ * Sunday before, or the last day of the previous month). Holiday, holiday
+ * payouts and rota shifts on that day were then counted in two payroll
+ * exports. Dates are now worked out as London calendar dates first, and the
+ * query instants are derived from them.
+ *
+ * @param {'this_week'|'last_week'|'this_month'|'last_month'|'custom'} period
+ * @param {string} [customFrom] "yyyy-MM-dd" (custom only)
+ * @param {string} [customTo]   "yyyy-MM-dd" (custom only)
+ * @param {string} [today]      London date "yyyy-MM-dd", for tests
+ * @returns {{ periodFrom: string, periodTo: string, dateFrom: string, dateTo: string } | null}
+ *   periodFrom/periodTo: first and last London dates, inclusive.
+ *   dateFrom/dateTo: ISO instants of London midnight on periodFrom and the
+ *   last millisecond of periodTo. null when a custom range isn't complete.
+ */
+export function timesheetPeriod(period, customFrom, customTo, today = londonToday()) {
+  const [y, m] = today.split('-').map(Number)
+  const dow = new Date(`${today}T00:00:00Z`).getUTCDay()      // 0 = Sunday
+  const thisMonday = addDays(today, -((dow + 6) % 7))
+
+  let range
+  if (period === 'this_week') range = { periodFrom: thisMonday, periodTo: addDays(thisMonday, 6) }
+  else if (period === 'last_week') range = { periodFrom: addDays(thisMonday, -7), periodTo: addDays(thisMonday, -1) }
+  else if (period === 'this_month') range = monthBounds(y, m)
+  else if (period === 'last_month') range = m === 1 ? monthBounds(y - 1, 12) : monthBounds(y, m - 1)
+  else if (DATE_RE.test(customFrom ?? '') && DATE_RE.test(customTo ?? '')) range = { periodFrom: customFrom, periodTo: customTo }
+  else return null
+
+  const start = londonDayStartInstant(range.periodFrom)
+  const end = new Date(londonDayStartInstant(nextLondonDate(range.periodTo)).getTime() - 1)
+  return { ...range, dateFrom: start.toISOString(), dateTo: end.toISOString() }
+}
+
+/**
+ * How far either side of a period to read clock events. A shift that starts
+ * on the period's last day can finish the next morning (and one that ended
+ * just inside it started the evening before); without the margin the late
+ * half fell outside the query and the shift was paid in neither period.
+ */
+export const PERIOD_EDGE_MS = 24 * 60 * 60 * 1000
+
+/**
+ * Keep the events of shifts that *started* inside [fromIso, toIso].
+ *
+ * Input is events read with PERIOD_EDGE_MS either side, ordered by staff_id
+ * then occurred_at. Each shift is attributed to the period its clock-in falls
+ * in, whole — so a Sunday 21:00–Monday 01:00 shift is paid once, in the week
+ * it started. Events after the last clock-in before the window (the tail of
+ * an earlier shift) and shifts starting after it are dropped.
+ */
+export function eventsForPeriod(events, fromIso, toIso) {
+  const from = new Date(fromIso).getTime()
+  const to = new Date(toIso).getTime()
+  const kept = []
+  let currentStaff = null
+  let keeping = false
+  for (const e of events) {
+    if (e.staff_id !== currentStaff) { currentStaff = e.staff_id; keeping = false }
+    if (e.event_type === 'clock_in') {
+      const t = new Date(e.occurred_at).getTime()
+      keeping = t >= from && t <= to
+    }
+    if (keeping) kept.push(e)
+  }
+  return kept
+}
 
 /** Minutes between two ISO instants, never negative. */
 function minutesBetween(startIso, endIso) {

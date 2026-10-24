@@ -6,6 +6,8 @@ import { isNetworkError } from '../lib/offlineSupabase'
 import { isMissingColumn } from '../lib/attachments'
 import { getQueue } from '../lib/offlineQueue'
 import { takeBootstrap } from '../lib/api/bootstrap'
+import { fetchAllPages } from '../lib/api/holidayData'
+import { eventsForPeriod, PERIOD_EDGE_MS } from '../lib/timesheet'
 
 /**
  * True if this staff member has a clock event still sitting in the offline
@@ -280,15 +282,24 @@ export function useTimesheetData(dateFrom: string, dateTo: string): {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['timesheetData', venueId, dateFrom, dateTo],
     queryFn: async () => {
-      const select = (columns: string) => {
+      // Read a day either side so shifts that cross the period's edges arrive
+      // whole; eventsForPeriod then keeps the shifts that started inside it.
+      const readFrom = new Date(new Date(dateFrom).getTime() - PERIOD_EDGE_MS).toISOString()
+      const readTo   = new Date(new Date(dateTo).getTime() + PERIOD_EDGE_MS).toISOString()
+
+      // Paged: PostgREST returns at most 1,000 rows a request and drops the
+      // rest silently. The old single read (limit 5000) lost staff and shifts
+      // from monthly timesheets past that, under-paying with no warning. `id`
+      // is the tiebreaker so pages never overlap or skip a row.
+      const select = (columns: string) => () => {
         let q = supabase
           .from('clock_events')
           .select(columns)
-          .gte('occurred_at', dateFrom)
-          .lte('occurred_at', dateTo)
+          .gte('occurred_at', readFrom)
+          .lte('occurred_at', readTo)
           .order('staff_id')
           .order('occurred_at')
-          .limit(5000)
+          .order('id')
         if (venueId) q = q.eq('venue_id', venueId)
         return q
       }
@@ -296,16 +307,17 @@ export function useTimesheetData(dateFrom: string, dateTo: string): {
       // recorded_at lets the Timesheet flag punches that arrived late (queued
       // offline, or backdated). It only exists once migration 144 is applied,
       // which is done by hand — until then, read without it rather than fail.
-      let { data, error } = await select(`${TIMESHEET_COLUMNS}, recorded_at`)
-      if (isMissingColumn(error, 'recorded_at')) {
-        ;({ data, error } = await select(TIMESHEET_COLUMNS))
+      // Any other failure is thrown: a swallowed error is indistinguishable
+      // from "no hours" and hides stale-build / RLS / network problems.
+      let rows: unknown[]
+      try {
+        rows = await fetchAllPages(select(`${TIMESHEET_COLUMNS}, recorded_at`))
+      } catch (error) {
+        if (!isMissingColumn(error, 'recorded_at')) throw error
+        rows = await fetchAllPages(select(TIMESHEET_COLUMNS))
       }
-      // Surface the failure instead of returning [] — a swallowed error is
-      // indistinguishable from "no hours" and hides stale-build / RLS / network
-      // problems from the user (they just see blank actual-hours tiles).
-      if (error) throw error
       // PostgREST returns the to-one staff join as an object; the untyped client infers an array.
-      return (data ?? []) as unknown as TimesheetRow[]
+      return eventsForPeriod(rows as TimesheetRow[], dateFrom, dateTo) as TimesheetRow[]
     },
     // Auto-fetch whenever the venue or date range changes; skip only when dates
     // are not yet chosen (e.g. custom period with no dates entered).
