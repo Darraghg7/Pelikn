@@ -286,6 +286,13 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
       emergency_contact_phone: staffForm.emergency_contact_phone.trim() || null,
       holiday_pay_eligible:    staffForm.holiday_pay_eligible,
     }
+    // Removing an email (a data-removal request): the main save keeps the old
+    // address when given a blank, so a cleared one goes through here (migration
+    // 164). Only sent when actually cleared, so ordinary saves don't depend on it.
+    const previousEmail = editingId ? (staff.find(s => s.id === editingId)?.email ?? '') : ''
+    if (editingId && !privateUnknown && previousEmail && !staffForm.email.trim()) {
+      extraFields.email = null
+    }
     if (privateUnknown) {
       delete extraFields.contracted_hours
       delete extraFields.start_date
@@ -826,7 +833,13 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={async () => { await resetStaffPinLockRpc(session.token, current.id); toast(`${current.name}'s PIN unlocked`); reloadStaff() }}
+                  onClick={async () => {
+                    // Said "unlocked" whatever happened, so a refused unlock looked like it worked.
+                    const { error } = await resetStaffPinLockRpc(session.token, current.id).then(r => r, e => ({ error: e }))
+                    if (error) { reportError(error, 'StaffMembers:unlock-pin'); toast(`Could not unlock ${current.name}'s PIN: ${error.message ?? 'try again'}`, 'error'); return }
+                    toast(`${current.name}'s PIN unlocked`)
+                    reloadStaff()
+                  }}
                 >
                   Unlock PIN
                 </Button>

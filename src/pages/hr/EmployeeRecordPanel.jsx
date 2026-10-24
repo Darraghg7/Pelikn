@@ -13,6 +13,7 @@
  *   onUpload   – optional: called when header "Upload doc" button clicked (defaults to switching tab)
  */
 import React, { useState, useMemo } from 'react'
+import { reportError } from '../../lib/reportError'
 import { useNavigate } from 'react-router-dom'
 import { format, parseISO, differenceInDays } from 'date-fns'
 import { calculateEntitlementDays, daysUsedInHolidayYear } from '../../hooks/useLeaveBalance'
@@ -30,7 +31,7 @@ import {
   useLeaveRequests, useStaffTrainingRecord, useStaffSessions,
 } from '../../hooks/useEmployeeRecord'
 import {
-  insertHRDocument, deleteHRDocumentRow, uploadHRAttachment, removeHRAttachment,
+  insertHRDocument, deleteHRDocumentRow, uploadHRAttachment, deleteHRRecordWithFile,
   insertFormalAction, deleteFormalActionRow, dismissStrikeRow, dismissAllStrikesRows,
   revokeStaffSessionRpc,
 } from '../../lib/api/hr'
@@ -314,11 +315,14 @@ function DocumentsTab({ staffId, venueId }) {
   }
 
   const deleteDoc = async (doc) => {
-    await deleteHRDocumentRow(doc.id)
-    // Drop the file too — deleting only the row left the contract sitting in
-    // storage with nothing in the UI pointing at it.
-    if (doc.file_path) await removeHRAttachment(HR_BUCKET, doc.file_path)
-    toast('Document deleted')
+    // Drops the file too, and reports a refusal or a file left behind rather
+    // than always saying "deleted".
+    const { error, fileError } = await deleteHRRecordWithFile(() => deleteHRDocumentRow(doc.id), HR_BUCKET, doc.file_path)
+    if (error) { toast(error.message, 'error'); return }
+    if (fileError) {
+      reportError(fileError, 'EmployeeRecordPanel:delete-doc-file')
+      toast('Document deleted, but its file could not be removed from storage. Tell the account owner.', 'error')
+    } else toast('Document deleted')
     reload()
   }
 
@@ -533,10 +537,12 @@ function DisciplinaryTab({ staffId, venueId }) {
   }
 
   const deleteFormal = async (record) => {
-    await deleteFormalActionRow(record.id)
-    // Remove the attachment as well, not just the row.
-    if (record.file_path) await removeHRAttachment(HR_BUCKET, record.file_path)
-    toast('Record deleted')
+    const { error, fileError } = await deleteHRRecordWithFile(() => deleteFormalActionRow(record.id), HR_BUCKET, record.file_path)
+    if (error) { toast(error.message, 'error'); return }
+    if (fileError) {
+      reportError(fileError, 'EmployeeRecordPanel:delete-formal-file')
+      toast('Record deleted, but its file could not be removed from storage. Tell the account owner.', 'error')
+    } else toast('Record deleted')
     reload()
   }
 

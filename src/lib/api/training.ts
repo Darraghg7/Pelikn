@@ -129,3 +129,29 @@ export function insertTrainingRecord(
 export function deleteTrainingRecord(id: string, venueId: string) {
   return supabase.from('staff_training').delete().eq('id', id).eq('venue_id', venueId)
 }
+
+/**
+ * Delete a certificate and the scanned file behind it. The file used to stay in
+ * storage for ever with nothing pointing at it, which matters for data-removal
+ * requests. `error` means the record is still there; `fileError` means the
+ * record is gone but its file could not be removed.
+ */
+export async function deleteTrainingRecordWithFile(id: string, venueId: string): Promise<{
+  error: { message: string } | null
+  fileError: { message: string } | null
+}> {
+  const { data: row, error: readErr } = await supabase.from('staff_training')
+    .select('file_path').eq('id', id).eq('venue_id', venueId).maybeSingle()
+  if (readErr) return { error: readErr, fileError: null }
+  const { data, error } = await supabase.from('staff_training').delete().eq('id', id).eq('venue_id', venueId).select('id')
+  if (error) return { error, fileError: null }
+  if (!data?.length) return { error: { message: 'That record could not be deleted (it may already be gone, or you may not have access).' }, fileError: null }
+  const filePath = (row as { file_path?: string | null } | null)?.file_path
+  if (!filePath) return { error: null, fileError: null }
+  try {
+    const { error: fileError } = await supabase.storage.from(TRAINING_BUCKET).remove([filePath])
+    return { error: null, fileError: fileError ?? null }
+  } catch (e) {
+    return { error: null, fileError: { message: e instanceof Error ? e.message : 'File removal failed' } }
+  }
+}

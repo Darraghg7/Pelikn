@@ -12,6 +12,7 @@ import { EXTRA_VENUE_PRICE, planTotal } from '../../lib/pricing'
 import { changePlan, openBillingPortal, setTrialPlan, startCheckout } from '../../lib/api/billing'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 import Button from '../../components/ui/Button'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 
 const PLAN_NAME = { [PLANS.STARTER]: PLAN_DETAILS.starter.name, [PLANS.PRO]: PLAN_DETAILS.pro.name }
 const fmtDate = (iso) => format(new Date(iso), 'd MMM yyyy')
@@ -125,11 +126,23 @@ export default function BillingSettingsPage() {
     setBusy(null)
   })
 
-  const handleChangePlan = () => run('change', async () => {
+  // One tap used to change the plan and the bill. It now asks first, saying
+  // what will happen, and a move down to Starter is refused while the team is
+  // over Starter's staff limit (the server checks too).
+  const [confirmingChange, setConfirmingChange] = useState(null)
+  const askChangePlan = () => {
     const target = isPro ? PLANS.STARTER : PLANS.PRO
-    if (target === PLANS.STARTER && (billing?.active_staff ?? 0) > STARTER_STAFF_LIMIT) {
-      toast(`Starter includes up to ${STARTER_STAFF_LIMIT} staff. Your current team stays, but you won't be able to add anyone new.`)
+    const staffNow = billing?.active_staff ?? 0
+    if (target === PLANS.STARTER && staffNow > STARTER_STAFF_LIMIT) {
+      toast(`Starter includes up to ${STARTER_STAFF_LIMIT} staff and you have ${staffNow}. Deactivate or remove ${staffNow - STARTER_STAFF_LIMIT} first, then switch.`, 'error')
+      return
     }
+    setConfirmingChange(target)
+  }
+
+  const handleChangePlan = () => run('change', async () => {
+    const target = confirmingChange ?? (isPro ? PLANS.STARTER : PLANS.PRO)
+    setConfirmingChange(null)
     await changePlan(venueId, target)
     toast(`You're now on ${PLAN_NAME[target]}.`)
     await reload()
@@ -199,13 +212,13 @@ export default function BillingSettingsPage() {
                   <Button loading={busy === 'portal'} onClick={handlePortal} disabled={!!busy}>
                     {busy === 'portal' ? 'Opening…' : 'Update card'}
                   </Button>
-                  <Button variant="secondary" loading={busy === 'change'} onClick={handleChangePlan} disabled={!!busy}>
+                  <Button variant="secondary" loading={busy === 'change'} onClick={askChangePlan} disabled={!!busy}>
                     {busy === 'change' ? 'Switching…' : isPro ? 'Switch to Starter' : 'Upgrade to Pro'}
                   </Button>
                 </>
               ) : (
                 <>
-                  <Button loading={busy === 'change'} onClick={handleChangePlan} disabled={!!busy}>
+                  <Button loading={busy === 'change'} onClick={askChangePlan} disabled={!!busy}>
                     {busy === 'change' ? 'Switching…' : isPro ? 'Switch to Starter' : 'Upgrade to Pro'}
                   </Button>
                   <Button variant="secondary" loading={busy === 'portal'} onClick={handlePortal} disabled={!!busy}>
@@ -278,6 +291,17 @@ export default function BillingSettingsPage() {
         )}
 
       </div>
+
+      <ConfirmDialog
+        open={!!confirmingChange}
+        title={confirmingChange === PLANS.STARTER ? 'Switch to Starter?' : 'Upgrade to Pro?'}
+        message={confirmingChange === PLANS.STARTER
+          ? `You'll lose the Pro features and Starter is limited to ${STARTER_STAFF_LIMIT} staff and one venue. Stripe works out the difference for the rest of this billing period and adds it to your next bill.`
+          : "Pro features unlock straight away. Stripe works out the difference for the rest of this billing period and adds it to your next bill."}
+        confirmLabel={confirmingChange === PLANS.STARTER ? 'Switch to Starter' : 'Upgrade to Pro'}
+        onConfirm={handleChangePlan}
+        onClose={() => setConfirmingChange(null)}
+      />
     </div>
   )
 }

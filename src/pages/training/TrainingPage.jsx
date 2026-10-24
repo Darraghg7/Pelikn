@@ -15,7 +15,8 @@ import AcknowledgeModal from '../../components/training/AcknowledgeModal'
 import { sendPush } from '../../lib/sendPush'
 import { useSignOffs, useCertRecords, useActiveStaff, useAllergenCerts } from '../../hooks/useTraining'
 import { TRAINING_BUCKET, trainingFilePath, openTrainingFile } from '../../lib/trainingFiles'
-import { insertSignOff, insertTrainingRecord, deleteTrainingRecord } from '../../lib/api/training'
+import { insertSignOff, insertTrainingRecord, deleteTrainingRecordWithFile } from '../../lib/api/training'
+import { reportError } from '../../lib/reportError'
 import LoadError from '../../components/ui/LoadError'
 import Avatar from '../../components/ui/Avatar'
 import Button, { CloseButton } from '../../components/ui/Button'
@@ -528,9 +529,12 @@ function CertificatesTab({ venueId, showCreate, onCloseCreate }) {
   }
 
   const handleDelete = async (id) => {
-    const { error } = await deleteTrainingRecord(id, venueId)
+    const { error, fileError } = await deleteTrainingRecordWithFile(id, venueId)
     if (error) { toast(error.message, 'error'); return }
-    toast('Certificate deleted')
+    if (fileError) {
+      reportError(fileError, 'TrainingPage:delete-file')
+      toast('Certificate deleted, but its scanned file could not be removed. Tell the account owner.', 'error')
+    } else toast('Certificate deleted')
     setViewing(null)
     reload()
   }
