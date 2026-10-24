@@ -10,7 +10,7 @@ const LEAVE_LABELS = { annual: 'Annual Leave', unavailable: 'Not available', unp
 
 export async function decideTimeOff({ request, decision, reviewerId, venueId, note = null }) {
   const approved = decision === 'approved'
-  const { error } = await supabase.from('time_off_requests').update({
+  const { data: changed, error } = await supabase.from('time_off_requests').update({
     status:       decision,
     reviewed_by:  reviewerId,
     reviewed_at:  new Date().toISOString(),
@@ -18,7 +18,10 @@ export async function decideTimeOff({ request, decision, reviewerId, venueId, no
   })
     .eq('id', request.id)
     .eq('status', 'pending')   // don't overturn a decision made elsewhere meanwhile
+    .select('id')
   if (error) return { error }
+  // Nothing matched: it was cancelled or decided meanwhile. No notification.
+  if (!changed?.length) return { error: new Error('That request has changed since you opened it, so nothing was changed') }
 
   if (request.staff_id) {
     const label = LEAVE_LABELS[request.leave_type] ?? request.leave_type ?? 'time off'

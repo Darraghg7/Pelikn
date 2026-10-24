@@ -182,6 +182,8 @@ export function useCleaningTasks(
   error: unknown
   reload: () => void
   overdueCount: number
+  /** The day being viewed is a closed day: statuses are capped at 'done' and mean nothing. */
+  closedOnReference: boolean
 } {
   const { venueId } = useVenue()
   const gateOpen = useWidgetFetchGate()
@@ -261,5 +263,5 @@ export function useCleaningTasks(
 
   const overdueCount = enriched.filter((t) => t.status === 'overdue').length
 
-  return { tasks: enriched, loading: isLoading, error, reload: refetch, overdueCount }
+  return { tasks: enriched, loading: isLoading, error, reload: refetch, overdueCount, closedOnReference }
 }

@@ -15,7 +15,12 @@ const eq = vi.fn()
 vi.mock('../../../lib/supabase', () => ({
   supabase: {
     from: () => ({
-      update: (patch) => { update(patch); return { eq: (...a) => { eq(...a); return Promise.resolve({ error: null }) } } },
+      update: (patch) => {
+        update(patch)
+        // .eq('id').eq('status', 'pending').select('id'): resolves with the row it changed
+        const chain = { eq: (...a) => { eq(...a); return chain }, select: () => Promise.resolve({ data: [{ id: 'req1' }], error: null }) }
+        return chain
+      },
     }),
   },
 }))
@@ -134,6 +139,12 @@ describe('Time Off page — zero-hours holiday', () => {
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Approve as unpaid leave/ })) })
     expect(update).toHaveBeenCalledWith(expect.objectContaining({ status: 'approved', leave_type: 'unpaid' }))
     expect(update.mock.calls[0][0]).not.toHaveProperty('paid_hours')
+  })
+
+  it('only approves a request that is still pending, so a cancelled one is not brought back', async () => {
+    renderPage()
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Approve as unpaid leave/ })) })
+    expect(eq).toHaveBeenCalledWith('status', 'pending')
   })
 
   it('with unpaid leave switched on, asks the manager for the hours to pay and saves them on approval', async () => {

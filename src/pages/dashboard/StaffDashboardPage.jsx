@@ -182,8 +182,11 @@ function ShiftHeroCard({ todayShift, hourlyRate, staffId }) {
 
 // ── Alert strip ────────────────────────────────────────────────────────────────
 
-function AlertStrip({ fridgesUnchecked, cleaningDue, venueSlug }) {
-  const hasIssues = fridgesUnchecked > 0 || cleaningDue > 0
+function AlertStrip({ fridgesUnchecked, cleaningDue, checksOutstanding = 0, counting = false, venueSlug }) {
+  const hasIssues = fridgesUnchecked > 0 || cleaningDue > 0 || checksOutstanding > 0
+
+  // Still counting: say nothing rather than "All caught up" and then change.
+  if (!hasIssues && counting) return null
 
   if (!hasIssues) {
     return (
@@ -204,6 +207,10 @@ function AlertStrip({ fridgesUnchecked, cleaningDue, venueSlug }) {
     cleaningDue > 0 && {
       text: `${cleaningDue} cleaning task${cleaningDue !== 1 ? 's' : ''} due`,
       link: `/v/${venueSlug}/cleaning`,
+    },
+    checksOutstanding > 0 && {
+      text: `${checksOutstanding} check${checksOutstanding !== 1 ? 's' : ''} still to do`,
+      link: `/v/${venueSlug}/opening-closing`,
     },
   ].filter(Boolean)
 
@@ -512,6 +519,7 @@ function useChecksForShift(venueId) {
 
 function useShiftCompletions(venueId, dateStr, sessionType) {
   const [completions, setCompletions] = useState([])
+  const [loaded, setLoaded] = useState(false)
   const load = useCallback(async () => {
     if (!venueId || !dateStr) return
     const { data, error } = await supabase
@@ -521,22 +529,38 @@ function useShiftCompletions(venueId, dateStr, sessionType) {
       .eq('session_date', dateStr)
       .eq('session_type', sessionType)
     // Keep the ticks already shown — an empty list would re-offer done checks.
-    if (error) { reportError(error, 'StaffDashboard:shift-completions'); return }
+    if (error) { reportError(error, 'StaffDashboard:shift-completions'); setLoaded(true); return }
     setCompletions(data ?? [])
+    setLoaded(true)
   }, [venueId, dateStr, sessionType])
   useEffect(() => { load() }, [load])
-  return { completions, reload: load }
+  return { completions, reload: load, loaded: loaded || !venueId }
 }
 
-function TodayChecks({ venueId, venueSlug, staffId, staffName }) {
+// Today's session checks and what's been ticked. Lives in the page, not the
+// card, so the "All caught up" strip can count unticked checks too: it used to
+// say all was well with 0 of 4 opening checks done.
+function useShiftChecks(venueId, enabled) {
   const today = format(new Date(), 'yyyy-MM-dd')
   const sessionType = new Date().getHours() < 14 ? 'opening' : 'closing'
-  const { checks: allChecks, loading, failed: checksFailed, retry: retryChecks } = useChecksForShift(venueId)
+  const q = useChecksForShift(enabled ? venueId : null)
+  const { completions, reload, loaded } = useShiftCompletions(enabled ? venueId : null, today, sessionType)
   // Only this session's checks. Unfiltered, the morning "Opening Checks" card
   // also listed the closing checks (0/8 for 4+4), and ticking one there saved
   // it as an opening completion.
-  const checks = allChecks.filter(c => c.type === sessionType)
-  const { completions, reload } = useShiftCompletions(venueId, today, sessionType)
+  const checks = q.checks.filter(c => c.type === sessionType)
+  const outstanding = enabled && !q.failed
+    ? checks.filter(c => !completions.some(comp => comp.check_id === c.id)).length
+    : 0
+  return {
+    today, sessionType, allChecks: q.checks, checks, completions, reload, outstanding,
+    loading: enabled && (q.loading || !loaded),
+    failed: q.failed, retry: q.retry,
+  }
+}
+
+function TodayChecks({ venueId, venueSlug, staffId, staffName, shift }) {
+  const { today, sessionType, allChecks, checks, completions, reload, loading, failed: checksFailed, retry: retryChecks } = shift
   const [saving, setSaving] = useState(null)
   const [open, setOpen] = useState(false)
   // Ticked this visit: stays in the list as "Done" so the next check doesn't
@@ -809,10 +833,16 @@ export default function StaffDashboardPage() {
 
   // Only tasks their frequency has actually brought round again — one ticked by
   // a colleague stays off this count until it's next due.
-  const { overdueCount: cleaningOverdue } = useCleaningTasks()
-  const cleaningDue = isEnabled('cleaning') && hasPermission('manage_cleaning') && !summary.closedToday
+  const { overdueCount: cleaningOverdue, loading: cleaningLoading } = useCleaningTasks()
+  // Not behind the manage_cleaning permission: that hid the count from the very
+  // people who do the cleaning, so the strip said "All caught up" over 7 overdue
+  // tasks. useCleaningTasks already limits the list to what they may see.
+  const cleaningDue = isEnabled('cleaning') && !summary.closedToday
     ? cleaningOverdue
     : 0
+  const shift = useShiftChecks(venueId, isEnabled('opening_closing'))
+  const checksOutstanding = summary.closedToday ? 0 : shift.outstanding
+  const stillCounting = !summary.loaded || shift.loading || (isEnabled('cleaning') && cleaningLoading)
 
   if (!session) return null
   if (loading) return <PageSkeleton />
@@ -871,6 +901,8 @@ export default function StaffDashboardPage() {
         <AlertStrip
           fridgesUnchecked={summary.fridgesUnchecked}
           cleaningDue={cleaningDue}
+          checksOutstanding={checksOutstanding}
+          counting={stillCounting}
           venueSlug={venueSlug}
         />
       )}
@@ -880,7 +912,7 @@ export default function StaffDashboardPage() {
 
       {/* Opening/closing checks — collapsible, shown when feature is enabled for venue */}
       {isEnabled('opening_closing') && (
-        <TodayChecks venueId={venueId} venueSlug={venueSlug} staffId={session.staffId} staffName={session.staffName} />
+        <TodayChecks venueId={venueId} venueSlug={venueSlug} staffId={session.staffId} staffName={session.staffName} shift={shift} />
       )}
 
       {/* Pending training sign-offs */}

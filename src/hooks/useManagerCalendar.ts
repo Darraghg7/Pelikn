@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
+import { londonToday, londonDateStr } from '../lib/time'
 import { useVenue } from '../contexts/VenueContext'
 import { emitDataWrite } from '../lib/cacheBus'
 import useVenueClosures, { type VenueClosure } from './useVenueClosures'
@@ -129,8 +130,9 @@ export default function useManagerCalendar() {
   })
 
   // Upcoming events in the next 14 days
-  const today = new Date().toISOString().slice(0, 10)
-  const in14 = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10)
+  // London days: toISOString() is UTC, a day behind just after midnight in summer.
+  const today = londonToday()
+  const in14 = londonDateStr(new Date(Date.now() + 14 * 86400000))
   const upcomingCount = events.filter(e => e.start_date >= today && e.start_date <= in14).length
 
   return {
