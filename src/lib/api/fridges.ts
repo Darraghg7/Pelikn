@@ -1,6 +1,7 @@
 import { supabase } from '../supabase'
 import type { Fridge, FridgeLog, FridgeWithLastLog, FridgeTodayStatus } from '../../types'
 import { insertRow, updateRowById } from './writes'
+import { londonDateStr, londonDayStartInstant, nextLondonDate } from '../time'
 
 const FRIDGE_COLUMNS = 'id, name, is_active, min_temp, max_temp, check_days, required_periods, venue_id'
 const LEGACY_FRIDGE_COLUMNS = 'id, name, is_active, min_temp, max_temp, venue_id'
@@ -99,21 +100,25 @@ export async function fetchFridgeMatrix(
       .from('fridge_temperature_logs')
       .select('id, fridge_id, temperature, logged_at, check_period, exceedance_reason, logged_by_name, notes')
       .eq('venue_id', venueId)
-      .gte('logged_at', `${dateFrom}T00:00:00`)
-      .lte('logged_at', `${dateTo}T23:59:59`)
+      .gte('logged_at', londonDayStartInstant(dateFrom).toISOString())
+      .lt('logged_at', londonDayStartInstant(nextLondonDate(dateTo)).toISOString())
       .order('logged_at', { ascending: false }),
   ])
   if (logRowsErr) throw logRowsErr
 
-  const matrix: Record<string, Record<string, Record<string, FridgeLog>>> = {}
+  // Each cell is the newest reading, with any earlier ones in that slot kept
+  // on `earlier`. Keeping only the newest hid a failed reading behind its
+  // passing re-check; the history view now shows the failure (see
+  // TempHistoryView). Days are London days, not UTC ones.
+  const matrix: Record<string, Record<string, Record<string, FridgeLog & { earlier?: FridgeLog[] }>>> = {}
   for (const log of (logRows ?? [] as FridgeLog[])) {
-    const day = log.logged_at.slice(0, 10)
+    const day = londonDateStr(log.logged_at)
     const period = log.check_period === 'pm' ? 'pm' : 'am'
     matrix[log.fridge_id] ??= {}
     matrix[log.fridge_id][day] ??= {}
-    if (!matrix[log.fridge_id][day][period]) {
-      matrix[log.fridge_id][day][period] = log
-    }
+    const cell = matrix[log.fridge_id][day][period]
+    if (!cell) matrix[log.fridge_id][day][period] = { ...log, earlier: [] }
+    else cell.earlier!.push(log)
   }
 
   return { fridges: fridgeRows, matrix }

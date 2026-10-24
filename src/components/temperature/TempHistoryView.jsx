@@ -166,11 +166,24 @@ export default function TempHistoryView({
       })
   }, [dateFrom, todayStr, closedSet, items, matrix])
 
+  // What a slot shows. The matrix holds the newest reading with any earlier
+  // ones on `earlier`. If any reading in the slot failed, the failure is what
+  // the slot shows (red, counted as an excursion, with its corrective action),
+  // with a passing re-check alongside — showing only the newest reading hid
+  // excursions behind their re-checks, from the manager and from an EHO.
+  const cellOf = (item, dateStr, p) => {
+    const newest = matrix[item.id]?.[dateStr]?.[p]
+    if (!newest) return null
+    const failed = [newest, ...(newest.earlier ?? [])].find(l => statusOf(l, item) !== 'ok')
+    if (!failed || failed === newest) return { log: newest, recheck: null }
+    return { log: failed, recheck: newest }
+  }
+
   let readings = 0, safe = 0, excursions = 0, missed = 0
   for (const dateStr of days) {
     for (const item of items) {
       for (const p of PERIODS) {
-        const log = matrix[item.id]?.[dateStr]?.[p]
+        const log = cellOf(item, dateStr, p)?.log
         if (log) {
           readings++
           if (statusOf(log, item) === 'ok') safe++
@@ -183,8 +196,20 @@ export default function TempHistoryView({
   }
 
   const renderCell = (item, dateStr, period) => {
-    const log = matrix[item.id]?.[dateStr]?.[period]
-    if (log) {
+    const cell = cellOf(item, dateStr, period)
+    if (cell) {
+      const { log, recheck } = cell
+      const logged = (l) => `${Number(l.temperature).toFixed(1)}° at ${format(new Date(l.logged_at), 'HH:mm')} by ${l.logged_by_name ?? 'Unknown'}`
+      if (recheck) {
+        // Compact enough for the phone cell: "9.5→4.0", details on hover/AT.
+        const label = `${logged(log)}, re-checked ${logged(recheck)}`
+        return (
+          <span className={`${CELL_BASE} ${TONE[statusOf(log, item)]} whitespace-nowrap`} title={label} aria-label={label}>
+            {Number(log.temperature).toFixed(1)}
+            <span className="text-xs font-normal">→{Number(recheck.temperature).toFixed(1)}</span>
+          </span>
+        )
+      }
       return (
         <span
           className={`${CELL_BASE} ${TONE[statusOf(log, item)]}`}
@@ -236,7 +261,7 @@ export default function TempHistoryView({
               <div className="divide-y divide-line dark:divide-white/10">
                 {items.map(item => {
                   const notes = noteOf
-                    ? PERIODS.map(p => matrix[item.id]?.[dateStr]?.[p]).filter(Boolean)
+                    ? PERIODS.map(p => cellOf(item, dateStr, p)?.log).filter(Boolean)
                         .filter(log => statusOf(log, item) !== 'ok')
                         .map(log => noteOf(log, item)).filter(Boolean)
                     : []

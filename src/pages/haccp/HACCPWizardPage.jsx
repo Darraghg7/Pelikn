@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { format } from 'date-fns'
 import { useHACCPPlan } from '../../hooks/useHACCP'
 import { useVenue } from '../../contexts/VenueContext'
@@ -220,7 +221,14 @@ function StepIndicator({ current, total, steps }) {
 
 // ── Print document ────────────────────────────────────────────────────────────
 
-function PrintDoc({ venueName, managerName, reviewDate, answers }) {
+// Rendered straight into <body> (a portal), next to the app rather than inside
+// it: the print rule hides every other child of <body>, which used to include
+// the app's #root holding this document, so the printout came out blank.
+function PrintDoc(props) {
+  return createPortal(<PrintDocBody {...props} />, document.body)
+}
+
+function PrintDocBody({ venueName, managerName, reviewDate, answers }) {
   return (
     <div id="haccp-print-root" style={{ display: 'none' }}>
       <style>{`

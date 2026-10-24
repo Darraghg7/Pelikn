@@ -12,6 +12,7 @@ import { coolingOutcome, formatCoolingMinutes, COOLING_TARGET_MINUTES } from './
 // is already async, so awaiting the library costs nothing structurally.
 import { buildPdfReport, loadPdfLibs, PDF } from './pdfUtils'
 import { fetchMockInspections } from './api/mockInspections'
+import { fetchAllPages } from './api/holidayData'
 import { documentStatus } from '../hooks/useDocuments'
 
 /* ── Shared colour helpers ─────────────────────────────────────────────── */
@@ -343,6 +344,13 @@ async function fetchFhrsRating(venueId) {
 }
 
 /* ── EHO Inspection Report (single comprehensive PDF) ─────────────────── */
+// Every row a date-windowed read matches, a page at a time. PostgREST returns
+// at most 1,000 rows a request and drops the rest silently, and the EHO
+// report must be the complete record for its period. Resolves to the same
+// { data, error } shape as a single read so throwIfError still applies.
+const allRows = (build) =>
+  fetchAllPages(() => build().order('id')).then(data => ({ data, error: null }), error => ({ data: null, error }))
+
 export async function exportEHOReport(venueId, venueName = '', days = 90) {
   const since = subDays(new Date(), days).toISOString()
   const now   = new Date()
@@ -350,34 +358,34 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
   // Fetch all data in parallel
   const [temps, deliveries, probes, actions, training, cooling, hotHolding, pest, cleaning, mockInspections, fhrs, documents] =
     await Promise.all([
-      supabase.from('fridge_temperature_logs')
+      allRows(() => supabase.from('fridge_temperature_logs')
         .select('temperature, logged_at, exceedance_reason, is_resolved, fridge:fridge_id(name, min_temp, max_temp), logged_by_name')
-        .eq('venue_id', venueId).gte('logged_at', since).order('logged_at', { ascending: false }),
-      supabase.from('delivery_checks')
+        .eq('venue_id', venueId).gte('logged_at', since).order('logged_at', { ascending: false })),
+      allRows(() => supabase.from('delivery_checks')
         .select('supplier_name, overall_pass, is_resolved, checked_at')
-        .eq('venue_id', venueId).gte('checked_at', since).order('checked_at', { ascending: false }),
-      supabase.from('probe_calibrations')
+        .eq('venue_id', venueId).gte('checked_at', since).order('checked_at', { ascending: false })),
+      allRows(() => supabase.from('probe_calibrations')
         .select('probe_name, pass, is_resolved, calibrated_at')
-        .eq('venue_id', venueId).gte('calibrated_at', since).order('calibrated_at', { ascending: false }),
-      supabase.from('corrective_actions')
+        .eq('venue_id', venueId).gte('calibrated_at', since).order('calibrated_at', { ascending: false })),
+      allRows(() => supabase.from('corrective_actions')
         .select('title, severity, status, action_taken, reported_at, resolved_at')
-        .eq('venue_id', venueId).gte('reported_at', since).order('reported_at', { ascending: false }),
+        .eq('venue_id', venueId).gte('reported_at', since).order('reported_at', { ascending: false })),
       supabase.from('staff_training')
         .select('title, expiry_date, staff:staff_id(name)')
         .eq('venue_id', venueId).order('expiry_date'),
       // Batches still cooling (no end temp yet) aren't records yet
-      supabase.from('cooling_logs')
+      allRows(() => supabase.from('cooling_logs')
         .select('food_item, start_temp, end_temp, target_temp, started_at, finished_at, logged_at, logged_by_name')
-        .eq('venue_id', venueId).not('end_temp', 'is', null).gte('logged_at', since).order('logged_at', { ascending: false }),
-      supabase.from('hot_holding_logs')
+        .eq('venue_id', venueId).not('end_temp', 'is', null).gte('logged_at', since).order('logged_at', { ascending: false })),
+      allRows(() => supabase.from('hot_holding_logs')
         .select('item_name, temperature, logged_at, logged_by_name')
-        .eq('venue_id', venueId).gte('logged_at', since).order('logged_at', { ascending: false }),
-      supabase.from('pest_control_logs')
+        .eq('venue_id', venueId).gte('logged_at', since).order('logged_at', { ascending: false })),
+      allRows(() => supabase.from('pest_control_logs')
         .select('log_type, pest_type, severity, status, logged_at, logged_by_name')
-        .eq('venue_id', venueId).gte('logged_at', since).order('logged_at', { ascending: false }),
-      supabase.from('cleaning_completions')
+        .eq('venue_id', venueId).gte('logged_at', since).order('logged_at', { ascending: false })),
+      allRows(() => supabase.from('cleaning_completions')
         .select('completed_at, completed_by_name, task:cleaning_task_id(title)')
-        .eq('venue_id', venueId).gte('completed_at', since).order('completed_at', { ascending: false }),
+        .eq('venue_id', venueId).gte('completed_at', since).order('completed_at', { ascending: false })),
       // Self-assessment history — not date-windowed, an inspector wants the full trend
       fetchMockInspections(venueId).catch(() => []),
       fetchFhrsRating(venueId).catch(() => ({ rating: null, ratedAt: null })),
@@ -546,7 +554,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
     autoTable(doc, {
       startY: y,
       head: [['Date', 'Fridge', 'Temp (°C)', 'Status', 'Recorded By']],
-      body: t.slice(0, 100).map(r => {
+      body: t.map(r => {
         const oor = r.fridge ? (r.temperature < r.fridge.min_temp || r.temperature > r.fridge.max_temp) : false
         const exp = oor && EXPLAINED.includes(r.exceedance_reason)
         return [
@@ -765,7 +773,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
     autoTable(doc, {
       startY: y,
       head: [['Date', 'Task', 'Completed By']],
-      body: clean.slice(0, 60).map(r => [
+      body: clean.map(r => [
         format(new Date(r.completed_at), 'dd/MM/yy HH:mm'),
         r.task?.title ?? '-',
         r.completed_by_name ?? '-',
