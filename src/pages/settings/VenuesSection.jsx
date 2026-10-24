@@ -80,16 +80,21 @@ export default function VenuesSection() {
     navigate(`/v/${newSlug}/dashboard`, { replace: true })
   }
 
+  // The PIN session has to move with the person (see AppShell's
+  // handleSwitchVenue): a linked venue switches it, any other venue opens on
+  // its PIN screen.
   const handleOpenVenue = async (slug) => {
-    if (pinOnly) {
-      const target = linkedVenues.find(v => v.slug === slug)
-      if (!target) return
+    const target = linkedVenues.find(v => v.slug === slug)
+    if (target) {
       const { error } = await switchVenue(target.id, target.slug)
       if (error) { toast('Could not open that venue', 'error'); return }
-    } else {
-      selectVenue(slug)
+      if (!pinOnly) selectVenue(slug)
+      navigate(`/v/${slug}/dashboard`, { replace: true })
+      return
     }
-    navigate(`/v/${slug}/dashboard`, { replace: true })
+    if (pinOnly) return
+    selectVenue(slug)
+    navigate(`/v/${slug}`, { replace: true })
   }
 
   return (

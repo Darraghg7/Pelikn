@@ -233,6 +233,7 @@ function SignOffDetailModal({ record, venueId, onClose }) {
     setSending(true)
     await sendPush({
       venueId,
+      notificationType: 'training_reminder',
       staffIds: [record.staff_id],
       title: 'Training record to sign',
       body: `You have a training record from ${record.trainer_name} that needs your signature.`,

@@ -38,7 +38,9 @@ import {
   SESSION_PERMISSIONS_KEY,
   SESSION_IS_RESTRICTED_KEY,
 } from '../lib/constants'
-import { hashPin, pinHashKey } from '../lib/offlinePin'
+import { cachePinRecord, checkPinRecord } from '../lib/offlinePin'
+import { announceSignedOut } from '../lib/persistedCache'
+import { releaseDevicePush } from '../lib/devicePush'
 import { reportError } from '../lib/reportError'
 
 const SessionContext = createContext(null)
@@ -460,12 +462,14 @@ export function SessionProvider({ children }) {
   const signIn = useCallback(async (staffId, pin, venueId, venueSlug) => {
     // ── Offline path ──────────────────────────────────────────────────────
     if (!navigator.onLine) {
-      const storedHash = localStorage.getItem(pinHashKey(staffId))
-      if (!storedHash) {
+      const check = await checkPinRecord(staffId, pin)
+      if (check === 'none') {
         return { error: new Error('No offline data. Please log in while online first') }
       }
-      const enteredHash = await hashPin(staffId, pin)
-      if (!enteredHash || enteredHash !== storedHash) {
+      if (check === 'locked') {
+        return { error: new Error('Too many wrong PINs offline. Please log in while online') }
+      }
+      if (check === 'wrong') {
         return { error: new Error('Incorrect PIN') }
       }
       // Restore cached session
@@ -673,13 +677,11 @@ export function SessionProvider({ children }) {
     // best-effort background work and must not delay the redirect.
     setSession(newSession)
 
-    // Cache session data + PIN hash for offline logins. hashPin is async
-    // (crypto.subtle), so it runs after the session is set rather than
-    // holding the sign-in promise open.
+    // Cache session data + PIN record for offline logins. Hashing is async
+    // (crypto.subtle, deliberately slow), so it runs after the session is set
+    // rather than holding the sign-in promise open.
     localStorage.setItem(sessDataKey(staffId), JSON.stringify(newSession))
-    hashPin(staffId, pin).then(hash => {
-      if (hash) localStorage.setItem(pinHashKey(staffId), hash)
-    }).catch((e) => reportError(e, 'SessionContext:cache-offline-pin'))
+    cachePinRecord(staffId, pin).catch((e) => reportError(e, 'SessionContext:cache-offline-pin'))
 
     // Register for native iOS push notifications (no-op on web)
     import('../hooks/useNativePush').then(({ registerNativePush }) => {
@@ -752,12 +754,16 @@ export function SessionProvider({ children }) {
   // ── Sign out ─────────────────────────────────────────────────────────────
   const signOut = useCallback(() => {
     const token = session?.token ?? localStorage.getItem(SESSION_TOKEN_KEY)
+    const staffId = session?.staffId ?? localStorage.getItem(SESSION_ID_KEY)
     clearStorage()
     clearSessionJwt()
     setSession(null)
-    if (token) {
-      fireAndForgetRpc('invalidate_staff_session', { p_token: token })
-    }
+    announceSignedOut()
+    // Release this device's push first: the iOS clean-up authenticates with
+    // the session token, so the session is only ended once that has run.
+    releaseDevicePush(staffId, token).finally(() => {
+      if (token) fireAndForgetRpc('invalidate_staff_session', { p_token: token })
+    })
   }, [session])
 
   const isManager = session?.verified !== false && (session?.staffRole === 'manager' || session?.staffRole === 'owner')

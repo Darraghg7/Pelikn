@@ -490,11 +490,15 @@ export default function LoginPage() {
   const [switching, setSwitching]       = useState(false)
   const pinSectionRef = useRef(null)
 
+  // Only skip the PIN screen for a session that belongs to this venue. A
+  // session from another venue stays on this screen so the person can sign
+  // in here (the route guards send it back here, so redirecting would loop).
   useEffect(() => {
-    if (!loading && session && !pickerVenues) {
+    const thisVenue = session && (!session.venueId || !venueId || session.venueId === venueId)
+    if (!loading && thisVenue && !pickerVenues) {
       navigate(`/v/${venueSlug}/dashboard`, { replace: true })
     }
-  }, [loading, session, navigate, venueSlug, pickerVenues])
+  }, [loading, session, navigate, venueSlug, venueId, pickerVenues])
 
   useEffect(() => {
     if (!venueId) { setStaffLoading(false); return }

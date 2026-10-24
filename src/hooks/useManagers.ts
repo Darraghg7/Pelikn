@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase'
-import { hashPin, pinHashKey } from '../lib/offlinePin'
+import { checkPinRecord } from '../lib/offlinePin'
 import { takeBootstrap } from '../lib/api/bootstrap'
 
 export interface ManagerOption {
@@ -61,7 +61,7 @@ function managersFromCache(venueId: string | null | undefined): ManagerOption[] 
 
 /**
  * Verify a manager's PIN — online first, offline hash fallback (the cached
- * hash SessionContext stores under pinHashKey(staffId) after that manager's
+ * PIN record SessionContext caches (lib/offlinePin) after that manager's
  * last online login on this device). `managers` should already be
  * pre-filtered to manager/owner roles, so a hash match is enough on its own —
  * the online path double-checks the role returned by the server.
@@ -93,12 +93,11 @@ export async function verifyManagerPin(
     return { ok: false, error: 'Incorrect PIN, try again' }
   } catch { /* network unreachable — fall through to the offline check */ }
 
-  const cachedHash = localStorage.getItem(pinHashKey(managerId))
-  if (!cachedHash) {
+  const check = await checkPinRecord(managerId, pin)
+  if (check === 'none' || check === 'locked') {
     return { ok: false, error: "Couldn't reach the server — check your connection and try again" }
   }
-  const enteredHash = await hashPin(managerId, pin)
-  if (!enteredHash || enteredHash !== cachedHash) {
+  if (check === 'wrong') {
     return { ok: false, error: 'Incorrect PIN, try again' }
   }
   return { ok: true }

@@ -451,17 +451,25 @@ export default function AppShell({ children }) {
     navigate(`/v/${venueSlug}`, { replace: true })
   }
 
-  // Venue switching: managers use Supabase Auth selectVenue; staff use PIN switchVenue
+  // Venue switching. The PIN session (and its venue-scoped JWT) has to move
+  // with the person: switching only the email login's venue used to open
+  // venue B with venue A's session, so B looked empty and writes landed in A.
+  // A linked venue switches the session; any other venue goes to its PIN
+  // screen (the route guards refuse a session from another venue).
   const handleSwitchVenue = async (slug) => {
-    if (isManager) {
-      selectVenue(slug)
-      navigate(`/v/${slug}/dashboard`, { replace: true })
+    const target = linkedVenues.find(v => v.slug === slug)
+    if (target) {
+      const { error } = await switchVenue(target.id, target.slug)
+      if (!error) {
+        if (isManager) selectVenue(slug)
+        navigate(`/v/${slug}/dashboard`, { replace: true })
+      }
       return
     }
-    const target = linkedVenues.find(v => v.slug === slug)
-    if (!target) return
-    const { error } = await switchVenue(target.id, target.slug)
-    if (!error) navigate(`/v/${slug}/dashboard`, { replace: true })
+    if (isManager) {
+      selectVenue(slug)
+      navigate(`/v/${slug}`, { replace: true })
+    }
   }
 
   // All venues the current user can switch to.

@@ -36,3 +36,30 @@ export function clearPersisted(name) {
     localStorage.removeItem(storageKey(name))
   } catch { /* ignore */ }
 }
+
+// ── Sign-out ────────────────────────────────────────────────────────────────
+// These caches (and the widget caches, pelikn_w_*) are keyed by venue and
+// date, not by person, so on a shared tablet the next person to sign in was
+// shown the last person's cached screens — including manager-only details.
+// Every sign-out path announces itself here; the caches are wiped and
+// listeners (the React Query client in App.jsx) clear their own.
+
+const signOutListeners = new Set()
+
+/** Subscribe to sign-outs. Returns an unsubscribe function. */
+export function onSignedOut(fn) {
+  signOutListeners.add(fn)
+  return () => signOutListeners.delete(fn)
+}
+
+/** Wipe every cached screen on this device and tell listeners. Never throws. */
+export function announceSignedOut() {
+  try {
+    Object.keys(localStorage)
+      .filter(k => k.startsWith('pelikn_c_') || k.startsWith('pelikn_w_'))
+      .forEach(k => localStorage.removeItem(k))
+  } catch { /* storage unavailable — nothing persisted to wipe */ }
+  for (const fn of signOutListeners) {
+    try { fn() } catch { /* a listener must never break sign-out */ }
+  }
+}
