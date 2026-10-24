@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { format, startOfWeek, endOfWeek } from 'date-fns'
 import { supabase } from '../lib/supabase'
-import { londonToday, londonWallTimeToInstant } from '../lib/time'
+import { londonToday, londonDateStr, londonWallTimeToInstant } from '../lib/time'
 import { readPersisted, writePersisted } from '../lib/persistedCache'
 import { throwIfError, rpcCannotRun } from '../lib/queryErrors'
 import { reportError } from '../lib/reportError'
@@ -42,14 +42,26 @@ function cacheSet(key, data) {
  */
 let teamRpcMissing = false
 
+// Certificates already past their expiry date. The team-status call only counts
+// ones expiring in the next 30 days, so the Training tile said "All up to date"
+// while the bell listed expired certificates.
+async function fetchExpiredTraining(venueId, todayStr) {
+  const { count, error } = await supabase.from('staff_training')
+    .select('id', { count: 'exact', head: true })
+    .eq('venue_id', venueId)
+    .lt('expiry_date', todayStr)
+  if (error) throw error
+  return count ?? 0
+}
+
 async function fetchTeamRaw(venueId, today, todayStr, dayStart, dayEnd) {
   const weekFrom     = format(startOfWeek(today, { weekStartsOn: 1 }), 'yyyy-MM-dd')
   const weekTo       = format(endOfWeek(today, { weekStartsOn: 1 }), 'yyyy-MM-dd')
   const trainingTo   = format(new Date(Date.now() + 30 * 86400000), 'yyyy-MM-dd')
   const rotaKey      = `rota_published_${weekFrom}`
   // "Upcoming" calendar events: the next 14 days, as the Calendar page counts them.
-  const calendarFrom = new Date().toISOString().slice(0, 10)
-  const calendarTo   = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10)
+  const calendarFrom = londonToday()
+  const calendarTo   = londonDateStr(new Date(Date.now() + 14 * 86400000))
 
   if (!teamRpcMissing) {
     const { data, error } = await supabase.rpc('get_team_status', {
@@ -164,7 +176,10 @@ export function useTeamStatus(venueId) {
       const dayStart = londonWallTimeToInstant(todayStr, '00:00:00').toISOString()
       const dayEnd   = new Date(londonWallTimeToInstant(todayStr, '00:00:00').getTime() + 86400000 - 1).toISOString()
 
-      const raw = await fetchTeamRaw(venueId, today, todayStr, dayStart, dayEnd)
+      const [raw, expiredTraining] = await Promise.all([
+        fetchTeamRaw(venueId, today, todayStr, dayStart, dayEnd),
+        fetchExpiredTraining(venueId, todayStr),
+      ])
 
       if (cancelled) return
 
@@ -221,6 +236,7 @@ export function useTeamStatus(venueId) {
         pendingSwaps:    raw.pendingSwaps,
         pendingTimeOff:  raw.pendingTimeOff,
         expiringTraining: raw.expiringTraining,
+        expiredTraining,
         rotaUnfilled:    raw.rotaUnfilled,
         rotaPublished:   raw.rotaPublished,
         calendarUpcoming: raw.calendarUpcoming,

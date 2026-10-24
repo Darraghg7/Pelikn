@@ -121,7 +121,7 @@ function SectionLabel({ children }) {
 // At most one row is red — if more than one action is flagged 'danger', only
 // the first in display order gets it (tie-break agreed when this card was
 // first designed; see the Needs You redesign notes).
-function AttentionCard({ actions, editMode }) {
+function AttentionCard({ actions, editMode, loading = false }) {
   const isEmpty = actions.length === 0
   const overdueIdx = actions.findIndex(a => a.urgency === 'danger')
 
@@ -132,7 +132,14 @@ function AttentionCard({ actions, editMode }) {
         editMode ? 'opacity-45' : 'opacity-100',
       ].join(' ')}
     >
-      {isEmpty ? (
+      {isEmpty && loading ? (
+        // Not "All clear" until the numbers are in: it used to say so for a few
+        // seconds and then show urgent items.
+        <div className="flex items-center gap-3.5 px-3.5 py-2.5" aria-busy="true">
+          <div className="w-9 h-8 rounded-control bg-line2 dark:bg-white/8 animate-pulse shrink-0" />
+          <div className="text-body-sm text-ink3 dark:text-white/45">Checking what needs your attention…</div>
+        </div>
+      ) : isEmpty ? (
         <div className="flex items-center gap-3.5 px-3.5 sm:px-3.5 py-2.5">
           <div className="w-9 h-8 rounded-control bg-goodBg dark:bg-good/20 flex items-center justify-center shrink-0">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-good dark:text-goodDark">
@@ -737,7 +744,7 @@ export default function MobileManagerDashboard({
       {departmentFilter}
 
       <DisciplinaryStrip alerts={disciplinaryAlerts} editMode={editMode} venueSlug={venueSlug} />
-      <AttentionCard actions={actions} editMode={editMode} vp={vp} />
+      <AttentionCard actions={actions} editMode={editMode} vp={vp} loading={!summary} />
 
       {editMode && onOpenPicker && (
         <Button

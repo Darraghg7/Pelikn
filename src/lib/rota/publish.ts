@@ -16,6 +16,22 @@ export function canPublishWeek({ pendingChanges, publishedState, shiftCount }: {
   return pendingChanges > 0 || neverPublished
 }
 
+/**
+ * What a staff member may see of the rota. A week a manager is still drafting
+ * stays hidden until it is published, as the rota screen promises, this week
+ * included. Past weeks stay visible regardless: rotas built before publishing
+ * was enforced were never marked published, and staff look back at them.
+ * `published` is keyed by week start (yyyy-MM-dd); a week missing from it is
+ * treated as unpublished.
+ */
+export function shiftsVisibleToStaff<T extends { week_start: string }>(
+  shifts: T[],
+  published: Record<string, boolean>,
+  currentWeekStartStr: string,
+): T[] {
+  return shifts.filter((s) => s.week_start < currentWeekStartStr || published[s.week_start] === true)
+}
+
 /** The word on the Publish button. */
 export function publishButtonLabel({ publishing, canPublish, publishedState }: {
   publishing: boolean

@@ -554,11 +554,11 @@ function DueLabel({ due, className = '' }) {
   )
 }
 
-function CleaningTaskRow({ task, onComplete, isFirst, departmentLabel }) {
+function CleaningTaskRow({ task, onComplete, isFirst, departmentLabel, canTick = true }) {
   const [busy, setBusy] = useState(false)
   const toast = useToast()
   const handleTap = async () => {
-    if (busy) return
+    if (busy || !canTick) return
     setBusy(true)
     const { error } = await onComplete(task.id)
     if (error) {
@@ -572,7 +572,7 @@ function CleaningTaskRow({ task, onComplete, isFirst, departmentLabel }) {
     <div className={`px-4 py-3 flex items-center gap-3 ${!isFirst ? 'border-t border-charcoal/5 dark:border-white/5' : ''}`}>
       <button
         onClick={handleTap}
-        disabled={busy}
+        disabled={busy || !canTick}
         aria-label="Mark done"
         className="w-[22px] h-[22px] rounded-tag border-[1.5px] border-charcoal/25 dark:border-white/25 shrink-0 grid place-items-center hover:border-success hover:bg-success/10 transition-colors disabled:opacity-50"
       >
@@ -614,7 +614,7 @@ function DoneCleaningRow({ task, isFirst }) {
   )
 }
 
-function CleaningTab({ tasks, loading, error, session, reload, departmentFor }) {
+function CleaningTab({ tasks, loading, error, session, reload, departmentFor, closedDay = false, canTick = true }) {
   // Tasks ticked during this visit keep their place in Pending, shown as done,
   // instead of jumping to Completed: the next task used to slide under the
   // finger that had just tapped, so a double-tap ticked one nobody cleaned.
@@ -631,6 +631,13 @@ function CleaningTab({ tasks, loading, error, session, reload, departmentFor }) 
   if (!tasks.length) return (
     <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 p-8 text-center">
       <p className="text-sm text-charcoal/40 dark:text-white/35">No cleaning tasks configured</p>
+    </div>
+  )
+  // On a closed day every task is capped at 'done', which put tasks under
+  // Completed on the strength of ticks from weeks ago.
+  if (closedDay) return (
+    <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 p-8 text-center">
+      <p className="text-sm text-charcoal/40 dark:text-white/35">The venue is closed this day, so there is no cleaning to do.</p>
     </div>
   )
   // A task drops off everyone's list once it's ticked, and comes back only when
@@ -673,14 +680,14 @@ function CleaningTab({ tasks, loading, error, session, reload, departmentFor }) 
             {pending.map((t, i) => (
               tickedThisVisit.has(t.id) && t.status !== 'overdue'
                 ? <DoneCleaningRow key={t.id} task={t} isFirst={i === 0} />
-                : <CleaningTaskRow key={t.id} task={t} onComplete={completeTask} isFirst={i === 0} departmentLabel={departmentFor?.(t.department_id)} />
+                : <CleaningTaskRow key={t.id} task={t} onComplete={completeTask} isFirst={i === 0} departmentLabel={departmentFor?.(t.department_id)} canTick={canTick} />
             ))}
           </div>
         </div>
       )}
       {done.length > 0 && (
         <div>
-          <span className="text-micro font-mono tracking-widest uppercase text-charcoal/35 dark:text-white/30 font-semibold px-1 mb-2 block">Completed</span>
+          <span className="text-micro font-mono tracking-widest uppercase text-charcoal/35 dark:text-white/30 font-semibold px-1 mb-2 block">{canTick ? 'Completed' : 'Not due yet'}</span>
           <div className="bg-white dark:bg-paperDark rounded-card border border-charcoal/8 dark:border-white/8 overflow-hidden">
             {done.map((t, i) => <DoneCleaningRow key={t.id} task={t} isFirst={i === 0} />)}
           </div>
@@ -920,7 +927,7 @@ function StaffTasksView({ session }) {
       {/* Tab content */}
       {activeTab === 'duties'    && <DutiesTab duties={dutiesData.duties} loading={dutiesData.loading} toggleItem={dutiesData.toggleItem} />}
       {activeTab === 'tasks'     && <TasksTab {...tasksData} canTick={dayOffset === 0} session={session} />}
-      {activeTab === 'cleaning'  && <CleaningTab tasks={cleaningData.tasks} loading={cleaningData.loading} error={cleaningData.error} session={session} reload={cleaningData.reload} departmentFor={departmentFor} />}
+      {activeTab === 'cleaning'  && <CleaningTab tasks={cleaningData.tasks} loading={cleaningData.loading} error={cleaningData.error} session={session} reload={cleaningData.reload} departmentFor={departmentFor} closedDay={cleaningData.closedOnReference} canTick={dayOffset === 0} />}
       {activeTab === 'allergens' && <AllergensTab venueSlug={venueSlug} />}
 
     </div>

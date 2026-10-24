@@ -188,15 +188,23 @@ export default function TimeOffPage() {
     }
     if (asUnpaid) patch.leave_type = 'unpaid'
     else if (paidHours != null) patch.paid_hours = paidHours
-    let { error: err } = await supabase.from('time_off_requests').update(patch).eq('id', id)
+    // Only a request that is still pending can be approved. A stale Approve on
+    // one the staff member has since cancelled used to bring it back to life.
+    const decide = (p) => supabase.from('time_off_requests').update(p).eq('id', id).eq('status', 'pending').select('id')
+    let { data: changed, error: err } = await decide(patch)
     // Before migration 149 there is no paid_hours column: approve without it
     // rather than not at all. The balance then estimates, as it always did.
     if (err && paidHours != null && (err.code === 'PGRST204' || err.code === '42703')) {
       delete patch.paid_hours
-      ;({ error: err } = await supabase.from('time_off_requests').update(patch).eq('id', id))
+      ;({ data: changed, error: err } = await decide(patch))
     }
     setReviewing(null)
     if (err) { toast(err.message, 'error'); return }
+    if (!changed?.length) {
+      toast('That request has changed since you opened it (it may have been cancelled), so nothing was approved', 'error')
+      refreshDependents()
+      return
+    }
     clearNote(id)
     toast(asUnpaid ? 'Approved as unpaid leave' : 'Time off approved')
     if (req?.staff_id) {
@@ -217,14 +225,19 @@ export default function TimeOffPage() {
   const reject = async (id) => {
     setReviewing(id)
     const req = requests.find(r => r.id === id)
-    const { error: err } = await supabase.from('time_off_requests').update({
+    const { data: changed, error: err } = await supabase.from('time_off_requests').update({
       status:       'rejected',
       reviewed_by:  session?.staffId,
       reviewed_at:  new Date().toISOString(),
       manager_note: noteFor(id) || null,
-    }).eq('id', id)
+    }).eq('id', id).eq('status', 'pending').select('id')
     setReviewing(null)
     if (err) { toast(err.message, 'error'); return }
+    if (!changed?.length) {
+      toast('That request has changed since you opened it (it may have been cancelled), so nothing was rejected', 'error')
+      refreshDependents()
+      return
+    }
     const note = noteFor(id)
     clearNote(id)
     toast('Time off rejected')

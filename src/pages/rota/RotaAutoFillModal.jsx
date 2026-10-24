@@ -23,6 +23,7 @@ export default function RotaAutoFillModal({
   unavailability = {},
   closedDays = [],
   crossVenueShifts = [],
+  existingShifts = [],
 }) {
   const { venueId } = useVenue()
   const toast = useToast()
@@ -47,7 +48,9 @@ export default function RotaAutoFillModal({
           staff,
           staffRoles,
           unavailability,
-          existingShifts: [],
+          // Fill Gaps has to know what is already there, or it proposes the whole
+          // week again on top of it. Rebuild starts from nothing.
+          existingShifts: mode === 'fill_gaps' ? existingShifts : [],
           weekStart: weekStartStr,
           mode,
           closedDays,

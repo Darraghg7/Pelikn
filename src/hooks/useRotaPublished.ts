@@ -9,13 +9,13 @@ import { fetchRotaPublished } from '../lib/api/shifts'
  * unknown (loading, or the read failed) so the rota never shows a false
  * "never published" warning. `markPublished` updates it straight after a publish.
  */
-export function useRotaPublished(weekStart: Date): { published: boolean | null; markPublished: () => void } {
+export function useRotaPublished(weekStart: Date): { published: boolean | null; markPublished: () => void; isError: boolean } {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
   const weekStartStr = format(weekStart, 'yyyy-MM-dd')
   const queryKey = ['rota_published', venueId, weekStartStr]
 
-  const { data } = useQuery({
+  const { data, isError } = useQuery({
     queryKey,
     queryFn: () => fetchRotaPublished(venueId!, weekStartStr),
     enabled: !!venueId,
@@ -26,5 +26,5 @@ export function useRotaPublished(weekStart: Date): { published: boolean | null; 
     [queryClient, venueId, weekStartStr],
   )
 
-  return { published: data === undefined ? null : !!data, markPublished }
+  return { published: data === undefined ? null : !!data, markPublished, isError }
 }

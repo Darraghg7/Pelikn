@@ -188,9 +188,11 @@ export default function TeamHubPage() {
     },
     {
       id: 'training', label: 'Training', icon: GradCapIcon, route: '/training',
-      ...(data?.expiringTraining > 0
-        ? { status: 'due', statusText: `${data.expiringTraining} expiring`, count: data.expiringTraining }
-        : { status: 'done', statusText: 'All up to date' }),
+      ...(data?.expiredTraining > 0
+        ? { status: 'overdue', statusText: `${data.expiredTraining} expired${data.expiringTraining > 0 ? `, ${data.expiringTraining} expiring` : ''}`, count: data.expiredTraining + (data.expiringTraining ?? 0) }
+        : data?.expiringTraining > 0
+          ? { status: 'due', statusText: `${data.expiringTraining} expiring`, count: data.expiringTraining }
+          : { status: 'done', statusText: 'All up to date' }),
     },
     {
       id: 'time-off', label: 'Time Off', icon: LeafIcon, route: '/time-off',

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import RotaMobileGrid from './RotaMobileGrid'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
@@ -6,7 +6,7 @@ import { format, addDays, addWeeks, parseISO } from 'date-fns'
 import {
   deleteVenueClosure, insertVenueClosures,
   insertShift, updateShift, deleteShift as deleteShiftRow, deleteDutyAssignmentsForShift,
-  insertDutyAssignment, createSwapRequest, insertShifts, deleteShiftsForWeek,
+  insertDutyAssignment, createSwapRequest, insertShifts, fetchWeekShiftTimes, fetchShiftIdsForWeek, deleteShiftsByIds,
 } from '../../lib/api/shifts'
 import { sendPush } from '../../lib/sendPush'
 import { supabase } from '../../lib/supabase'
@@ -22,7 +22,8 @@ import { reportError } from '../../lib/reportError'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useVenueRoles, loadAllStaffRolesForVenue } from '../../hooks/useVenueRoles'
 import RotaWeekView from './RotaWeekView'
-import { closureDateSet, publishRota, approveSwapRequest, declineSwapRequest } from '../../lib/rota'
+import { closureDateSet, publishRota, shiftsVisibleToStaff, approveSwapRequest, declineSwapRequest } from '../../lib/rota'
+import { useRotaPublished } from '../../hooks/useRotaPublished'
 import { shareRotaImage } from '../../lib/rotaImageExport'
 import RotaAutoFillModal from './RotaAutoFillModal'
 import RotaConfigModal from './RotaConfigModal'
@@ -51,6 +52,9 @@ export default function RotaPage() {
   const [numWeeks, setNumWeeks]   = useState(1)
   const { shifts, loading, isError: shiftsFailed, reload } = useShifts(weekStart, (isManager && !personalView) ? numWeeks : 2)
   const { staff, loading: staffLoading, isError: staffFailed, reload: reloadStaff } = useStaffList()
+  // Staff only see weeks a manager has published (this week and next are loaded).
+  const thisWeekPub = useRotaPublished(weekStart)
+  const nextWeekPub = useRotaPublished(addWeeks(weekStart, 1))
   const crossShifts = useCrossVenueShifts(staff, weekStart, numWeeks, venueId)
   const { swaps, loading: swapsLoading, reload: reloadSwaps, pendingCount } = useShiftSwaps()
   const { unavailability, toggleAvailability } = useAvailability(weekStart, numWeeks)
@@ -325,10 +329,17 @@ export default function RotaPage() {
   }
 
   const [copyingWeek, setCopyingWeek] = useState(false)
+  // State alone lets a quick second press through before the first re-renders.
+  const copyingRef = useRef(false)
 
   const copyWeek = async () => {
-    if (copyingWeek) return
+    if (copyingRef.current) return
+    copyingRef.current = true
     setCopyingWeek(true)
+    try { await copyWeekInner() } finally { copyingRef.current = false; setCopyingWeek(false) }
+  }
+
+  const copyWeekInner = async () => {
     const targetWeekStr = format(weekStart, 'yyyy-MM-dd')
     const sourceWeekStart = addWeeks(weekStart, -1)
     const sourceWeekStr   = format(sourceWeekStart, 'yyyy-MM-dd')
@@ -336,11 +347,18 @@ export default function RotaPage() {
     // Fetch shifts from previous week
     const { data: sourceShifts, error: fetchErr } = await supabase
       .from('shifts')
-      .select('staff_id, shift_date, start_time, end_time, role_label')
+      .select('staff_id, shift_date, start_time, end_time, role_label, is_closing')
       .eq('venue_id', venueId)
       .eq('week_start', sourceWeekStr)
-    if (fetchErr) { toast(fetchErr.message, 'error'); setCopyingWeek(false); return }
-    if (!sourceShifts?.length) { toast('No shifts in previous week to copy', 'error'); setCopyingWeek(false); return }
+    if (fetchErr) { toast(fetchErr.message, 'error'); return }
+    if (!sourceShifts?.length) { toast('No shifts in previous week to copy', 'error'); return }
+
+    // Shifts already in this week are left alone, so pressing Copy twice (or
+    // copying onto a part-built week) never doubles anything up.
+    const { data: already, error: alreadyErr } = await fetchWeekShiftTimes(venueId, targetWeekStr)
+    if (alreadyErr) { toast(alreadyErr.message, 'error'); return }
+    const shiftKey = (sh) => [sh.staff_id, sh.shift_date, (sh.start_time ?? '').slice(0, 5), (sh.end_time ?? '').slice(0, 5)].join('|')
+    const alreadyThere = new Set((already ?? []).map(shiftKey))
 
     const closedDateSet = closedDates
 
@@ -349,6 +367,7 @@ export default function RotaPage() {
       .map(sh => {
         const newDate = format(addWeeks(parseISO(sh.shift_date), 1), 'yyyy-MM-dd')
         if (closedDateSet.has(newDate)) return null
+        if (alreadyThere.has(shiftKey({ ...sh, shift_date: newDate }))) return null
         return {
           venue_id:   venueId,
           staff_id:   sh.staff_id,
@@ -357,27 +376,40 @@ export default function RotaPage() {
           start_time: sh.start_time,
           end_time:   sh.end_time,
           role_label: sh.role_label,
+          // Dropped before, so a copied closing shift lost its closing checklist.
+          is_closing: !!sh.is_closing,
         }
       })
       .filter(Boolean)
 
-    if (!newShifts.length) { toast('All shifts land on closed days — nothing to copy', 'error'); setCopyingWeek(false); return }
+    if (!newShifts.length) { toast('Nothing to copy — the shifts are already here or land on closed days', 'error'); return }
 
     const { error: insertErr } = await insertShifts(newShifts)
-    setCopyingWeek(false)
     if (insertErr) { toast(insertErr.message, 'error'); return }
     toast(`${newShifts.length} shift${newShifts.length !== 1 ? 's' : ''} copied from previous week ✓`)
     reload()
   }
 
   const batchSaveShifts = async (newShifts, isRebuild) => {
+    // A rebuild adds the new shifts first and removes the old ones after: it
+    // used to delete the week and then insert, so a failed insert left the week
+    // empty, with its swap requests and duties gone too.
+    let oldIds = []
     if (isRebuild) {
-      const wsStr = format(weekStart, 'yyyy-MM-dd')
-      const { error: delErr } = await deleteShiftsForWeek(venueId, wsStr)
-      if (delErr) { toast(delErr.message, 'error'); return }
+      const { data, error: readErr } = await fetchShiftIdsForWeek(venueId, format(weekStart, 'yyyy-MM-dd'))
+      if (readErr) { toast(readErr.message, 'error'); return }
+      oldIds = (data ?? []).map((r) => r.id)
     }
     const { error } = await insertShifts(newShifts)
     if (error) { toast(error.message, 'error'); return }
+    if (oldIds.length) {
+      const { error: delErr } = await deleteShiftsByIds(oldIds)
+      if (delErr) {
+        toast('New shifts added, but the old ones could not be removed: ' + delErr.message, 'error')
+        reload()
+        return
+      }
+    }
     toast(`${newShifts.length} shifts created ✓`)
     reload()
   }
@@ -387,11 +419,23 @@ export default function RotaPage() {
   const swapCandidates = staff.filter((s) => s.id !== session?.staffId)
 
   if (!isManager || personalView) {
+    // Managers viewing their own shifts see drafts too; staff do not.
+    const publishKnown = (p) => p.published !== null || p.isError
+    const visibleShifts = isManager
+      ? shifts
+      : shiftsVisibleToStaff(
+          shifts,
+          {
+            [format(weekStart, 'yyyy-MM-dd')]: thisWeekPub.published === true,
+            [format(addWeeks(weekStart, 1), 'yyyy-MM-dd')]: nextWeekPub.published === true,
+          },
+          format(getWeekStart(), 'yyyy-MM-dd'),
+        )
     return (
       <StaffRotaView
-        shifts={shifts}
+        shifts={visibleShifts}
         staff={staff}
-        loading={loading || staffLoading}
+        loading={loading || staffLoading || (!isManager && !(publishKnown(thisWeekPub) && publishKnown(nextWeekPub)))}
         weekStart={weekStart}
         prevWeek={prevWeek}
         nextWeek={nextWeek}
@@ -624,6 +668,7 @@ export default function RotaPage() {
         unavailability={unavailability}
         closedDays={closedDays}
         crossVenueShifts={crossShifts}
+        existingShifts={shifts.filter((sh) => sh.week_start === format(weekStart, 'yyyy-MM-dd'))}
       />
 
       {/* ── Rota config modal ── */}

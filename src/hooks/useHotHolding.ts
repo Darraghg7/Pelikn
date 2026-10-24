@@ -8,6 +8,7 @@ import { format } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
 import { isCheckRequired } from '../lib/temperatureChecks'
+import { londonToday } from '../lib/time'
 
 export const HOT_HOLDING_MIN_TEMP = 63  // °C — UK Food Safety (Temperature Control) Regs 1995
 const HOT_HOLDING_ITEM_COLUMNS = 'id, name, is_active, venue_id, min_temp, max_temp, check_days, required_periods'
@@ -126,7 +127,7 @@ export function useHotHoldingTodayStatus(): { status: HotHoldingTodayStatus; loa
   const { data: statusData, isLoading: loading, isError } = useQuery({
     queryKey,
     queryFn: async (): Promise<HotHoldingTodayStatus> => {
-      const today = new Date().toISOString().slice(0, 10)
+      const today = londonToday()
       const [items, { data, error }] = await Promise.all([
         // Same cache as useHotHoldingItems, so the list isn't fetched twice.
         queryClient.fetchQuery({

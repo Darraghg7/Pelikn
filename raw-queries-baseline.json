@@ -39,6 +39,6 @@
   "src/pages/SignupPage.jsx": 1,
   "src/pages/tasks/TasksPage.jsx": 8,
   "src/pages/timeoff/ManualLeaveModal.jsx": 2,
-  "src/pages/timeoff/TimeOffPage.jsx": 4,
+  "src/pages/timeoff/TimeOffPage.jsx": 3,
   "src/pages/tips/TipsPage.jsx": 5
 }

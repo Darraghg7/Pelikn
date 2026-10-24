@@ -669,9 +669,17 @@ export default function RotaMobileGrid() {
   const [showCost, setShowCost]     = useState(false)
   // Unpublished edits made this session, newest last. Each entry lets Discard
   // undo the change: { type: 'add', id } | { type: 'edit', before } | { type: 'delete', before }
-  const [sessionChanges, setSessionChanges] = useState([])
+  // Kept per week: changing week used to wipe the list, so an edited published
+  // week could not be re-published after looking at another week.
+  const [changesByWeek, setChangesByWeek] = useState({})
   const [publishing, setPublishing] = useState(false)
   const [reverting, setReverting]   = useState(false)
+  const weekKey = format(weekStart, 'yyyy-MM-dd')
+  const sessionChanges = changesByWeek[weekKey] ?? []
+  const setSessionChanges = (next) => setChangesByWeek(all => ({
+    ...all,
+    [weekKey]: typeof next === 'function' ? next(all[weekKey] ?? []) : next,
+  }))
   const pendingChanges = sessionChanges.length
 
   const { shifts, loading, isError: shiftsFailed, reload } = useShifts(weekStart, 1)
@@ -688,7 +696,6 @@ export default function RotaMobileGrid() {
   const goWeek = (n) => {
     const w = addWeeks(weekStart, n)
     setWeekStart(w)
-    setSessionChanges([])
     const i = getWeekDays(w).findIndex(d => isToday(d))
     setDayIndex(i < 0 ? 0 : i)
   }
