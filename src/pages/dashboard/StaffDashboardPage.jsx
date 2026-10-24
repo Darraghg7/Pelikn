@@ -18,6 +18,7 @@ import { PageSkeleton } from '../../components/ui/Skeleton'
 import AcknowledgeModal from '../../components/training/AcknowledgeModal'
 import { useToast } from '../../components/ui/Toast'
 import { invalidateChecksStatusCache } from '../../hooks/useChecksStatus'
+import { fetchRotaPublished } from '../../lib/api/shifts'
 import { londonWallTimeToInstant, londonToday } from '../../lib/time'
 import { reportError } from '../../lib/reportError'
 import LoadError from '../../components/ui/LoadError'
@@ -805,14 +806,22 @@ export default function StaffDashboardPage() {
       try {
         const [shiftRes, staffRes] = await Promise.all([
           supabase.from('shifts')
-            .select('id, start_time, end_time, role_label, shift_date')
+            .select('id, start_time, end_time, role_label, shift_date, week_start')
             .eq('venue_id', venueId).eq('staff_id', session.staffId).eq('shift_date', today)
             .order('start_time').limit(1),
           fetchStaffPayRates(),
         ])
         if (cancelled) return
         if (shiftRes.error) reportError(shiftRes.error, 'StaffDashboard:today-shift')
-        setTodayShift(shiftRes.data?.[0] ?? null)
+        let shiftToday = shiftRes.data?.[0] ?? null
+        // Staff only see a shift once its week is published. Unknown (read
+        // failed) counts as published, so a hiccup doesn't hide a real shift.
+        if (shiftToday && !isManager) {
+          const published = await fetchRotaPublished(venueId, shiftToday.week_start).catch(() => true)
+          if (cancelled) return
+          if (!published) shiftToday = null
+        }
+        setTodayShift(shiftToday)
         // staff_pay_rates returns only your own row when you are not a
         // manager, which is exactly what this screen wants.
         setHourlyRate(staffRes.get(session.staffId) ?? 0)
@@ -821,7 +830,7 @@ export default function StaffDashboardPage() {
     }
     load()
     return () => { cancelled = true }
-  }, [session?.staffId, today, venueId])
+  }, [session?.staffId, today, venueId, isManager])
 
   const summary = useTodaySummary({
     staffId: session?.staffId,
