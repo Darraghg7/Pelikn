@@ -6,7 +6,7 @@ import { format, addDays, addWeeks, parseISO } from 'date-fns'
 import {
   deleteVenueClosure, insertVenueClosures,
   insertShift, updateShift, deleteShift as deleteShiftRow, deleteDutyAssignmentsForShift,
-  insertDutyAssignment, createSwapRequest, insertShifts, fetchShiftIdsForWeek, deleteShiftsByIds,
+  insertDutyAssignment, createSwapRequest, insertShifts, fetchWeekShiftTimes, fetchShiftIdsForWeek, deleteShiftsByIds,
 } from '../../lib/api/shifts'
 import { sendPush } from '../../lib/sendPush'
 import { supabase } from '../../lib/supabase'
@@ -355,11 +355,7 @@ export default function RotaPage() {
 
     // Shifts already in this week are left alone, so pressing Copy twice (or
     // copying onto a part-built week) never doubles anything up.
-    const { data: already, error: alreadyErr } = await supabase
-      .from('shifts')
-      .select('staff_id, shift_date, start_time, end_time')
-      .eq('venue_id', venueId)
-      .eq('week_start', targetWeekStr)
+    const { data: already, error: alreadyErr } = await fetchWeekShiftTimes(venueId, targetWeekStr)
     if (alreadyErr) { toast(alreadyErr.message, 'error'); return }
     const shiftKey = (sh) => [sh.staff_id, sh.shift_date, (sh.start_time ?? '').slice(0, 5), (sh.end_time ?? '').slice(0, 5)].join('|')
     const alreadyThere = new Set((already ?? []).map(shiftKey))

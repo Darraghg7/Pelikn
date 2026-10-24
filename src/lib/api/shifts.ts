@@ -80,6 +80,10 @@ export function updateShiftStaff(id: string, staffId: string | null) {
 export function deleteShift(id: string) {
   return supabase.from('shifts').delete().eq('id', id)
 }
+/** Who works when in a week, for spotting shifts that are already there before copying onto it. */
+export function fetchWeekShiftTimes(venueId: string, weekStartStr: string) {
+  return supabase.from('shifts').select('staff_id, shift_date, start_time, end_time').eq('venue_id', venueId).eq('week_start', weekStartStr)
+}
 /** Ids of every shift in a week, read before a rebuild so the old ones can be removed after the new ones are safely in. */
 export function fetchShiftIdsForWeek(venueId: string, weekStartStr: string) {
   return supabase.from('shifts').select('id').eq('venue_id', venueId).eq('week_start', weekStartStr)
