@@ -16,6 +16,10 @@ textColor.ink4 = colors.ink3
 
 /** @type {import('tailwindcss').Config} */
 export default {
+  // hover: styles only apply on devices with a real mouse. On phones a tap
+  // first "hovers", and iOS can swallow that tap when the hover changes what
+  // is shown (the tick appearing in a check circle), so staff had to tap twice.
+  future: { hoverOnlyWhenSupported: true },
   darkMode: 'class',
   content: [
     './index.html',
