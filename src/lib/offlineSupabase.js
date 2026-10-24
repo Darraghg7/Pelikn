@@ -171,8 +171,14 @@ function reportClockReplay(item, error, gaveUp) {
   if (!gaveUp) updateQueueItem(item.id, { reported: true })
 }
 
-/** Retry all queued operations */
-export async function syncQueue() {
+/** Retry all queued operations. One run at a time: a second call joins the first. */
+let _syncing = null
+export function syncQueue() {
+  if (!_syncing) _syncing = runSync().finally(() => { _syncing = null })
+  return _syncing
+}
+
+async function runSync() {
   const queue = getQueue()
   if (queue.length === 0) return { synced: 0, failed: 0 }
 

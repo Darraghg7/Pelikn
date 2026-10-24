@@ -1092,7 +1092,7 @@ export default function MarketingPage() {
           <FadeUp>
             <h2 className="text-charcoal" style={BIG}>Live this<br />afternoon.</h2>
             <p className="text-charcoal/70 text-title-sm sm:text-title leading-[1.45] mt-10 max-w-lg">
-              No IT department needed. Open Pelikn in your browser, add it to your home screen and it works like any other app. Offline included.
+              No IT department needed. Open Pelikn in your browser, add it to your home screen and it works like any other app. Clock-ins are kept if the signal drops and sent when it returns.
             </p>
           </FadeUp>
           <div className="grid lg:grid-cols-3 gap-12 lg:gap-10 mt-20 sm:mt-28">

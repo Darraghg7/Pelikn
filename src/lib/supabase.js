@@ -244,13 +244,32 @@ if (!isConfigured) {
  * exponential back-off (1 s, 2 s). Reads (GET/HEAD) are not retried —
  * a stale read is not data loss.
  *
- * Aborts after 20 s per attempt. An AbortError is treated as retryable
- * on writes so that a slow connection gets a second chance.
+ * Aborts after 20 s per attempt (file uploads get far longer, see below).
+ *
+ * A timeout is NOT retried for a plain insert: by then the server may well have
+ * saved the first one, and sending it again made a duplicate. Only requests
+ * that are safe to repeat (updates, deletes, upserts) are retried after a
+ * timeout; a failed connection (the request never arrived) is retried for all.
  */
+const UPLOAD_TIMEOUT_MS = 5 * 60_000
+
+export function isStorageWrite(url, method) {
+  const u = typeof url === 'string' ? url : (url?.url ?? '')
+  return u.includes('/storage/v1/object/') && ['POST', 'PUT'].includes(method)
+}
+
+// Repeating it changes nothing the first time didn't: PATCH/PUT/DELETE set a
+// value, and an upsert (on_conflict) overwrites the same row.
+export function safeToRepeat(url, method) {
+  if (['PATCH', 'PUT', 'DELETE'].includes(method)) return true
+  const u = typeof url === 'string' ? url : (url?.url ?? '')
+  return method === 'POST' && u.includes('on_conflict=')
+}
+
 function makeRetryFetch(timeoutMs = 20_000, maxWriteRetries = 2) {
-  const doFetch = async (url, options) => {
+  const doFetch = async (url, options, limitMs = timeoutMs) => {
     const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), timeoutMs)
+    const timer = setTimeout(() => controller.abort(), limitMs)
     try {
       return await fetch(url, { ...options, signal: controller.signal })
     } finally {
@@ -289,7 +308,8 @@ function makeRetryFetch(timeoutMs = 20_000, maxWriteRetries = 2) {
     let didAuthRetry = false
     while (true) {
       try {
-        const response = await doFetch(url, options)
+        // A big file on a slow connection needs minutes, not 20 seconds.
+        const response = await doFetch(url, options, isStorageWrite(url, method) ? UPLOAD_TIMEOUT_MS : timeoutMs)
         // Feeds the background-refresh back-off (apiHealth). A 5xx means the
         // database is struggling; a 4xx is our own mistake and doesn't count.
         if (isRest) recordApiResult(response.status < 500)
@@ -341,9 +361,13 @@ function makeRetryFetch(timeoutMs = 20_000, maxWriteRetries = 2) {
         return response
       } catch (err) {
         // Only retry on network / abort errors (not 4xx/5xx — those aren't thrown)
-        const retryable = err?.name === 'AbortError' || err?.name === 'TypeError'
+        const timedOut = err?.name === 'AbortError'
+        const retryable = timedOut || err?.name === 'TypeError'
         if (isRest && retryable) recordApiResult(false)
-        if (isWrite && retryable && writeRetries < maxWriteRetries) {
+        // After a timeout the first attempt may have gone through: only repeat
+        // what is safe to repeat. Uploads are never repeated blindly.
+        const mayRepeat = !timedOut || (safeToRepeat(url, method) && !isStorageWrite(url, method))
+        if (isWrite && retryable && mayRepeat && writeRetries < maxWriteRetries) {
           writeRetries += 1
           console.warn(`[Pelikn] Write attempt ${writeRetries} failed (${err.message}), retrying…`)
           await new Promise(r => setTimeout(r, 1000 * writeRetries)) // 1 s, 2 s
@@ -367,6 +391,13 @@ export const supabase = createClient(
     },
     global: {
       fetch: makeRetryFetch(20_000, 2),
+    },
+    realtime: {
+      // The default retries every 1-10 s for ever. When the socket can't connect
+      // (blocked network, realtime unavailable) that is a constant stream of
+      // failed connections; back off to once a minute. Screens still refresh by
+      // their own timers meanwhile.
+      reconnectAfterMs: (tries) => [1_000, 2_000, 5_000, 10_000, 30_000][tries - 1] ?? 60_000,
     },
   }
 )

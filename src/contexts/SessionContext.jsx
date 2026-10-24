@@ -683,6 +683,11 @@ export function SessionProvider({ children }) {
     localStorage.setItem(sessDataKey(staffId), JSON.stringify(newSession))
     cachePinRecord(staffId, pin).catch((e) => reportError(e, 'SessionContext:cache-offline-pin'))
 
+    // Anything this device was holding for this person (a clock punch taken
+    // offline) can be sent now that their session is live; on a shared tablet it
+    // would otherwise wait for the next timer.
+    import('../lib/offlineSupabase').then(({ syncQueue }) => syncQueue()).catch((e) => reportError(e, 'SessionContext:sync-after-sign-in'))
+
     // Register for native iOS push notifications (no-op on web)
     import('../hooks/useNativePush').then(({ registerNativePush }) => {
       registerNativePush(newSession.staffId, newSession.venueId)

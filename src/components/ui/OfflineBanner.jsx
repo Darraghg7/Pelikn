@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { queueCount } from '../../lib/offlineQueue'
 import { syncQueue } from '../../lib/offlineSupabase'
 import { useToast } from './Toast'
@@ -27,20 +27,28 @@ export default function OfflineBanner() {
     return () => clearInterval(interval)
   }, [])
 
-  // Auto-sync when coming back online
+  // Auto-sync when coming back online. Held in a ref: if this function changed
+  // every time `syncing` flipped, the effect below re-ran the moment a sync
+  // ended, so one item the server kept refusing was re-sent non-stop.
+  const syncingRef = useRef(false)
   const doSync = useCallback(async () => {
-    if (pending === 0 || syncing) return
+    if (queueCount() === 0 || syncingRef.current) return
+    syncingRef.current = true
     setSyncing(true)
     const { synced, failed } = await syncQueue()
     setPending(queueCount())
+    syncingRef.current = false
     setSyncing(false)
     if (synced > 0) toast(`Synced ${synced} offline record${synced !== 1 ? 's' : ''}`)
     if (failed > 0) toast(`${failed} record${failed !== 1 ? 's' : ''} failed to sync`, 'error')
-  }, [pending, syncing, toast])
+  }, [toast])
 
+  // On going online, and when something new joins the queue. NOT when a sync
+  // ends with items still waiting: the timer below retries those, once a minute.
   useEffect(() => {
     if (online && pending > 0) doSync()
-  }, [online, pending, doSync])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- doSync is stable; only these two should trigger it
+  }, [online, pending > 0])
 
   // Safety-net retry — the native online/offline events only fire on actual
   // connectivity changes, but navigator.onLine only reflects "connected to a
@@ -67,7 +75,7 @@ export default function OfflineBanner() {
         : 'bg-danger/10 text-danger'
     }`}>
       {!online ? (
-        <span>You're offline. Data will be saved locally and synced when reconnected</span>
+        <span>You're offline. Clock-ins are saved on this device and sent when you reconnect. Everything else needs a connection, so it won't save until you're back.</span>
       ) : syncing ? (
         <span>Syncing {pending} offline record{pending !== 1 ? 's' : ''}...</span>
       ) : (
