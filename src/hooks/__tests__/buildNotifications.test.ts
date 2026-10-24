@@ -114,6 +114,17 @@ describe('buildNotifications', () => {
     expect(out.map(n => n.severity)).toEqual(['critical', 'warning', 'info'])
   })
 
+  it('does not say fridges are unchecked at 11am when the morning checks are done', () => {
+    // Friday: AM logged, PM not due until noon.
+    const d = data({
+      fridges: [{ id: 'f1', name: 'Walk-in' }],
+      fridge_logs_today: [{ fridge_id: 'f1', check_period: 'am', temperature: 3, fridge: { name: 'Walk-in', min_temp: 0, max_temp: 5 } }],
+    })
+    expect(ids(d)).not.toContain('fridge-unchecked')
+    // After noon the PM check is due, so it does flag.
+    expect(buildNotifications(d, new Date(2026, 8, 25, 13, 0, 0)).map(n => n.id)).toContain('fridge-unchecked')
+  })
+
   it('ignores explained fridge exceedances', () => {
     const fridge = { name: 'Walk-in', min_temp: 0, max_temp: 5 }
     const d = data({

@@ -239,7 +239,7 @@ function DesktopStatGrid({ summary, venueSlug, isEnabled, closedToday }) {
         label="Critical"
         value={summary.criticalActions}
         variant={summary.criticalActions > 0 ? 'danger' : 'good'}
-        to={vp('/corrective-actions')}
+        to={vp('/corrective')}
       />
       <StatTile
         label="Time Off"

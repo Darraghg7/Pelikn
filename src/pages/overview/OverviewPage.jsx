@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { format } from 'date-fns'
-import { Link, Navigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
 import { useAuth } from '../../contexts/AuthContext'
@@ -85,7 +85,7 @@ function VenueCard({ result, isHome, onOpen }) {
     <div className={`${CARD} flex flex-col overflow-hidden`}>
       <Link
         to={to('/dashboard')}
-        onClick={() => onOpen(venue.slug)}
+        onClick={(e) => onOpen(venue.slug, e)}
         className="flex items-start gap-3 px-5 pt-4 pb-3.5 hover:bg-ink/[0.03] dark:hover:bg-white/5 transition-colors"
       >
         <div className="min-w-0 flex-1">
@@ -106,7 +106,7 @@ function VenueCard({ result, isHome, onOpen }) {
 
       <div className="flex-1 border-t border-line dark:border-white/10">
         {status === 'error' ? (
-          <p className="px-5 py-4 text-body-sm text-ink3 dark:text-white/55 m-0">This venue's numbers didn't load. Open it to check directly.</p>
+          <p className="px-5 py-4 text-body-sm text-ink3 dark:text-white/55 m-0">This venue's numbers aren't shown here. Open it to check directly.</p>
         ) : actions.length === 0 ? (
           <div className="px-5 py-4 flex items-center gap-2 text-body-sm text-ink3 dark:text-white/55">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="stroke-good dark:stroke-goodDark shrink-0" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
@@ -118,7 +118,7 @@ function VenueCard({ result, isHome, onOpen }) {
               <li key={a.id}>
                 <Link
                   to={to(a.route)}
-                  onClick={() => onOpen(venue.slug)}
+                  onClick={(e) => onOpen(venue.slug, e)}
                   className="flex items-center gap-2.5 px-5 py-3 hover:bg-ink/[0.03] dark:hover:bg-white/5 transition-colors"
                 >
                   <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${URGENCY_DOT[a.urgency]}`} />
@@ -217,7 +217,7 @@ function VenueRow({ result, isHome, onOpen }) {
     <li>
       <Link
         to={`/v/${venue.slug}/dashboard`}
-        onClick={() => onOpen(venue.slug)}
+        onClick={(e) => onOpen(venue.slug, e)}
         className={`grid grid-cols-[minmax(0,1fr)_auto_20px] ${GRID_COLS} items-center gap-x-3 px-5 py-3 hover:bg-ink/[0.03] dark:hover:bg-white/5 transition-colors`}
       >
         <div className="min-w-0 flex items-start gap-2.5">
@@ -404,16 +404,34 @@ export function OverviewLayout({ results, aggregate, loading, venueCount, homeSl
 }
 
 export default function OverviewPage() {
-  const { isManager } = useSession()
+  const { isManager, session, linkedVenues, switchVenue } = useSession()
   const { venueSlug, venuePlan } = useVenue()
-  const { venues, selectVenue } = useAuth()
+  const { user, venues, selectVenue } = useAuth()
+  const navigate = useNavigate()
 
-  const allVenues = venues ?? []
+  // An owner signed in by PIN has no email account, so `venues` is empty for
+  // them: the group is the venues linked to their PIN session instead.
+  const pinOnly = !user
+  const allVenues = venues?.length ? venues : (linkedVenues ?? [])
   const isMultiVenue = isManager && allVenues.length > 1
+  // A PIN session can only read the venue it is signed in to. The others used
+  // to come back as zeros and read as "All clear".
+  const unreadableIds = pinOnly ? allVenues.filter(v => v.id !== session?.venueId).map(v => v.id) : []
+
+  const openVenue = (slug, e) => {
+    if (!pinOnly) { selectVenue(slug); return }
+    // The PIN session has to move with the person before the page does.
+    const target = allVenues.find(v => v.slug === slug)
+    if (!target || target.id === session?.venueId) return
+    e?.preventDefault()
+    switchVenue(target.id, target.slug).then(({ error }) => {
+      if (!error) navigate(`/v/${slug}/dashboard`, { replace: true })
+    })
+  }
 
   // All hooks must run before the single-venue redirect below — `venues` resolves
   // asynchronously, so isMultiVenue flips false → true after mount.
-  const { results, aggregate, loading } = useAllVenueCompliance(isMultiVenue ? allVenues : [], venuePlan)
+  const { results, aggregate, loading } = useAllVenueCompliance(isMultiVenue ? allVenues : [], venuePlan, unreadableIds)
 
   if (!isMultiVenue) return <Navigate to={`/v/${venueSlug}/dashboard`} replace />
 
@@ -424,7 +442,7 @@ export default function OverviewPage() {
       loading={loading}
       venueCount={allVenues.length}
       homeSlug={venueSlug}
-      onOpen={selectVenue}
+      onOpen={openVenue}
       skeletonVenues={allVenues}
     />
   )

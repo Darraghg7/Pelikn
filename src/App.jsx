@@ -23,7 +23,7 @@ import RequireBilling          from './components/billing/RequireBilling'
 import UpdateBanner            from './components/ui/UpdateBanner'
 import ErrorBoundary           from './components/ui/ErrorBoundary'
 import { preloadAppRoutes }    from './lib/routePreload'
-import { SESSION_TOKEN_KEY }   from './lib/constants'
+import { SESSION_TOKEN_KEY, SESSION_VENUE_SLUG_KEY } from './lib/constants'
 
 // Auth
 const LoginPage = lazy(() => import('./pages/LoginPage'))
@@ -301,9 +301,17 @@ function LandingRoute() {
 
 // ── Legacy redirect: old paths → /v/default/... ─────────────────────────────
 
+// A bare path like /rota (an old bookmark, or a notification tapped while the
+// app was closed) goes to the venue this device last used. It used to go to a
+// venue called "default", which doesn't exist: "We can't find that venue".
 function LegacyRedirect() {
-  const path = window.location.pathname
-  return <Navigate to={`/v/default${path}`} replace />
+  const { pathname, search } = window.location
+  let slug = null
+  try {
+    slug = localStorage.getItem(SESSION_VENUE_SLUG_KEY) || localStorage.getItem('pelikn_last_venue')
+  } catch { /* storage unavailable: fall through to the sign-in screen */ }
+  if (!slug) return <Navigate to="/login" replace />
+  return <Navigate to={`/v/${slug}${pathname}${search}`} replace />
 }
 
 function SettingsRedirect() {
@@ -645,6 +653,11 @@ export default function App() {
           <Route path="/waste"           element={<LegacyRedirect />} />
           <Route path="/orders"          element={<LegacyRedirect />} />
           <Route path="/settings"        element={<LegacyRedirect />} />
+          <Route path="/clock-in"        element={<LegacyRedirect />} />
+          <Route path="/team"            element={<LegacyRedirect />} />
+          <Route path="/staff"           element={<LegacyRedirect />} />
+          <Route path="/documents"       element={<LegacyRedirect />} />
+          <Route path="/hot-holding"     element={<LegacyRedirect />} />
 
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

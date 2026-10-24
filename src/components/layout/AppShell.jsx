@@ -422,7 +422,7 @@ function useSidebarSections(venueId, localPath) {
 export default function AppShell({ children }) {
   const { session, isManager, isRestricted, signOut, switchVenue, linkedVenues, hasMultiVenueAccess, hasPermission } = useSession()
   const { venueId, venueSlug, venueName } = useVenue()
-  const { venues, selectVenue } = useAuth()
+  const { venues, selectVenue, signOutVenue } = useAuth()
   const location     = useLocation()
   const navigate     = useNavigate()
   // The rail/panel badges are the only consumers of these two counts, and the
@@ -446,8 +446,11 @@ export default function AppShell({ children }) {
     ? (location.pathname.slice(base.length) || '/')
     : location.pathname
 
+  // Ends the PIN session and any owner email login, as Settings does: the
+  // PIN session alone left the email login live for the next person on the device.
   const handleSignOut = () => {
     signOut()
+    signOutVenue()
     navigate(`/v/${venueSlug}`, { replace: true })
   }
 
@@ -507,7 +510,8 @@ export default function AppShell({ children }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const isMultiVenue = isManager && (venues?.length ?? 0) > 1
+  // PIN-signed-in owners have no email venue list; their linked venues count too.
+  const isMultiVenue = isManager && allSwitchableVenues.length > 1
 
   // Rail pick — also re-opens panel if it was collapsed
   const handlePickCat = (catId) => {
@@ -532,10 +536,10 @@ export default function AppShell({ children }) {
     id: 'overview',
     label: 'Overview',
     title: 'My Venues',
-    subtitle: `${venues.length} venue${venues.length !== 1 ? 's' : ''} · Multi-venue view`,
+    subtitle: `${allSwitchableVenues.length} venue${allSwitchableVenues.length !== 1 ? 's' : ''} · Multi-venue view`,
     icon: <IcoOverview />,
     items: [
-      { id: 'overview',    label: 'Group Overview', sub: `All ${venues.length} venues at a glance`, icon: PanelIcons.dashboard, route: vp('/overview') },
+      { id: 'overview',    label: 'Group Overview', sub: `All ${allSwitchableVenues.length} venues at a glance`, icon: PanelIcons.dashboard, route: vp('/overview') },
       ...(isEnabled('noticeboard') ? [{ id: 'noticeboard', label: 'Noticeboard', sub: 'Group-wide announcements', icon: PanelIcons.board, route: vp('/noticeboard') }] : []),
     ],
   } : null
