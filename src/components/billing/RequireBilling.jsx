@@ -8,6 +8,7 @@
 import React from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import { useSession } from '../../contexts/SessionContext'
+import { useAuth } from '../../contexts/AuthContext'
 import { useVenue } from '../../contexts/VenueContext'
 import useBilling from '../../hooks/useBilling'
 import Button from '../ui/Button'
@@ -32,7 +33,10 @@ export default function RequireBilling({ children }) {
   const { pathname } = useLocation()
   const { venueSlug } = useParams()
   const { venueName } = useVenue()
-  const { isManager, signOut } = useSession()
+  const { isManager, signOut: endPinSession } = useSession()
+  const { signOutVenue } = useAuth()
+  // Both logins, so the locked screen doesn't leave an owner email session behind.
+  const signOut = () => { endPinSession(); signOutVenue() }
 
   if (access.state !== 'locked' || pathname.endsWith('/settings/billing')) return children
 

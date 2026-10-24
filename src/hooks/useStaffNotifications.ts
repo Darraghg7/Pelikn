@@ -131,7 +131,7 @@ async function checkMyUpcomingShift(items: StaffNotification[], staffId: string,
         id: `shift-${shift.id}`,
         type: 'upcoming_shift',
         message: `Shift starting at ${shift.start_time.slice(0, 5)} today`,
-        link: '/clock',
+        link: '/clock-in',
         severity: 'info',
       })
     }

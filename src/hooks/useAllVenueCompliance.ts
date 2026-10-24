@@ -159,9 +159,10 @@ async function fetchVenueOverview(venue: Venue, plan: string): Promise<VenueOver
 
 const NO_USES = { checks: false, fridges: false, cleaning: false, critical: false, leave: false, rota: false }
 
-async function fetchAll(venues: Venue[], plan: string): Promise<VenueOverview[]> {
+async function fetchAll(venues: Venue[], plan: string, unreadableIds: string[] = []): Promise<VenueOverview[]> {
+  const skip = new Set(unreadableIds)
   // One venue failing (a permissions gap, a timeout) must not blank the rest.
-  const settled = await Promise.allSettled(venues.map(v => fetchVenueOverview(v, plan)))
+  const settled = await Promise.allSettled(venues.map(v => skip.has(v.id) ? Promise.reject(new Error('not readable from this sign-in')) : fetchVenueOverview(v, plan)))
   return venues.map((venue, i) => {
     const r = settled[i]
     if (r.status === 'fulfilled') return r.value
@@ -175,17 +176,18 @@ async function fetchAll(venues: Venue[], plan: string): Promise<VenueOverview[]>
  * venue's own dashboard makes — and its alerts from the same Today item
  * registry, so the two never disagree.
  */
-export function useAllVenueCompliance(venues: Venue[] | null | undefined, plan: string): {
+export function useAllVenueCompliance(venues: Venue[] | null | undefined, plan: string, unreadableIds: string[] = []): {
   results: VenueOverview[]
   aggregate: OverviewAggregate
   loading: boolean
 } {
   const list = venues ?? []
   const venueIds = list.map(v => v.id).join(',')
+  const unreadableKey = unreadableIds.join(',')
 
   const { data: results, isLoading: loading } = useQuery({
-    queryKey: ['all-venue-overview', venueIds, plan],
-    queryFn: () => fetchAll(list, plan),
+    queryKey: ['all-venue-overview', venueIds, plan, unreadableKey],
+    queryFn: () => fetchAll(list, plan, unreadableKey ? unreadableKey.split(',') : []),
     enabled: list.length > 0,
     staleTime: 30_000,
     refetchInterval: 120_000,

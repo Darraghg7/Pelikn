@@ -71,9 +71,11 @@ export async function registerNativePush(staffId: string, venueId: string, navig
       // Notification tapped — navigate to the URL in the payload
       await PushNotifications.addListener('pushNotificationActionPerformed', ({ notification }) => {
         const url = (notification?.data as { url?: string })?.url
-        if (url && navigate) {
-          navigate(url)
-        }
+        if (!url) return
+        // Nothing passes a router navigate in, so the tap used to do nothing.
+        // A full load of the in-app path (already under /v/<venue>) is fine.
+        if (navigate) navigate(url)
+        else window.location.assign(url)
       })
     }
   } catch (err) {

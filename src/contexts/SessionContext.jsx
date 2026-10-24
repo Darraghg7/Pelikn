@@ -702,32 +702,41 @@ export function SessionProvider({ children }) {
     })
     if (error || !newToken) return { error: error ?? new Error('Switch failed') }
 
-    // Invalidate the old token now that a new one is active — fire-and-forget
+    // Get a venue-scoped JWT for the target venue BEFORE anything else changes.
+    // This used to ignore a failure: the old venue's JWT stayed active under the
+    // new venue's screens, so they came up empty and anything saved was judged
+    // against the wrong venue. If no JWT comes back, stay where we were.
+    const fetchJwt = async () => {
+      try {
+        const res = await fetch(`${supabaseUrl}/functions/v1/pin-login`, {
+          method:  'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseAnonKey}`,
+            'apikey':        supabaseAnonKey,
+          },
+          body: JSON.stringify({ action: 'issue_jwt', session_token: newToken, venue_id: targetVenueId }),
+        })
+        if (!res.ok) return null
+        const { jwt } = await res.json()
+        return jwt || null
+      } catch { return null }
+    }
+    const newJwt = (await fetchJwt()) ?? (await fetchJwt())
+    if (!newJwt) {
+      // The new session is no use without a JWT: end it and keep the old one.
+      fireAndForgetRpc('invalidate_staff_session', { p_token: newToken })
+      return { error: new Error('Could not open that venue. Check your connection and try again.') }
+    }
+
+    // Invalidate the old token now that the new one is fully usable — fire-and-forget
     fireAndForgetRpc('invalidate_staff_session', { p_token: token })
 
     localStorage.setItem(SESSION_TOKEN_KEY,      newToken)
     localStorage.setItem(SESSION_VENUE_ID_KEY,   targetVenueId)
     localStorage.setItem(SESSION_VENUE_SLUG_KEY, targetVenueSlug)
-
-    // Get a new venue-scoped JWT for the target venue
-    try {
-      const res = await fetch(`${supabaseUrl}/functions/v1/pin-login`, {
-        method:  'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseAnonKey}`,
-          'apikey':        supabaseAnonKey,
-        },
-        body: JSON.stringify({ action: 'issue_jwt', session_token: newToken, venue_id: targetVenueId }),
-      })
-      if (res.ok) {
-        const { jwt } = await res.json()
-        if (jwt) {
-          localStorage.setItem(SESSION_JWT_KEY, jwt)
-          setSessionJwt(jwt)
-        }
-      }
-    } catch { /* non-critical — JWT can be refreshed on next login */ }
+    localStorage.setItem(SESSION_JWT_KEY, newJwt)
+    setSessionJwt(newJwt)
 
     // Reflect the switch in React state. SessionProvider is mounted inside the
     // /v/:venueSlug/* route, so it does NOT remount when only the slug param

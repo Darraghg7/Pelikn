@@ -3,7 +3,7 @@ import { format, subDays, parseISO } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { throwIfError, rpcCannotRun } from '../lib/queryErrors'
 import { useVenue } from '../contexts/VenueContext'
-import { isCheckRequired } from '../lib/temperatureChecks'
+import { isCheckRequired, getActivePeriods } from '../lib/temperatureChecks'
 import { cleaningStatus, isVenueClosedOn } from './useCleaningTasks'
 import type { CleaningTask, CleaningCompletion } from '../lib/api/cleaning'
 
@@ -332,7 +332,9 @@ function checkFridgeAlerts(items: AppNotification[], d: NotificationData, now: D
     // schedule. Mirrors isCheckRequired() / the dashboard's fallback path.
     const unchecked = fridges.filter(f => {
       const logged = loggedPeriodsByFridge.get(f.id) ?? new Set()
-      return ['am', 'pm'].some(period => isCheckRequired(f, now, period) && !logged.has(period))
+      // Only periods that have started: before noon a PM reading isn't due yet,
+      // and it used to trigger "not checked today" at 10am with the AM checks done.
+      return getActivePeriods(now).some(period => isCheckRequired(f, now, period) && !logged.has(period))
     })
     if (unchecked.length > 0 && now.getHours() >= 10) {
       items.push({ id: 'fridge-unchecked', type: 'fridge_unchecked', message: `${unchecked.length} fridge${unchecked.length > 1 ? 's' : ''} not checked today: ${unchecked.map(f => f.name).join(', ')}`, link: '/fridge', severity: 'warning' })

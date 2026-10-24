@@ -11,6 +11,31 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)))
 }
 
+/**
+ * Make this browser's subscription belong to this person only. Push follows the
+ * browser, not the signed-in person: on a shared device the last person kept
+ * getting alerts and the next person got none. Stores a row for this person and
+ * removes any other person's row for the same browser. Throws if the row can't
+ * be stored; a failure to clear the others is reported but not fatal.
+ */
+async function claimSubscription(staffId: string, venueId: string, sub: PushSubscription): Promise<void> {
+  const { endpoint, keys } = sub.toJSON() as { endpoint?: string; keys?: { p256dh: string; auth: string } }
+  const { error } = await supabase.from('push_subscriptions').upsert({
+    staff_id: staffId,
+    venue_id: venueId,
+    endpoint,
+    p256dh:   keys?.p256dh,
+    auth_key: keys?.auth,
+  }, { onConflict: 'staff_id,endpoint' })
+  if (error) throw error
+  if (!endpoint) return
+  const { error: clearErr } = await supabase.from('push_subscriptions')
+    .delete()
+    .eq('endpoint', endpoint)
+    .neq('staff_id', staffId)
+  if (clearErr) reportError(clearErr, 'usePushNotifications:claim-clear-others')
+}
+
 export function usePushNotifications(staffId: string, venueId: string): {
   supported: boolean
   permission: NotificationPermission | 'default'
@@ -35,10 +60,19 @@ export function usePushNotifications(staffId: string, venueId: string): {
 
   useEffect(() => {
     if (!supported || !staffId || !venueId) return
+    let cancelled = false
     navigator.serviceWorker.ready.then(async reg => {
       const sub = await reg.pushManager.getSubscription()
+      if (cancelled) return
       setSubscribed(!!sub)
+      // The browser is already subscribed (permission was given earlier, maybe
+      // by someone else on this device): make sure it is registered for THIS
+      // person, and no longer for the last one.
+      if (sub && Notification.permission === 'granted') {
+        claimSubscription(staffId, venueId, sub).catch(e => reportError(e, 'usePushNotifications:claim'))
+      }
     })
+    return () => { cancelled = true }
   }, [supported, staffId, venueId])
 
   const subscribe = useCallback(async () => {
@@ -55,17 +89,9 @@ export function usePushNotifications(staffId: string, venueId: string): {
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       })
 
-      const { endpoint, keys } = sub.toJSON() as { endpoint?: string; keys?: { p256dh: string; auth: string } }
-      const { error } = await supabase.from('push_subscriptions').upsert({
-        staff_id: staffId,
-        venue_id: venueId,
-        endpoint,
-        p256dh:   keys?.p256dh,
-        auth_key: keys?.auth,
-      }, { onConflict: 'staff_id,endpoint' })
       // Without the stored subscription the server has nowhere to send alerts,
-      // so don't show "on" — the browser side alone does nothing.
-      if (error) throw error
+      // so don't show "on" — the browser side alone does nothing. Throws on failure.
+      await claimSubscription(staffId, venueId, sub)
 
       setSubscribed(true)
     } catch (err) {
