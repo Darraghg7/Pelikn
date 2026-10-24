@@ -357,10 +357,11 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
     const item = checklist[id]
     if (!item) return
     const val = parseFloat(reading)
-    const pass = isNaN(val) || (
+    // No reading (blank, or a half-typed "-") is not a pass: it used to be,
+    // so a chilled delivery could be signed off without ever being probed.
+    const pass = !Number.isNaN(val) &&
       (item.minTemp == null || val >= item.minTemp) &&
       (item.maxTemp == null || val <= item.maxTemp)
-    )
     setChecklist(prev => ({
       ...prev,
       [id]: { ...prev[id], tempReading: reading, tempPass: pass }
@@ -381,9 +382,20 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
 
   // ── Save delivery ──
   const saveDelivery = async () => {
-    setSaving(true)
     const itemEntries = Object.entries(checklist)
-    const anyTempFail = itemEntries.some(([, v]) => v.tempRequired && !v.tempPass)
+
+    // Every chilled or frozen item that arrived needs a probe reading before
+    // the check can be completed. Items not received are already a fail.
+    const unprobed = itemEntries
+      .filter(([, v]) => v.tempRequired && v.received && Number.isNaN(parseFloat(v.tempReading)))
+      .map(([, v]) => v.itemName)
+    if (unprobed.length) {
+      toast(`Take a temperature for ${unprobed.join(', ')}`, 'error')
+      return
+    }
+
+    setSaving(true)
+    const anyTempFail = itemEntries.some(([, v]) => v.tempRequired && v.received && !v.tempPass)
     const anyMissing = itemEntries.some(([, v]) => !v.received)
     const overallPass = !anyTempFail && !anyMissing && packagingOk && useByOk
 
@@ -536,6 +548,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                       {item.received && (
                         <div className="flex items-center gap-2 sm:ml-12">
                           <input
+                            aria-label={`Temperature for ${item.itemName}`}
                             type="number"
                             step="0.1"
                             value={item.tempReading}

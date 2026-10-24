@@ -7,10 +7,10 @@ import { SkeletonList } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import LoadError from '../../components/ui/LoadError'
 import Button, { CloseButton } from '../../components/ui/Button'
+import { recipeAllergens } from '../../lib/ppdsLabel'
 
 function AllergenSummary({ ingredients, mayContain }) {
-  const inIngredients = ingredients?.filter(r => r.allergen).map(r => r.allergen) ?? []
-  const unique        = [...new Set(inIngredients)]
+  const unique        = recipeAllergens(ingredients)
   const mc            = mayContain ?? []
 
   if (unique.length === 0 && mc.length === 0) {

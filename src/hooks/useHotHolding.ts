@@ -257,13 +257,18 @@ export function useHotHoldingMatrix(dateFrom: string, dateTo: string): {
       ])
       if (logsErr) throw logsErr
 
-      const matrix: Record<string, Record<string, Record<string, HotHoldingLog>>> = {}
+      // Newest reading per slot, with earlier ones kept on `earlier` so the
+      // history view can show a failed reading behind its re-check (same as
+      // the fridge matrix).
+      const matrix: Record<string, Record<string, Record<string, HotHoldingLog & { earlier?: HotHoldingLog[] }>>> = {}
       for (const log of (logs ?? []) as HotHoldingLog[]) {
         const day = format(new Date(log.logged_at), 'yyyy-MM-dd')
         const period = log.check_period === 'pm' ? 'pm' : 'am'
         matrix[log.item_id] ??= {}
         matrix[log.item_id][day] ??= {}
-        matrix[log.item_id][day][period] ??= log
+        const cell = matrix[log.item_id][day][period]
+        if (!cell) matrix[log.item_id][day][period] = { ...log, earlier: [] }
+        else cell.earlier!.push(log)
       }
       return { items, matrix }
     },

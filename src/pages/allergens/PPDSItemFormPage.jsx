@@ -6,8 +6,13 @@ import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import { EU_ALLERGENS } from '../../lib/constants'
 import Button, { CloseButton } from '../../components/ui/Button'
+import PPDSIngredients from '../../components/allergens/PPDSIngredients'
+import { ingredientAllergens } from '../../lib/ppdsLabel'
 
-const EMPTY_INGREDIENT = { name: '', allergen: null }
+const EMPTY_INGREDIENT = { name: '', allergens: [] }
+
+// Rows saved before multi-allergen ingredients have { allergen }.
+const toRow = (r) => ({ name: r?.name ?? '', allergens: ingredientAllergens(r) })
 
 export default function PPDSItemFormPage() {
   const { id }              = useParams()
@@ -32,7 +37,7 @@ export default function PPDSItemFormPage() {
     populatedFor.current = id
     setName(item.name)
     setDesc(item.description ?? '')
-    setIngredients(item.ingredients?.length ? item.ingredients : [{ ...EMPTY_INGREDIENT }])
+    setIngredients(item.ingredients?.length ? item.ingredients.map(toRow) : [{ ...EMPTY_INGREDIENT }])
     setMayContain(item.may_contain_allergens ?? [])
   }, [id, isEdit, item, itemLoading, failed]) // eslint-disable-line react-hooks/exhaustive-deps -- toast/navigate/venueSlug are only used on the not-found path
 
@@ -40,6 +45,12 @@ export default function PPDSItemFormPage() {
 
   const setIngr = (idx, field, val) =>
     setIngredients(prev => prev.map((r, i) => i === idx ? { ...r, [field]: val } : r))
+
+  const addAllergen = (idx, a) =>
+    setIngredients(prev => prev.map((r, i) => i === idx && !r.allergens.includes(a) ? { ...r, allergens: [...r.allergens, a] } : r))
+
+  const removeAllergen = (idx, a) =>
+    setIngredients(prev => prev.map((r, i) => i === idx ? { ...r, allergens: r.allergens.filter(x => x !== a) } : r))
 
   const addIngredient = () => setIngredients(prev => [...prev, { ...EMPTY_INGREDIENT }])
 
@@ -71,7 +82,9 @@ export default function PPDSItemFormPage() {
 
   const save = async () => {
     if (!name.trim()) { toast('Product name is required', 'error'); return }
-    const clean = ingredients.filter(r => r.name.trim())
+    const clean = ingredients
+      .filter(r => r.name.trim())
+      .map(r => ({ name: r.name.trim(), allergens: r.allergens }))
     if (clean.length === 0) { toast('Add at least one ingredient', 'error'); return }
     setSaving(true)
 
@@ -134,7 +147,7 @@ export default function PPDSItemFormPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Ingredients</p>
-            <p className="text-xs text-charcoal/35 dark:text-white/30 mt-0.5">In descending order by weight. Tick the allergen if one applies.</p>
+            <p className="text-xs text-charcoal/35 dark:text-white/30 mt-0.5">In descending order by weight. Add every allergen an ingredient contains.</p>
           </div>
         </div>
 
@@ -163,29 +176,41 @@ export default function PPDSItemFormPage() {
                 </button>
               </div>
 
-              {/* Ingredient name */}
-              <input
-                value={row.name}
-                onChange={e => setIngr(idx, 'name', e.target.value)}
-                placeholder={`Ingredient ${idx + 1}`}
-                className="flex-1 px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
-              />
+              <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                <div className="flex items-start gap-2">
+                  {/* Ingredient name */}
+                  <input
+                    aria-label={`Ingredient ${idx + 1}`}
+                    value={row.name}
+                    onChange={e => setIngr(idx, 'name', e.target.value)}
+                    placeholder={`Ingredient ${idx + 1}`}
+                    className="flex-1 min-w-0 px-3 py-2 rounded-control border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                  />
 
-              {/* Allergen selector */}
-              <select
-                aria-label={`Allergen for ingredient ${idx + 1}`}
-                value={row.allergen ?? ''}
-                onChange={e => setIngr(idx, 'allergen', e.target.value || null)}
-                className={`px-2 py-2 rounded-control border text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 ${
-                  row.allergen
-                    ? 'border-amber-300 bg-amber-50 text-amber-800 font-medium'
-                    : 'border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal/40 dark:text-white/35'
-                }`}
-                style={{ minWidth: '100px' }}
-              >
-                <option value="">No allergen</option>
-                {EU_ALLERGENS.map(a => <option key={a} value={a}>{a}</option>)}
-              </select>
+                  {/* Add an allergen (an ingredient can have several) */}
+                  <select
+                    aria-label={`Add an allergen to ingredient ${idx + 1}`}
+                    value=""
+                    onChange={e => { if (e.target.value) addAllergen(idx, e.target.value) }}
+                    className="px-2 py-2 rounded-control border text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal/60 dark:text-white/50"
+                    style={{ minWidth: '100px' }}
+                  >
+                    <option value="">+ Allergen</option>
+                    {EU_ALLERGENS.filter(a => !row.allergens.includes(a)).map(a => <option key={a} value={a}>{a}</option>)}
+                  </select>
+                </div>
+
+                {row.allergens.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {row.allergens.map(a => (
+                      <span key={a} className="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full border border-amber-300 bg-amber-50 text-amber-800 text-xs font-medium">
+                        {a}
+                        <CloseButton label={`Remove ${a} from ingredient ${idx + 1}`} onClick={() => removeAllergen(idx, a)} />
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* Remove */}
               <CloseButton label="Remove ingredient" className="shrink-0" onClick={() => removeIngredient(idx)} disabled={ingredients.length === 1} />
@@ -208,18 +233,7 @@ export default function PPDSItemFormPage() {
             <p className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-1">Label preview</p>
             <p className="text-xs text-charcoal/70 dark:text-white/60 leading-relaxed font-sans">
               <span className="font-bold">INGREDIENTS: </span>
-              {ingredients
-                .filter(r => r.name.trim())
-                .map((r, i, arr) => (
-                  <React.Fragment key={i}>
-                    {r.allergen
-                      ? <strong className="font-bold underline">{r.name.trim()}</strong>
-                      : <span>{r.name.trim()}</span>
-                    }
-                    {i < arr.length - 1 ? ', ' : '.'}
-                  </React.Fragment>
-                ))
-              }
+              <PPDSIngredients rows={ingredients} />
             </p>
           </div>
         )}
