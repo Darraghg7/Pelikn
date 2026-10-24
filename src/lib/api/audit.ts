@@ -16,7 +16,8 @@ export interface AuditRawData {
 export async function fetchAuditData(venueId: string, sinceTs: string): Promise<AuditRawData> {
   const [tempLogs, cleaningTasks, cleaningCompletions, deliveryChecks, probeCalibrations, correctiveActions, training, staff] = await Promise.all([
     supabase.from('fridge_temperature_logs')
-      .select('id, temperature, logged_at, exceedance_reason, logged_by_name, is_resolved, fridge:fridge_id(name, min_temp, max_temp)')
+      // '*' so the range snapshot and audit columns (163) come back when they exist.
+      .select('*, fridge:fridge_id(name, min_temp, max_temp)')
       .eq('venue_id', venueId).gte('logged_at', sinceTs).order('logged_at', { ascending: false }),
     supabase.from('cleaning_tasks')
       .select('id, title, frequency').eq('venue_id', venueId).eq('is_active', true),
@@ -60,7 +61,29 @@ export function resolveAuditRecord(table: string, id: string) {
   return supabase.from(table).update({ is_resolved: true, resolved_at: new Date().toISOString() }).eq('id', id)
 }
 
-/** Corrective actions use a status field instead of is_resolved. */
-export function resolveCorrectiveAction(id: string) {
-  return supabase.from('corrective_actions').update({ status: 'resolved' }).eq('id', id)
+/**
+ * Corrective actions use a status field instead of is_resolved. Records who
+ * closed it and when, as the Corrective Actions page does — without them the
+ * PDFs and the action list showed "Resolved by: -" for anything closed here.
+ */
+export function resolveCorrectiveAction(id: string, resolvedBy?: string | null) {
+  return supabase.from('corrective_actions')
+    .update({ status: 'resolved', resolved_at: new Date().toISOString(), resolved_by: resolvedBy ?? null })
+    .eq('id', id)
+}
+
+/**
+ * Record a certificate's renewal by giving it its new expiry date. Replaces
+ * "mark as resolved", which hid the certificate without renewing anything.
+ * Returns { error } like the other writes; a row that couldn't be updated
+ * (removed, or blocked by access rules) is an error rather than a silent no-op.
+ */
+export async function renewCertificate(id: string, expiryDate: string) {
+  const { data, error } = await supabase.from('staff_training')
+    .update({ expiry_date: expiryDate, is_resolved: false, resolved_at: null })
+    .eq('id', id)
+    .select('id')
+  if (error) return { error }
+  if (!data?.length) return { error: new Error('That certificate could not be updated') }
+  return { error: null }
 }

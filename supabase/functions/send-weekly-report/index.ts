@@ -1,6 +1,21 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { allowOrigin } from '../_shared/cors.ts'
+import { workedMinutes } from '../_shared/workedHours.ts'
+
+// Read every row of a query a page at a time. Resolves to { data, error } like
+// a single read so the result can sit in the same Promise.all.
+// deno-lint-ignore no-explicit-any
+async function readAll(page: (from: number, to: number) => PromiseLike<{ data: any[] | null; error: any }>) {
+  // deno-lint-ignore no-explicit-any
+  const rows: any[] = []
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await page(from, from + 999)
+    if (error) return { data: null, error }
+    rows.push(...(data ?? []))
+    if ((data ?? []).length < 1000) return { data: rows, error: null }
+  }
+}
 
 const RESEND_API_KEY   = Deno.env.get('RESEND_API_KEY') ?? ''
 const SUPABASE_URL     = Deno.env.get('SUPABASE_URL') ?? ''
@@ -85,8 +100,13 @@ serve(async (req) => {
 
     const now       = new Date()
     const weekAgo   = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-    const weekStart = weekAgo.toISOString().slice(0, 10)
-    const weekEnd   = now.toISOString().slice(0, 10)
+    // An instant, not a date: the date of seven days ago, read as midnight, made
+    // the window about eight days long.
+    const weekStart = weekAgo.toISOString()
+    // Clock events are read a day earlier so a shift that began just before the
+    // window still has its clock-out; workedMinutes counts shifts that started
+    // inside the week.
+    const clockFrom = new Date(weekAgo.getTime() - 24 * 60 * 60 * 1000).toISOString()
 
     // Parallel data fetch
     const [
@@ -100,7 +120,11 @@ serve(async (req) => {
       wasteRes,
     ] = await Promise.all([
       db.from('app_settings').select('key,value').eq('venue_id', venueId),
-      db.from('clock_events').select('*').eq('venue_id', venueId).gte('occurred_at', weekStart),
+      // Paged: a request returns at most 1,000 rows and drops the rest silently.
+      readAll((from, to) => db.from('clock_events')
+        .select('staff_id, event_type, occurred_at')
+        .eq('venue_id', venueId).gte('occurred_at', clockFrom)
+        .order('occurred_at').order('id').range(from, to)),
       db.from('fridge_temperature_logs')
         .select('temperature, fridge:fridge_id(min_temp,max_temp)')
         .eq('venue_id', venueId)
@@ -115,20 +139,9 @@ serve(async (req) => {
     const settings = Object.fromEntries((venueRes.data ?? []).map((r: any) => [r.key, settingValue(r.value)]))
     const venueName = escapeHtml(settings.venue_name ?? 'Pelikn')
 
-    // Hours calculation
-    const events = (clockRes.data ?? []).sort((a: any, b: any) =>
-      new Date(a.occurred_at).getTime() - new Date(b.occurred_at).getTime()
-    )
-    let totalMins = 0
-    let lastIn: Date | null = null
-    for (const e of events) {
-      if (e.event_type === 'clock_in')  lastIn = new Date(e.occurred_at)
-      if (e.event_type === 'clock_out' && lastIn) {
-        totalMins += (new Date(e.occurred_at).getTime() - lastIn.getTime()) / 60000
-        lastIn = null
-      }
-    }
-    const totalHrs = (totalMins / 60).toFixed(1)
+    // Hours calculation — per person, breaks taken off (see _shared/workedHours)
+    if (clockRes.error) throw clockRes.error
+    const totalHrs = (workedMinutes(clockRes.data ?? [], weekAgo.getTime()) / 60).toFixed(1)
 
     // Temp compliance
     const temps = tempRes.data ?? []

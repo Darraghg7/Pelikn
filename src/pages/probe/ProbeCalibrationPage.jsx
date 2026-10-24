@@ -87,7 +87,12 @@ export default function ProbeCalibrationPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-charcoal dark:text-white">Probe Calibration</h1>
         <Button
-          onClick={() => setShowForm(true)}
+          onClick={() => {
+            // The time was set once when the page loaded, so a calibration done
+            // hours later was saved with the old time. Take it when opening.
+            setForm(f => ({ ...f, calibrated_at: nowDatetimeLocal() }))
+            setShowForm(true)
+          }}
         >
           + Calibrate
         </Button>

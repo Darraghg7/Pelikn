@@ -4,6 +4,7 @@ import { loadPdfLibs, PDF } from '../../lib/pdfUtils'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { PEST_LOG_TYPES, PEST_TYPES } from '../../hooks/usePestControl'
+import { resolvedPestIssueIds, pestStatusOf } from '../../lib/api/pestControl'
 
 const label = (list, value) => list.find(x => x.value === value)?.label ?? value ?? '—'
 import Modal from '../../components/ui/Modal'
@@ -24,7 +25,7 @@ export default function PestExportModal({ open, onClose }) {
     setLoading(true)
     const query = supabase
       .from('pest_control_logs')
-      .select('log_type, pest_type, severity, location, description, action_taken, contractor, status, logged_at, logged_by_name')
+      .select('*')
       .eq('venue_id', venueId)
       .gte('logged_at', new Date(`${dateFrom}T00:00:00`).toISOString())
       .lte('logged_at', new Date(`${dateTo}T23:59:59`).toISOString())
@@ -35,6 +36,9 @@ export default function PestExportModal({ open, onClose }) {
 
     if (error) { toast(error.message, 'error'); return }
     if (!data?.length) { toast('No records found for this period', 'error'); return }
+
+    // An entry about an issue that has since been closed is closed too.
+    const resolvedIssues = await resolvedPestIssueIds(venueId, data)
 
     const { jsPDF, autoTable } = await loadPdfLibs()
     const doc = new jsPDF({ orientation: 'landscape' })
@@ -64,7 +68,7 @@ export default function PestExportModal({ open, onClose }) {
           row.location ?? '—',
           row.description ?? '',
           [row.action_taken, row.contractor].filter(Boolean).join(' · '),
-          tracked ? (row.status === 'resolved' ? 'RESOLVED' : 'OPEN') : '—',
+          tracked ? (pestStatusOf(row, resolvedIssues) === 'resolved' ? 'RESOLVED' : 'OPEN') : '—',
           row.logged_by_name ?? '—',
         ]
       }),

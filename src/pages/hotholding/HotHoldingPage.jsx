@@ -34,6 +34,7 @@ import {
 } from '../../components/temperature/TempPageParts'
 import TempHistoryView, { historyDateFrom, buildClosedDateSet } from '../../components/temperature/TempHistoryView'
 import HotHoldingExportModal from './HotHoldingExportModal'
+import LoadError from '../../components/ui/LoadError'
 import Button from '../../components/ui/Button'
 
 const PERIOD_NAMES = { am: 'Morning check', pm: 'Evening check' }
@@ -217,7 +218,7 @@ function HotHoldingHistory() {
   const todayStr = format(new Date(), 'yyyy-MM-dd')
   const dateFrom = historyDateFrom(range)
 
-  const { items, matrix, loading } = useHotHoldingMatrix(dateFrom, todayStr)
+  const { items, matrix, loading, failed, reload } = useHotHoldingMatrix(dateFrom, todayStr)
   const { closedDays } = useAppSettings()
   const { closures }   = useVenueClosures()
 
@@ -225,6 +226,8 @@ function HotHoldingHistory() {
     () => buildClosedDateSet({ dateFrom, dateTo: todayStr, closedDays, closures }),
     [dateFrom, todayStr, closedDays, closures]
   )
+
+  if (failed) return <LoadError what="the hot holding history" onRetry={reload} />
 
   return (
     <TempHistoryView
@@ -249,8 +252,8 @@ export default function HotHoldingPage() {
   const { session, isManager } = useSession()
   const [searchParams, setSearchParams] = useSearchParams()
 
-  const { items, loading: itemsLoading, reload: reloadItems } = useHotHoldingItems()
-  const { status, loading: statusLoading, reload: reloadStatus } = useHotHoldingTodayStatus()
+  const { items, loading: itemsLoading, failed: itemsFailed, reload: reloadItems } = useHotHoldingItems()
+  const { status, loading: statusLoading, failed: statusFailed, reload: reloadStatus } = useHotHoldingTodayStatus()
 
   const now           = new Date()
   const currentPeriod = now.getHours() < 12 ? 'am' : 'pm'
@@ -350,7 +353,13 @@ export default function HotHoldingPage() {
 
       {/* ── Today's check ── */}
       {tab === 'today' && (
-        items.length === 0 ? (
+        // A failed read must not look like "no items" (or "nothing logged yet",
+        // which has staff taking every reading again and duplicating the record).
+        itemsFailed || statusFailed ? (
+          <div className={CARD}>
+            <LoadError what="today's hot holding checks" onRetry={() => { reloadItems(); reloadStatus() }} />
+          </div>
+        ) : items.length === 0 ? (
           <div className={`${CARD} p-8 text-center flex flex-col items-center gap-2.5`}>
             <p className="text-body-sm text-ink3 dark:text-white/45">
               {isManager ? 'No hot holding items yet.' : 'No hot holding items yet — ask your manager to add them.'}

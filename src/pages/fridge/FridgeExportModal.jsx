@@ -7,6 +7,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import Modal from '../../components/ui/Modal'
 import { useToast } from '../../components/ui/Toast'
 import Button from '../../components/ui/Button'
+import { readingOutOfRange, readingAuditNotes } from '../../lib/utils'
 
 export default function FridgeExportModal({ open, onClose }) {
   const { venueId } = useVenue()
@@ -21,7 +22,7 @@ export default function FridgeExportModal({ open, onClose }) {
     setLoading(true)
     let query = supabase
       .from('fridge_temperature_logs')
-      .select('temperature, logged_at, logged_by_name, notes, check_period, fridge:fridge_id(name, min_temp, max_temp)')
+      .select('*, fridge:fridge_id(name, min_temp, max_temp)')
       .eq('venue_id', venueId)
       .gte('logged_at', dateFrom)
       .lte('logged_at', dateTo + 'T23:59:59')
@@ -59,9 +60,7 @@ export default function FridgeExportModal({ open, onClose }) {
       startY: fridgeId ? 43 : 37,
       head: [['Date', 'Time', 'AM/PM', 'Fridge', 'Temp (°C)', 'Status', 'Staff', 'Notes']],
       body: data.map(row => {
-        const oor = row.fridge
-          ? (row.temperature < row.fridge.min_temp || row.temperature > row.fridge.max_temp)
-          : false
+        const oor = row.fridge ? readingOutOfRange(row, row.fridge) : false
         return [
           format(new Date(row.logged_at), 'dd/MM/yyyy'),
           format(new Date(row.logged_at), 'HH:mm'),
@@ -70,7 +69,7 @@ export default function FridgeExportModal({ open, onClose }) {
           row.temperature.toFixed(1),
           oor ? 'OUT OF RANGE' : 'OK',
           row.logged_by_name ?? '—',
-          row.notes ?? '',
+          [row.notes, ...readingAuditNotes(row)].filter(Boolean).join(' · '),
         ]
       }),
       headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 9 },

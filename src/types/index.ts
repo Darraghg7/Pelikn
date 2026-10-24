@@ -63,6 +63,17 @@ export interface FridgeLog {
   notes?: string
   venue_id?: string
   fridge_name?: string
+  // Audit trail (migration 163). Absent, or null, on readings from before it.
+  /** When the row reached the database. logged_at is when the reading says it was taken. */
+  recorded_at?: string | null
+  /** Entered more than 30 minutes after the time it records. */
+  is_backfilled?: boolean
+  /** The fridge's range when the reading was taken; pass/fail uses this. */
+  range_min?: number | null
+  range_max?: number | null
+  reason_previous?: string | null
+  reason_changed_at?: string | null
+  reason_changed_by?: string | null
   /** Embedded by fetchFridgeHistory's `fridges(name, min_temp, max_temp)` join. */
   fridges?: { name: string; min_temp: number; max_temp: number } | null
 }

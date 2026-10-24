@@ -10,6 +10,25 @@ export const formatDateTime = (d) => format(new Date(d), 'd MMM yyyy HH:mm')
 export const isTempOutOfRange = (temp, min, max) =>
   Number(temp) < Number(min) || Number(temp) > Number(max)
 
+/**
+ * Was a STORED reading outside the range its fridge had when it was taken?
+ * Readings carry a snapshot of that range (migration 163); judging them
+ * against the fridge's current range let a later change turn past failures
+ * into passes. Older readings have no snapshot and use the current range.
+ * @param {{ temperature: number|string, range_min?: number|null, range_max?: number|null }} log
+ * @param {{ min_temp?: number|string|null, max_temp?: number|string|null } | null | undefined} fridge
+ */
+export const readingOutOfRange = (log, fridge) =>
+  isTempOutOfRange(log.temperature, log.range_min ?? fridge?.min_temp, log.range_max ?? fridge?.max_temp)
+
+/** A short note for a reading that wasn't entered at the time it was taken, or whose reason was changed. */
+export const readingAuditNotes = (log) => {
+  const notes = []
+  if (log.is_backfilled) notes.push('late entry')
+  if (log.reason_changed_at) notes.push('reason changed')
+  return notes
+}
+
 /** Returns the Monday of the week containing the given date. */
 export const getWeekStart = (date = new Date()) =>
   startOfWeek(date, { weekStartsOn: 1 })

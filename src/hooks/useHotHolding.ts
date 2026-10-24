@@ -91,28 +91,31 @@ export function isHotHoldingFail(temperature: number | string, item: HotHoldingI
  * useHotHoldingItems — fetches all active hot holding items for this venue.
  * Managers can add/remove items; staff log readings against them.
  */
-export function useHotHoldingItems(): { items: HotHoldingItem[]; loading: boolean; reload: () => void } {
+export function useHotHoldingItems(): { items: HotHoldingItem[]; loading: boolean; failed: boolean; reload: () => void } {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
 
   const queryKey = ['hot_holding_items', venueId]
 
-  const { data: items = [], isLoading: loading } = useQuery({
+  const { data, isLoading: loading, isError } = useQuery({
     queryKey,
     queryFn: () => fetchActiveHotHoldingItems(venueId!),
     enabled: !!venueId,
   })
+  const items = data ?? []
 
   const reload = () => queryClient.invalidateQueries({ queryKey })
 
-  return { items, loading, reload }
+  // `failed` only when there is nothing to show, so a failed read isn't shown
+  // as "No hot holding items yet".
+  return { items, loading, failed: isError && !data, reload }
 }
 
 /**
  * useHotHoldingTodayStatus — returns which check periods have been completed today.
  * Returns { am: bool, pm: bool, amLogs: [...], pmLogs: [...] }
  */
-export function useHotHoldingTodayStatus(): { status: HotHoldingTodayStatus; loading: boolean; reload: () => void } {
+export function useHotHoldingTodayStatus(): { status: HotHoldingTodayStatus; loading: boolean; failed: boolean; reload: () => void } {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
 
@@ -120,7 +123,7 @@ export function useHotHoldingTodayStatus(): { status: HotHoldingTodayStatus; loa
 
   const defaultStatus: HotHoldingTodayStatus = { am: false, pm: false, amLogs: [], pmLogs: [], amRequired: false, pmRequired: false, amMissing: [], pmMissing: [] }
 
-  const { data: status = defaultStatus, isLoading: loading } = useQuery({
+  const { data: statusData, isLoading: loading, isError } = useQuery({
     queryKey,
     queryFn: async (): Promise<HotHoldingTodayStatus> => {
       const today = new Date().toISOString().slice(0, 10)
@@ -167,7 +170,9 @@ export function useHotHoldingTodayStatus(): { status: HotHoldingTodayStatus; loa
 
   const reload = () => queryClient.invalidateQueries({ queryKey })
 
-  return { status, loading, reload }
+  // A failed read fell back to "nothing logged", so every item showed "Due now"
+  // and the AM card "Missed", and staff logged a second reading for each.
+  return { status: statusData ?? defaultStatus, loading, failed: isError && !statusData, reload }
 }
 
 /**
@@ -234,6 +239,7 @@ export function useHotHoldingMatrix(dateFrom: string, dateTo: string): {
   items: HotHoldingItem[]
   matrix: Record<string, Record<string, Record<string, HotHoldingLog>>>
   loading: boolean
+  failed: boolean
   reload: () => void
 } {
   const { venueId } = useVenue()
@@ -241,7 +247,7 @@ export function useHotHoldingMatrix(dateFrom: string, dateTo: string): {
 
   const queryKey = ['hot_holding_matrix', venueId, dateFrom, dateTo]
 
-  const { data, isLoading: loading } = useQuery({
+  const { data, isLoading: loading, isError } = useQuery({
     queryKey,
     queryFn: async () => {
       const [items, { data: logs, error: logsErr }] = await Promise.all([
@@ -277,5 +283,5 @@ export function useHotHoldingMatrix(dateFrom: string, dateTo: string): {
 
   const reload = () => queryClient.invalidateQueries({ queryKey })
 
-  return { items: data?.items ?? [], matrix: data?.matrix ?? {}, loading, reload }
+  return { items: data?.items ?? [], matrix: data?.matrix ?? {}, loading, failed: isError && !data, reload }
 }

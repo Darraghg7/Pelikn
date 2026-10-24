@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { format, isPast, parseISO, differenceInDays } from 'date-fns'
+import { format, parseISO } from 'date-fns'
+import { documentStatus } from '../../hooks/useDocuments'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSuppliers } from '../../hooks/useSuppliers'
@@ -63,12 +64,11 @@ function ApprovalBadge({ status }) {
   )
 }
 
+// Valid for the whole of the expiry date (isPast on midnight showed "EXPIRED"
+// a day early). Same calendar-day rule as the Documents page.
 function certStatus(expiry) {
   if (!expiry) return null
-  const d = parseISO(expiry)
-  if (isPast(d)) return 'expired'
-  if (differenceInDays(d, new Date()) <= 30) return 'expiring'
-  return 'valid'
+  return documentStatus({ expiry_date: expiry }).status
 }
 
 

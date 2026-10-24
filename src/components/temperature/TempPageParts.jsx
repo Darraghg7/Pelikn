@@ -145,18 +145,22 @@ export function ItemHeading({ name, range, schedule, note, chips }) {
   )
 }
 
-// Idle time after the last keystroke before an auto-save reading is saved
-const AUTO_SAVE_IDLE_MS = 3000
 // Short grace after leaving the field, so tapping Cancel (which unmounts this) wins
 const AUTO_SAVE_BLUR_MS = 250
 
 /**
  * Temperature entry with a Log button. With `autoSave`, a valid reading also
- * saves itself when the field loses focus or after a few seconds' pause, so
- * staff don't have to tap Log. `canSubmit` still gates it — out-of-range
- * readings wait for their reason / corrective action as before.
+ * saves itself when the field loses focus, so staff don't have to tap Log.
+ * It used to save after a few seconds' pause as well, which logged a
+ * half-typed number ("1" on the way to "10") as the official reading — a
+ * pause is not "finished", leaving the field is. `canSubmit` still gates it —
+ * out-of-range readings wait for their reason / corrective action as before.
+ *
+ * `allowNegative` adds a ± button. On iPhone the decimal keypad has no minus
+ * key, so a freezer reading like -18 couldn't be typed. Type the digits, then
+ * tap ± (a number field can't hold a bare "-", so it needs digits first).
  */
-export function ReadingInput({ value, onChange, onSubmit, placeholder, ariaLabel, canSubmit, saving, warn, autoFocus, autoSave = false, submitLabel = 'Log' }) {
+export function ReadingInput({ value, onChange, onSubmit, placeholder, ariaLabel, canSubmit, saving, warn, autoFocus, autoSave = false, allowNegative = false, submitLabel = 'Log' }) {
   // Timers fire after later renders, so read the latest submit state through a ref
   const latest = useRef({ onSubmit, canSubmit })
   latest.current = { onSubmit, canSubmit }
@@ -170,12 +174,15 @@ export function ReadingInput({ value, onChange, onSubmit, placeholder, ariaLabel
   }
 
   useEffect(() => () => clearTimeout(timer.current), [])
-  useEffect(() => {
-    if (autoSave && value !== '') schedule(AUTO_SAVE_IDLE_MS)
-    else clearTimeout(timer.current)
-  }, [autoSave, value])
+  // Typing again cancels a pending leave-the-field save.
+  useEffect(() => { clearTimeout(timer.current) }, [value])
 
   const submitNow = () => { clearTimeout(timer.current); if (canSubmit) onSubmit() }
+  const toggleSign = () => {
+    if (value === '' || value == null) return
+    const v = String(value)
+    onChange(v.startsWith('-') ? v.slice(1) : `-${v}`)
+  }
 
   return (
     <div className="flex gap-2">
@@ -203,6 +210,18 @@ export function ReadingInput({ value, onChange, onSubmit, placeholder, ariaLabel
         />
         <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 font-mono text-body-sm text-ink3 dark:text-white/40">°C</span>
       </div>
+      {allowNegative && (
+        <Button
+          variant="secondary"
+          onClick={toggleSign}
+          disabled={saving || value === '' || value == null}
+          aria-label={String(value).startsWith('-') ? 'Make positive' : 'Make negative (freezer reading)'}
+          title="Switch between + and −"
+          className="min-w-[44px]"
+        >
+          ±
+        </Button>
+      )}
       <Button
         loading={saving}
         onClick={submitNow}

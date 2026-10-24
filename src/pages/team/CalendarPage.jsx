@@ -5,6 +5,7 @@ import Avatar from '../../components/ui/Avatar'
 import Button from '../../components/ui/Button'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import { colors, black, white } from '../../lib/tokens'
+import { nextLondonDate } from '../../lib/time'
 
 const DAYS_SHORT = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
@@ -39,15 +40,17 @@ function todayStr() {
   const n = new Date()
   return toDateStr(n.getFullYear(), n.getMonth(), n.getDate())
 }
-function newEventId() { return 'e' + Date.now().toString(36) }
-
+// Every date from startStr to endStr inclusive, as "yyyy-MM-dd". Stepped on the
+// date strings themselves: the old loop made local-midnight Dates and read them
+// back with toISOString(), so in summer time every day was one day early.
 function datesInRange(startStr, endStr) {
   const out = []
-  const cur = new Date(startStr + 'T00:00:00')
-  const end = new Date(endStr + 'T00:00:00')
-  while (cur <= end) {
-    out.push(cur.toISOString().slice(0, 10))
-    cur.setDate(cur.getDate() + 1)
+  if (!startStr || !endStr) return out
+  let cur = startStr
+  // The cap stops a mistyped year (e.g. 0202) from looping for centuries.
+  for (let i = 0; cur <= endStr && i < 1500; i++) {
+    out.push(cur)
+    cur = nextLondonDate(cur)
   }
   return out
 }
@@ -180,7 +183,9 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
   function handleSave() {
     if (!canSave) return
     onSave({
-      id: event?.id ?? newEventId(),
+      // Only an existing event has an id. A made-up one made the hook take the
+      // update path against a uuid column, so adding an event always failed.
+      ...(event?.id ? { id: event.id } : {}),
       title: title.trim(), type, colour,
       start_date: startDate, end_date: endDate,
       all_day: allDay,
