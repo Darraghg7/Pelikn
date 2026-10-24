@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
-import { format, endOfWeek, addWeeks, startOfMonth, endOfMonth, subMonths, parseISO, eachDayOfInterval } from 'date-fns'
+import { format, parseISO, eachDayOfInterval } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { fetchStaffPayRates, fetchStaffPrivateFields } from '../../lib/api/staffRestricted'
 import { useVenue } from '../../contexts/VenueContext'
@@ -8,7 +8,7 @@ import { useToast } from '../../components/ui/Toast'
 import { useTimesheetData } from '../../hooks/useClockEvents'
 import { useStaffList, paidShiftHours } from '../../hooks/useShifts'
 import { useAppSettings } from '../../hooks/useSettings'
-import { formatMinutes, getWeekStart, downloadCsv } from '../../lib/utils'
+import { formatMinutes, downloadCsv } from '../../lib/utils'
 import { buildPdfReport } from '../../lib/pdfUtils'
 import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
 import { withPaidHoursColumns, fetchTimesheetPayouts, removePaidOut } from '../../lib/api/holidayData'
@@ -27,7 +27,7 @@ import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard
 import RestrictedFieldsNotice from '../../components/ui/RestrictedFieldsNotice'
 import Avatar from '../../components/ui/Avatar'
 import { formatLondon, londonToday, resolveShiftInstants } from '../../lib/time'
-import { buildTimesheets, buildDailyGrid, partitionDaySessions, breakMinutes, sessionMinutes } from '../../lib/timesheet'
+import { buildTimesheets, buildDailyGrid, partitionDaySessions, breakMinutes, sessionMinutes, timesheetPeriod } from '../../lib/timesheet'
 import { offlineRpc } from '../../lib/offlineSupabase'
 import { reportError } from '../../lib/reportError'
 import { Link } from 'react-router-dom'
@@ -97,8 +97,6 @@ function calcHolidayMins(leaveReqs, staffId, profile, periodFrom, periodTo) {
   }, 0)
 }
 
-const END_OF_DAY_MS = 86_399_999
-
 const PERIOD_TABS  = [
   { id: 'this_week',  label: 'This week'  },
   { id: 'last_week',  label: 'Last week'  },
@@ -109,28 +107,16 @@ const OTHER_PERIODS = [
   { key: 'custom',     label: 'Custom dates' },
 ]
 
+// periodFrom/periodTo are the London calendar dates (used for leave, payouts,
+// rota shifts and payroll locks); dateFrom/dateTo are the matching instants
+// for clock events. See timesheetPeriod for why they are no longer derived
+// by slicing a UTC timestamp.
 function periodToDates(period, customFrom, customTo) {
-  const now = new Date()
-  const thisWeekStart = getWeekStart(now)
-  const thisWeekEnd   = endOfWeek(thisWeekStart, { weekStartsOn: 1 })
-  if (period === 'this_week') return { dateFrom: thisWeekStart.toISOString(), dateTo: thisWeekEnd.toISOString(), label: rangeLabel(thisWeekStart, thisWeekEnd) }
-  if (period === 'last_week') {
-    const start = addWeeks(thisWeekStart, -1), end = endOfWeek(start, { weekStartsOn: 1 })
-    return { dateFrom: start.toISOString(), dateTo: end.toISOString(), label: rangeLabel(start, end) }
-  }
-  if (period === 'this_month') {
-    const start = startOfMonth(now), end = endOfMonth(now)
-    return { dateFrom: start.toISOString(), dateTo: end.toISOString(), label: format(now, 'MMMM yyyy') }
-  }
-  if (period === 'last_month') {
-    const last = subMonths(now, 1), start = startOfMonth(last), end = endOfMonth(last)
-    return { dateFrom: start.toISOString(), dateTo: end.toISOString(), label: format(last, 'MMMM yyyy') }
-  }
-  if (customFrom && customTo) {
-    const start = parseISO(customFrom), end = parseISO(customTo)
-    return { dateFrom: start.toISOString(), dateTo: new Date(end.getTime() + END_OF_DAY_MS).toISOString(), label: rangeLabel(start, end) }
-  }
-  return { dateFrom: '', dateTo: '', label: '—' }
+  const p = timesheetPeriod(period, customFrom, customTo)
+  if (!p) return { dateFrom: '', dateTo: '', periodFrom: '', periodTo: '', label: '—' }
+  const from = parseISO(p.periodFrom), to = parseISO(p.periodTo)
+  const isMonth = period === 'this_month' || period === 'last_month'
+  return { ...p, label: isMonth ? format(from, 'MMMM yyyy') : rangeLabel(from, to) }
 }
 
 // ── UI atoms ───────────────────────────────────────────────────────────────────
@@ -512,7 +498,7 @@ export default function TimesheetPage() {
   const { staff: staffList } = useStaffList()
   const { breakDurationMins, holidayYearStartMonth } = useAppSettings()
 
-  const { dateFrom, dateTo, label: periodLabel } = useMemo(
+  const { dateFrom, dateTo, periodFrom, periodTo, label: periodLabel } = useMemo(
     () => periodToDates(period, customFrom, customTo),
     [period, customFrom, customTo]
   )
@@ -543,9 +529,9 @@ export default function TimesheetPage() {
 
   const holidayMinsFor = useCallback((staffId) => {
     const profile = staffProfiles[staffId] ?? { contractedHours: null, workingDays: [] }
-    return calcHolidayMins(periodLeave, staffId, profile, dateFrom.slice(0, 10), dateTo.slice(0, 10))
+    return calcHolidayMins(periodLeave, staffId, profile, periodFrom, periodTo)
       + (payoutHours[staffId] ?? 0) * 60
-  }, [periodLeave, staffProfiles, dateFrom, dateTo, payoutHours])
+  }, [periodLeave, staffProfiles, periodFrom, periodTo, payoutHours])
 
   const totalHolidayPay = useMemo(
     () => timesheets.reduce((a, t) => a + (holidayMinsFor(t.staffId) / 60) * t.hourlyRate, 0),
@@ -579,8 +565,6 @@ export default function TimesheetPage() {
     } catch { return [] }
   }, [dateFrom, dateTo])
 
-  const periodFrom = dateFrom ? dateFrom.slice(0, 10) : ''
-  const periodTo   = dateTo   ? dateTo.slice(0, 10)   : ''
   const isPeriodLocked = payrollLocks.some(l => l.from === periodFrom && l.to === periodTo)
 
   // ── Zero-hours holiday pay for this period ──────────────────────────────
@@ -673,17 +657,17 @@ export default function TimesheetPage() {
   }, [venueId])
 
   useEffect(() => {
-    if (!venueId || !dateFrom || !dateTo) return
+    if (!venueId || !periodFrom || !periodTo) return
     withPaidHoursColumns(async extra => {
       const { data, error } = await supabase.from('time_off_requests').select(`id, staff_id, start_date, end_date${extra}`)
         .eq('venue_id', venueId).eq('status', 'approved').eq('leave_type', 'annual')
-        .lte('start_date', dateTo.slice(0, 10)).gte('end_date', dateFrom.slice(0, 10))
+        .lte('start_date', periodTo).gte('end_date', periodFrom)
       if (error) throw error
       return data ?? []
     })
       .then(setPeriodLeave)
       .catch(error => reportError(error, 'TimesheetPage:period-leave'))
-  }, [venueId, dateFrom, dateTo, leaveTick])
+  }, [venueId, periodFrom, periodTo, leaveTick])
 
   useEffect(() => {
     if (!venueId || !periodFrom || !periodTo) return
@@ -808,7 +792,7 @@ export default function TimesheetPage() {
       return [t.name, `${hrs} hrs`, rate > 0 ? `£${rate}/hr` : '—', worked > 0 ? `£${worked}` : '—', holPay > 0 ? `£${holPay}` : '—', `£${(parseFloat(worked) + parseFloat(holPay)).toFixed(2)}`]
     }).filter(Boolean)
     pdfRows.push(['TOTAL', `${(totalMins / 60).toFixed(2)} hrs`, '', totalWage > 0 ? fmtGBP(totalWage) : '—', totalHolidayPay > 0 ? fmtGBP(totalHolidayPay) : '—', fmtGBP(totalWage + totalHolidayPay)])
-    buildPdfReport({ title: 'Pelikn', subtitle: 'Timesheet Report', periodLabel, columns: ['Staff Member', 'Hours Worked', 'Hourly Rate', 'Worked Pay', 'Holiday Pay', 'Total Pay'], rows: pdfRows, didParseCell(h) { if (h.section === 'body' && h.row.index === pdfRows.length - 1) { h.cell.styles.fontStyle = 'bold'; h.cell.styles.fillColor = [240, 240, 240] } }, filename: `timesheet-${dateFrom.slice(0, 10)}.pdf` })
+    buildPdfReport({ title: 'Pelikn', subtitle: 'Timesheet Report', periodLabel, columns: ['Staff Member', 'Hours Worked', 'Hourly Rate', 'Worked Pay', 'Holiday Pay', 'Total Pay'], rows: pdfRows, didParseCell(h) { if (h.section === 'body' && h.row.index === pdfRows.length - 1) { h.cell.styles.fontStyle = 'bold'; h.cell.styles.fillColor = [240, 240, 240] } }, filename: `timesheet-${periodFrom}.pdf` })
   }
 
   const exportCsv = () => {
