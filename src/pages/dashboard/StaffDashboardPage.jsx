@@ -528,7 +528,7 @@ function useShiftCompletions(venueId, dateStr, sessionType) {
   return { completions, reload: load }
 }
 
-function TodayChecks({ venueId, venueSlug, staffName }) {
+function TodayChecks({ venueId, venueSlug, staffId, staffName }) {
   const today = format(new Date(), 'yyyy-MM-dd')
   const sessionType = new Date().getHours() < 14 ? 'opening' : 'closing'
   const { checks: allChecks, loading, failed: checksFailed, retry: retryChecks } = useChecksForShift(venueId)
@@ -555,23 +555,32 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
   }
   if (!checks.length) return null
 
-  const done = completions.length
+  // Checks in this list that are done — not every completion row, which also
+  // counted repeat ticks and checks no longer on the list ("5/4").
+  const isDone = (checkId) => completions.some(comp => comp.check_id === checkId)
+  const done = checks.filter(c => isDone(c.id)).length
   const total = checks.length
   const allDone = done === total && total > 0
-  const pendingChecks = checks.filter(c => tickedThisVisit.has(c.id) || !completions.find(comp => comp.check_id === c.id))
+  const pendingChecks = checks.filter(c => tickedThisVisit.has(c.id) || !isDone(c.id))
 
+  // Saved the same way as the Opening & Closing page. This used an upsert on
+  // (venue_id, check_id, session_date, session_type), but there is no unique
+  // index on those columns, so Postgres refused every tick (42P10) and staff
+  // could never complete a check from here. It also left out who ticked it.
   const markOk = async (checkId) => {
-    if (saving) return
+    if (saving || isDone(checkId)) return
     setSaving(checkId)
-    const { error } = await supabase.from('opening_closing_completions').upsert({
+    const { error } = await supabase.from('opening_closing_completions').insert({
       venue_id: venueId,
       check_id: checkId,
       session_date: today,
       session_type: sessionType,
       completed_at: new Date().toISOString(),
+      staff_id: staffId ?? null,
       staff_name: staffName ?? 'Staff',
+      has_issue: false,
       corrective_action: null,
-    }, { onConflict: 'venue_id,check_id,session_date,session_type' })
+    })
     setSaving(null)
     if (error) {
       toast('Check could not be saved — please try again', 'error')
@@ -871,7 +880,7 @@ export default function StaffDashboardPage() {
 
       {/* Opening/closing checks — collapsible, shown when feature is enabled for venue */}
       {isEnabled('opening_closing') && (
-        <TodayChecks venueId={venueId} venueSlug={venueSlug} staffName={session.staffName} />
+        <TodayChecks venueId={venueId} venueSlug={venueSlug} staffId={session.staffId} staffName={session.staffName} />
       )}
 
       {/* Pending training sign-offs */}
